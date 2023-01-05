@@ -1,0 +1,14 @@
+overwrite: true
+schema: "./src/graphql/**/*.{ts,js}"
+generates:
+  ./src/types/graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-resolvers"
+    config:
+      enumsAsConst: true
+      inputMaybeValue: T | undefined
+      contextType: ./apollo#ApolloContext
+      customResolverFn: "(parent: any, args: TArgs, context: TContext, info: GraphQLResolveInfo) => Promise<any> | any"
+      scalars:
+        DateTime: Date

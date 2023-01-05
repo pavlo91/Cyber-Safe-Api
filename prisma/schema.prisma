@@ -1,0 +1,54 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [citext]
+}
+
+model SocialMediaFacebook {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token  String
+}
+
+model User {
+  id          String               @id @default(cuid())
+  uuid        String               @unique @default(uuid())
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @default(now()) @updatedAt
+  email       String               @unique @db.Citext
+  password    String
+  name        String
+  isStaff     Boolean              @default(false)
+  isConfirmed Boolean              @default(false)
+  membership  Membership?
+  // Socials
+  facebook    SocialMediaFacebook?
+
+  @@index(isStaff)
+  @@index(isConfirmed)
+}
+
+model Organization {
+  id          String       @id @default(cuid())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now()) @updatedAt
+  name        String
+  memberships Membership[]
+}
+
+model Membership {
+  userId         String       @unique
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @default(now()) @updatedAt
+  isAdmin        Boolean
+
+  @@id([userId, organizationId])
+}
