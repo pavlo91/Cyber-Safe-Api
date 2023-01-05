@@ -1,4 +1,3 @@
-import { randPassword } from '@ngneat/falso'
 import { PrismaClient } from '@prisma/client'
 import readline from 'readline'
 import { MiddlewareManager } from './middlewares'
@@ -26,21 +25,15 @@ async function main() {
   const middleware = new MiddlewareManager(prisma)
   middleware.applyMiddlewares()
 
-  const name = await ask('Name: ', true)
   const email = await ask('Email: ', true)
-  const password = (await ask('Password (leave blank for random): ')) || randPassword()
 
   await prisma.user.create({
     data: {
-      name,
       email,
-      password,
+      name: '',
       isStaff: true,
-      isConfirmed: true,
     },
   })
-
-  console.log({ name, email, password })
 }
 
 main().finally(() => {

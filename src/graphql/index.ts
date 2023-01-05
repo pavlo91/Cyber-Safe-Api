@@ -28,8 +28,9 @@ export class GraphQLManager {
     })
 
     this.modules = paths.map((path) => {
+      const module = require(path).default
       this.logger.debug('Succesfully loaded GraphQL module at "%s"', path)
-      return require(path).default
+      return module
     })
   }
 

@@ -1,15 +1,11 @@
-import { PrismaClient } from '@prisma/client'
+import { randAlphaNumeric } from '@ngneat/falso'
+import { Prisma, PrismaClient } from '@prisma/client'
 import { FastifyReply, FastifyRequest, HTTPMethods } from 'fastify'
 import { Config } from '../config'
-import { loadHtml } from '../helpers/pug'
 import { Route } from './index'
 
 type Params = {
   uuid: string
-}
-
-type Query = {
-  redirect?: string
 }
 
 export class ConfirmRoute implements Route {
@@ -17,17 +13,32 @@ export class ConfirmRoute implements Route {
 
   async handle(req: FastifyRequest, res: FastifyReply) {
     const params = req.params as Params
-    const query = req.query as Query
 
-    await this.prisma.user.update({
+    const user = await this.prisma.user.findUniqueOrThrow({
       where: { uuid: params.uuid },
-      data: { isConfirmed: true },
     })
 
-    if (query.redirect) {
-      res.redirect(query.redirect)
+    const data: Prisma.UserUpdateInput = {
+      isConfirmed: true,
     }
 
-    return loadHtml('/html/confirm.pug', { url: Config.webUrl })
+    if (!user.password) {
+      data.activationToken = randAlphaNumeric({ length: 12 }).join('')
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data,
+    })
+
+    let redirect: string
+
+    if (!user.password) {
+      redirect = Config.composeUrl('webUrl', '/activate', { confirmed: true, token: data.activationToken })
+    } else {
+      redirect = Config.composeUrl('webUrl', '/login', { confirmed: true })
+    }
+
+    res.redirect(redirect)
   }
 }

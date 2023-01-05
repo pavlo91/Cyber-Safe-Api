@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import cron from 'node-cron'
 import { Logger } from '../libs/logger'
-import { FeedJob } from './feed'
 
 export interface Job {
   name: string
@@ -14,10 +13,7 @@ export class JobManager {
   private logger = Logger.label('job')
 
   constructor(prisma: PrismaClient) {
-    this.jobs = [
-      // Executes every 5 minutes a job to get the feed
-      new FeedJob('FeedJob', '*/5 * * * *', prisma, this.logger),
-    ]
+    this.jobs = []
   }
 
   private async handleJob(job: Job) {

@@ -9,13 +9,11 @@ export default createGraphQLModule({
 
     input MembershipFilter {
       organization: OrganizationFilter
-      user: UserFilter
       isAdmin: Boolean
     }
 
     input MembershipOrder {
       organization: OrganizationOrder
-      user: UserOrder
       isAdmin: OrderDirection
     }
   `,

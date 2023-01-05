@@ -8,5 +8,5 @@ export function loadHtml(name: string, model?: Record<string, any>) {
 
 export function loadHtmlTitle(html: string) {
   const titleRegex = new RegExp('<title>(.+)</title>')
-  return titleRegex.exec(html)![1]
+  return titleRegex.exec(html)?.[1] ?? ''
 }

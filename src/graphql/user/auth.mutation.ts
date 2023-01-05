@@ -14,9 +14,14 @@ export default createGraphQLModule({
       organizationName: String!
     }
 
+    input ActivateInput {
+      name: String!
+    }
+
     type Mutation {
       login(email: String!, password: String!): Token!
       register(email: String!, password: String!, input: RegisterInput!): ID
+      activate(token: String!, password: String!, input: ActivateInput!): ID
     }
   `,
   resolvers: {
@@ -27,7 +32,7 @@ export default createGraphQLModule({
           where: { email },
         })
 
-        if (!comparePassword(password, user.password)) {
+        if (!user.password || !comparePassword(password, user.password)) {
           throw new Error("Passwords don't match")
         }
 
@@ -51,6 +56,16 @@ export default createGraphQLModule({
                 },
               },
             },
+          },
+        })
+      },
+      async activate(obj, { token, password, input: { name } }, { prisma }, info) {
+        await prisma.user.update({
+          where: { activationToken: token },
+          data: {
+            name,
+            password,
+            activationToken: null,
           },
         })
       },

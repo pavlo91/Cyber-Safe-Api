@@ -27,6 +27,7 @@ export default createGraphQLModule({
       name: StringFilter
       isStaff: Boolean
       isConfirmed: Boolean
+      membership: MembershipFilter
     }
 
     input UserOrder {
@@ -35,6 +36,7 @@ export default createGraphQLModule({
       name: OrderDirection
       isStaff: OrderDirection
       isConfirmed: OrderDirection
+      membership: MembershipOrder
     }
   `,
 })

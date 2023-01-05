@@ -4,7 +4,8 @@ import jwt from 'jsonwebtoken'
 import { z } from 'zod'
 import { Config } from '../config'
 
-export function hashPassword(password: string) {
+export function hashPassword(password: string | undefined | null) {
+  if (typeof password !== 'string') return null
   return bcrypt.hashSync(password, 10)
 }
 

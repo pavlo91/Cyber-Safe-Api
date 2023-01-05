@@ -17,6 +17,10 @@ export type Scalars = {
   DateTime: Date;
 };
 
+export type ActivateInput = {
+  name: Scalars['String'];
+};
+
 export type DateTimeFilter = {
   gte?: InputMaybe<Scalars['DateTime']>;
   lte?: InputMaybe<Scalars['DateTime']>;
@@ -36,19 +40,32 @@ export type Membership = {
 export type MembershipFilter = {
   isAdmin?: InputMaybe<Scalars['Boolean']>;
   organization?: InputMaybe<OrganizationFilter>;
-  user?: InputMaybe<UserFilter>;
 };
 
 export type MembershipOrder = {
   isAdmin?: InputMaybe<OrderDirection>;
   organization?: InputMaybe<OrganizationOrder>;
-  user?: InputMaybe<UserOrder>;
 };
 
 export type Mutation = {
   __typename?: 'Mutation';
+  activate?: Maybe<Scalars['ID']>;
+  inviteMember?: Maybe<Scalars['ID']>;
   login: Token;
   register?: Maybe<Scalars['ID']>;
+};
+
+
+export type MutationActivateArgs = {
+  input: ActivateInput;
+  password: Scalars['String'];
+  token: Scalars['String'];
+};
+
+
+export type MutationInviteMemberArgs = {
+  email: Scalars['String'];
+  isAdmin: Scalars['Boolean'];
 };
 
 
@@ -113,8 +130,8 @@ export type Query = {
 
 
 export type QueryMembersArgs = {
-  filter?: InputMaybe<MembershipFilter>;
-  order?: InputMaybe<MembershipOrder>;
+  filter?: InputMaybe<UserFilter>;
+  order?: InputMaybe<UserOrder>;
   page?: InputMaybe<Page>;
 };
 
@@ -163,6 +180,7 @@ export type UserFilter = {
   email?: InputMaybe<StringFilter>;
   isConfirmed?: InputMaybe<Scalars['Boolean']>;
   isStaff?: InputMaybe<Scalars['Boolean']>;
+  membership?: InputMaybe<MembershipFilter>;
   name?: InputMaybe<StringFilter>;
 };
 
@@ -171,6 +189,7 @@ export type UserOrder = {
   email?: InputMaybe<OrderDirection>;
   isConfirmed?: InputMaybe<OrderDirection>;
   isStaff?: InputMaybe<OrderDirection>;
+  membership?: InputMaybe<MembershipOrder>;
   name?: InputMaybe<OrderDirection>;
 };
 
@@ -236,6 +255,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  ActivateInput: ActivateInput;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   DateTimeFilter: DateTimeFilter;
@@ -266,6 +286,7 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  ActivateInput: ActivateInput;
   Boolean: Scalars['Boolean'];
   DateTime: Scalars['DateTime'];
   DateTimeFilter: DateTimeFilter;
@@ -308,6 +329,8 @@ export type MembershipResolvers<ContextType = ApolloContext, ParentType extends 
 };
 
 export type MutationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  activate?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationActivateArgs, 'input' | 'password' | 'token'>>;
+  inviteMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteMemberArgs, 'email' | 'isAdmin'>>;
   login?: Resolver<ResolversTypes['Token'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
   register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'input' | 'password'>>;
 };

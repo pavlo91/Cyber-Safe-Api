@@ -18,8 +18,7 @@ export class UserMiddleware implements Middleware {
     })
 
     for (const user of users) {
-      const redirect = Config.composeUrl('webUrl', '/dashboard', { confirmed: true })
-      const url = Config.composeUrl('apiUrl', '/api/confirm/:uuid', { uuid: user.uuid, redirect })
+      const url = Config.composeUrl('apiUrl', '/api/confirm/:uuid', { uuid: user.uuid })
       Postmark.shared.send(user.email, 'confirm', { url })
     }
   }

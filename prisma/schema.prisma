@@ -9,25 +9,31 @@ datasource db {
   extensions = [citext]
 }
 
-model SocialMediaFacebook {
-  userId String @id
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token  String
+model SFacebook {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  token     String
+
+  @@index(userId)
+  @@index(token)
 }
 
 model User {
-  id          String               @id @default(cuid())
-  uuid        String               @unique @default(uuid())
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @default(now()) @updatedAt
-  email       String               @unique @db.Citext
-  password    String
-  name        String
-  isStaff     Boolean              @default(false)
-  isConfirmed Boolean              @default(false)
-  membership  Membership?
+  id              String      @id @default(cuid())
+  uuid            String      @unique @default(uuid())
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @default(now()) @updatedAt
+  email           String      @unique @db.Citext
+  password        String?
+  activationToken String?     @unique
+  name            String
+  isStaff         Boolean     @default(false)
+  isConfirmed     Boolean     @default(false)
+  membership      Membership?
   // Socials
-  facebook    SocialMediaFacebook?
+  facebook        SFacebook?
 
   @@index(isStaff)
   @@index(isConfirmed)

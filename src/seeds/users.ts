@@ -19,6 +19,7 @@ export class UsersSeed implements Seed {
             name: randFullName(),
             email: randEmail(),
             password: 'password',
+            isConfirmed: true,
           },
         })
       )
