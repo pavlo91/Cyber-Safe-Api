@@ -13,12 +13,14 @@ export function select(info: GraphQLResolveInfo, modelName: Prisma.ModelName, fi
   return select.valueWithFilter(modelName)
 }
 
+const DEFAULT_PAGE_SIZE = 15
+
 export async function paginated<T>(
   page: InputMaybe<Page>,
   findManyAndCount: (args: { skip: number; take: number }) => Promise<[T[], number]>
 ) {
   const index = page?.index ?? 0
-  const size = page?.size ?? 10
+  const size = page?.size ?? DEFAULT_PAGE_SIZE
 
   const args = {
     skip: index * size,

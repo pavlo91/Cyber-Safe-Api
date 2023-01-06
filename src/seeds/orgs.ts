@@ -12,7 +12,7 @@ export class OrgsSeed implements Seed {
 
   async execute() {
     await this.prisma.$transaction(
-      mapCount(10, () =>
+      mapCount(5, () =>
         this.prisma.organization.create({
           data: {
             name: randCompanyName(),

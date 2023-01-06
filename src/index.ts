@@ -23,7 +23,6 @@ async function main() {
   const { paths: routePaths } = route.registerRoutes()
 
   const graphQL = new GraphQLManager(fastify, prisma)
-  graphQL.registerModules()
   const { path: graphQLPath } = await graphQL.registerServer()
 
   await fastify.listen({ port: Config.port })

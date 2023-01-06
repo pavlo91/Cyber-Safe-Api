@@ -38,6 +38,9 @@ let envConfig = {
     token: process.env.POSTMARK_TOKEN,
     from: process.env.POSTMARK_FROM,
   },
+  template: {
+    appName: 'CyberSafely',
+  },
 }
 
 if (process.env.CONFIG) {

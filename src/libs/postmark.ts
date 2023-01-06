@@ -23,7 +23,7 @@ export class Postmark {
 
   async send<T extends keyof Templates>(email: string, template: T, model?: Templates[T]) {
     if (!this.client) {
-      this.logger.debug('Sending email "%s" to "%s" with model %s', template, email, model)
+      this.logger.debug('Sending email "%s" to "%s" with model %o', template, email, model)
       return
     }
 

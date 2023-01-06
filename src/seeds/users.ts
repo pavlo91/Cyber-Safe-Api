@@ -13,7 +13,7 @@ export class UsersSeed implements Seed {
 
   async execute() {
     await this.prisma.$transaction(
-      mapCount(50, () =>
+      mapCount(25, () =>
         this.prisma.user.create({
           data: {
             name: randFullName(),

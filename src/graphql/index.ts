@@ -17,9 +17,8 @@ export function createGraphQLModule(module: GraphQL) {
 }
 
 export class GraphQLManager {
-  private modules: GraphQL[]
   private logger = Logger.label('graphql')
-  private apollo: ApolloServer<ApolloContext> | undefined
+  private apollo: ApolloServer<ApolloContext>
 
   constructor(private fastify: FastifyInstance, private prisma: PrismaClient) {
     const paths = glob.sync('./**/*.{ts,js}', {
@@ -27,29 +26,27 @@ export class GraphQLManager {
       ignore: './index.{ts,js}',
     })
 
-    this.modules = paths.map((path) => {
+    const modules = paths.map((path) => {
       const module = require(path).default
       this.logger.debug('Succesfully loaded GraphQL module at "%s"', path)
       return module
     })
-  }
 
-  registerModules() {
-    const typeDefs = this.modules.map((e) => e.typeDefs).filter((e) => !!e) as string[]
-    const resolvers = this.modules.map((e) => e.resolvers).filter((e) => !!e) as Resolvers[]
+    const typeDefs = modules.map((e) => e.typeDefs).filter((e) => !!e) as string[]
+    const resolvers = modules.map((e) => e.resolvers).filter((e) => !!e) as Resolvers[]
 
     this.apollo = new ApolloServer({
       typeDefs,
       resolvers,
       plugins: [fastifyApolloDrainPlugin(this.fastify)],
+      formatError: (formattedError) => {
+        this.logger.error('Error while executing GraphQL: %o', formattedError)
+        return formattedError
+      },
     })
   }
 
   async registerServer() {
-    if (!this.apollo) {
-      throw new Error('Apollo is not initialized')
-    }
-
     const config = {
       path: '/graphql',
     }
