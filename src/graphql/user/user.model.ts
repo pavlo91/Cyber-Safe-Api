@@ -2,12 +2,9 @@ import { createGraphQLModule } from '..'
 
 export default createGraphQLModule({
   typeDefs: `#graphql
-    type Facebook {
-      token: String!
-    }
-
     type User {
       id: ID!
+      createdAt: DateTime!
       email: String!
       name: String!
       isStaff: Boolean!
@@ -22,6 +19,7 @@ export default createGraphQLModule({
     }
 
     input UserFilter {
+      id: StringFilter
       createdAt: DateTimeFilter
       email: StringFilter
       name: StringFilter

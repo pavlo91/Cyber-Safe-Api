@@ -29,7 +29,7 @@ export async function paginated<T>(
   const count = Math.ceil(total / size)
 
   return {
-    page: { index, size, count },
+    page: { index, size, count, total },
     nodes,
   }
 }

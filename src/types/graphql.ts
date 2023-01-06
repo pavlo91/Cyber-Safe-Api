@@ -28,21 +28,25 @@ export type DateTimeFilter = {
 
 export type Facebook = {
   __typename?: 'Facebook';
+  createdAt: Scalars['DateTime'];
   token: Scalars['String'];
 };
 
 export type Membership = {
   __typename?: 'Membership';
+  createdAt: Scalars['DateTime'];
   isAdmin: Scalars['Boolean'];
   organization: Organization;
 };
 
 export type MembershipFilter = {
+  createdAt?: InputMaybe<DateTimeFilter>;
   isAdmin?: InputMaybe<Scalars['Boolean']>;
   organization?: InputMaybe<OrganizationFilter>;
 };
 
 export type MembershipOrder = {
+  createdAt?: InputMaybe<OrderDirection>;
   isAdmin?: InputMaybe<OrderDirection>;
   organization?: InputMaybe<OrganizationOrder>;
 };
@@ -53,6 +57,7 @@ export type Mutation = {
   inviteMember?: Maybe<Scalars['ID']>;
   login: Token;
   register?: Maybe<Scalars['ID']>;
+  removeMember?: Maybe<Scalars['ID']>;
 };
 
 
@@ -81,6 +86,16 @@ export type MutationRegisterArgs = {
   password: Scalars['String'];
 };
 
+
+export type MutationRemoveMemberArgs = {
+  id: Scalars['ID'];
+};
+
+export type NumberFilter = {
+  gte?: InputMaybe<Scalars['Float']>;
+  lte?: InputMaybe<Scalars['Float']>;
+};
+
 export const OrderDirection = {
   Asc: 'asc',
   Desc: 'desc'
@@ -89,15 +104,18 @@ export const OrderDirection = {
 export type OrderDirection = typeof OrderDirection[keyof typeof OrderDirection];
 export type Organization = {
   __typename?: 'Organization';
+  createdAt: Scalars['DateTime'];
   id: Scalars['ID'];
   name: Scalars['String'];
 };
 
 export type OrganizationFilter = {
+  createdAt?: InputMaybe<DateTimeFilter>;
   name?: InputMaybe<StringFilter>;
 };
 
 export type OrganizationOrder = {
+  createdAt?: InputMaybe<OrderDirection>;
   name?: InputMaybe<OrderDirection>;
 };
 
@@ -113,6 +131,13 @@ export type PageInfo = {
   hasPrev: Scalars['Boolean'];
   index: Scalars['Int'];
   size: Scalars['Int'];
+  total: Scalars['Int'];
+};
+
+export type PaginatedOrganization = {
+  __typename?: 'PaginatedOrganization';
+  nodes: Array<Organization>;
+  page: PageInfo;
 };
 
 export type PaginatedUser = {
@@ -125,6 +150,7 @@ export type Query = {
   __typename?: 'Query';
   me: User;
   members: PaginatedUser;
+  organizations: PaginatedOrganization;
   users: PaginatedUser;
 };
 
@@ -132,6 +158,13 @@ export type Query = {
 export type QueryMembersArgs = {
   filter?: InputMaybe<UserFilter>;
   order?: InputMaybe<UserOrder>;
+  page?: InputMaybe<Page>;
+};
+
+
+export type QueryOrganizationsArgs = {
+  filter?: InputMaybe<OrganizationFilter>;
+  order?: InputMaybe<OrganizationOrder>;
   page?: InputMaybe<Page>;
 };
 
@@ -166,6 +199,7 @@ export type Token = {
 
 export type User = {
   __typename?: 'User';
+  createdAt: Scalars['DateTime'];
   email: Scalars['String'];
   facebook?: Maybe<Facebook>;
   id: Scalars['ID'];
@@ -178,6 +212,7 @@ export type User = {
 export type UserFilter = {
   createdAt?: InputMaybe<DateTimeFilter>;
   email?: InputMaybe<StringFilter>;
+  id?: InputMaybe<StringFilter>;
   isConfirmed?: InputMaybe<Scalars['Boolean']>;
   isStaff?: InputMaybe<Scalars['Boolean']>;
   membership?: InputMaybe<MembershipFilter>;
@@ -260,18 +295,21 @@ export type ResolversTypes = {
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   DateTimeFilter: DateTimeFilter;
   Facebook: ResolverTypeWrapper<Facebook>;
+  Float: ResolverTypeWrapper<Scalars['Float']>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   Membership: ResolverTypeWrapper<Membership>;
   MembershipFilter: MembershipFilter;
   MembershipOrder: MembershipOrder;
   Mutation: ResolverTypeWrapper<{}>;
+  NumberFilter: NumberFilter;
   OrderDirection: OrderDirection;
   Organization: ResolverTypeWrapper<Organization>;
   OrganizationFilter: OrganizationFilter;
   OrganizationOrder: OrganizationOrder;
   Page: Page;
   PageInfo: ResolverTypeWrapper<PageInfo>;
+  PaginatedOrganization: ResolverTypeWrapper<PaginatedOrganization>;
   PaginatedUser: ResolverTypeWrapper<PaginatedUser>;
   Query: ResolverTypeWrapper<{}>;
   RegisterInput: RegisterInput;
@@ -291,17 +329,20 @@ export type ResolversParentTypes = {
   DateTime: Scalars['DateTime'];
   DateTimeFilter: DateTimeFilter;
   Facebook: Facebook;
+  Float: Scalars['Float'];
   ID: Scalars['ID'];
   Int: Scalars['Int'];
   Membership: Membership;
   MembershipFilter: MembershipFilter;
   MembershipOrder: MembershipOrder;
   Mutation: {};
+  NumberFilter: NumberFilter;
   Organization: Organization;
   OrganizationFilter: OrganizationFilter;
   OrganizationOrder: OrganizationOrder;
   Page: Page;
   PageInfo: PageInfo;
+  PaginatedOrganization: PaginatedOrganization;
   PaginatedUser: PaginatedUser;
   Query: {};
   RegisterInput: RegisterInput;
@@ -318,11 +359,13 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 }
 
 export type FacebookResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Facebook'] = ResolversParentTypes['Facebook']> = {
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   token?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type MembershipResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Membership'] = ResolversParentTypes['Membership']> = {
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   isAdmin?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   organization?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -333,9 +376,11 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   inviteMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteMemberArgs, 'email' | 'isAdmin'>>;
   login?: Resolver<ResolversTypes['Token'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
   register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'input' | 'password'>>;
+  removeMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveMemberArgs, 'id'>>;
 };
 
 export type OrganizationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Organization'] = ResolversParentTypes['Organization']> = {
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -347,6 +392,13 @@ export type PageInfoResolvers<ContextType = ApolloContext, ParentType extends Re
   hasPrev?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   index?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   size?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PaginatedOrganizationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['PaginatedOrganization'] = ResolversParentTypes['PaginatedOrganization']> = {
+  nodes?: Resolver<Array<ResolversTypes['Organization']>, ParentType, ContextType>;
+  page?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -359,6 +411,7 @@ export type PaginatedUserResolvers<ContextType = ApolloContext, ParentType exten
 export type QueryResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   me?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   members?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryMembersArgs>>;
+  organizations?: Resolver<ResolversTypes['PaginatedOrganization'], ParentType, ContextType, Partial<QueryOrganizationsArgs>>;
   users?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryUsersArgs>>;
 };
 
@@ -369,6 +422,7 @@ export type TokenResolvers<ContextType = ApolloContext, ParentType extends Resol
 };
 
 export type UserResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   facebook?: Resolver<Maybe<ResolversTypes['Facebook']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -386,6 +440,7 @@ export type Resolvers<ContextType = ApolloContext> = {
   Mutation?: MutationResolvers<ContextType>;
   Organization?: OrganizationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
+  PaginatedOrganization?: PaginatedOrganizationResolvers<ContextType>;
   PaginatedUser?: PaginatedUserResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Token?: TokenResolvers<ContextType>;

@@ -41,35 +41,4 @@ export class Postmark {
         this.logger.error('Error while sending email via Postmark: %s', error)
       })
   }
-
-  async sendMany<T extends keyof Templates>(emails: string[], template: T, models?: Templates[T][]) {
-    if (models && emails.length !== models?.length) {
-      throw new Error('The models count is not the same as the recepients count')
-    }
-
-    if (!this.client) {
-      emails.forEach((email, index) => {
-        this.logger.debug('Sending email "%s" to "%s" with model %s', template, email, models && models[index])
-      })
-      return
-    }
-
-    this.client
-      .sendEmailBatch(
-        emails.map((to, index) => {
-          const html = loadHtml(`/email/${template}.pug`, models && models[index])
-          const title = loadHtmlTitle(html)
-
-          return {
-            From: this.from!,
-            To: to,
-            Subject: title,
-            HtmlBody: html,
-          }
-        })
-      )
-      .catch((error) => {
-        this.logger.error('Error while sending many emails via Postmark: %s', error)
-      })
-  }
 }

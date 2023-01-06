@@ -6,19 +6,12 @@ import { paginated, select } from '../../helpers/graphql'
 export default createGraphQLModule({
   typeDefs: `#graphql
     type Query {
-      me: User!
       members(page: Page, filter: UserFilter, order: UserOrder): PaginatedUser!
       users(page: Page, filter: UserFilter, order: UserOrder): PaginatedUser!
     }
   `,
   resolvers: {
     Query: {
-      me: withAuth('any', (obj, args, { prisma, user }, info) => {
-        return prisma.user.findUniqueOrThrow({
-          ...select(info, 'User'),
-          where: { id: user.id },
-        })
-      }),
       members: withAuthMember('any', (obj, { page, filter, order }, { prisma, organization }, info) => {
         const where: Prisma.UserWhereInput = {
           ...filter,

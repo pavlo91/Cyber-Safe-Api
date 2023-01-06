@@ -50,12 +50,18 @@ export class GraphQLManager {
       throw new Error('Apollo is not initialized')
     }
 
+    const config = {
+      path: '/graphql',
+    }
+
     await this.apollo.start()
     await this.fastify.register(fastifyApollo(this.apollo), {
-      path: '/graphql',
+      ...config,
       context: async ({ raw: req }) => {
         return { req, prisma: this.prisma }
       },
     })
+
+    return config
   }
 }

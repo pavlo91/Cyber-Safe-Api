@@ -15,8 +15,9 @@ export default createGraphQLModule({
       index: Int!
       size: Int!
       count: Int!
+      total: Int!
       hasPrev: Boolean!
-hasNext: Boolean!
+      hasNext: Boolean!
     }
 
     enum StringFilterMode {
@@ -27,6 +28,11 @@ hasNext: Boolean!
       equals: String
       contains: String
       mode: StringFilterMode
+    }
+
+    input NumberFilter {
+      gte: Float
+      lte: Float
     }
 
     input DateTimeFilter {

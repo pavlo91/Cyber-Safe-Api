@@ -2,9 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import { FastifyInstance, FastifyReply, FastifyRequest, HTTPMethods } from 'fastify'
 import { Logger } from '../libs/logger'
 import { ConfirmRoute } from './confirm'
-import { FacebookRoute } from './facebook'
 import { LandingRoute } from './landing'
-import { OAuth2Route } from './oauth2'
 
 export interface Route {
   path: string
@@ -17,12 +15,7 @@ export class RouteManager {
   private logger = Logger.label('route')
 
   constructor(private fastify: FastifyInstance, prisma: PrismaClient) {
-    this.routes = [
-      new LandingRoute('/', 'GET'),
-      new OAuth2Route('/oauth2', 'POST', prisma),
-      new FacebookRoute('/webhook/facebook', 'POST', prisma),
-      new ConfirmRoute('/api/confirm/:uuid', 'GET', prisma),
-    ]
+    this.routes = [new LandingRoute('/', 'GET'), new ConfirmRoute('/api/confirm/:uuid', 'GET', prisma)]
   }
 
   private async handleRoute(route: Route, req: FastifyRequest, res: FastifyReply) {
@@ -43,7 +36,7 @@ export class RouteManager {
   }
 
   registerRoutes() {
-    this.routes.forEach((route) => {
+    const paths = this.routes.map((route) => {
       this.fastify.route({
         url: route.path,
         method: route.method,
@@ -51,6 +44,13 @@ export class RouteManager {
       })
 
       this.logger.debug('Succesfully registered route at "%s"', route.path)
+
+      return {
+        path: route.path,
+        method: route.method,
+      }
     })
+
+    return { paths }
   }
 }

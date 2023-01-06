@@ -55,7 +55,7 @@ const AuthMemberFlag = {
 type AuthMemberFlag = keyof typeof AuthMemberFlag
 
 async function findOrganization(flag: AuthMemberFlag, user: FindUser['user'], ctx: ApolloContext) {
-  // Staff can execute any route than an admin can execute
+  // Staff can execute any route that an admin can execute
   if (user.isStaff) {
     const orgId = ctx.req.headers['x-org-id']
 

@@ -31,9 +31,8 @@ model User {
   name            String
   isStaff         Boolean     @default(false)
   isConfirmed     Boolean     @default(false)
-  membership      Membership?
-  // Socials
   facebook        SFacebook?
+  membership      Membership?
 
   @@index(isStaff)
   @@index(isConfirmed)

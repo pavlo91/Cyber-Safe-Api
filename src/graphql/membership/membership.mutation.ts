@@ -5,6 +5,7 @@ export default createGraphQLModule({
   typeDefs: `#graphql
     extend type Mutation {
       inviteMember(email: String!, isAdmin: Boolean!): ID
+      removeMember(id: ID!): ID
     }
   `,
   resolvers: {
@@ -19,6 +20,16 @@ export default createGraphQLModule({
                 isAdmin,
                 organizationId: organization.id,
               },
+            },
+          },
+        })
+      }),
+      removeMember: withAuthMember('admin', async (obj, { id }, { prisma, organization }, info) => {
+        await prisma.membership.delete({
+          where: {
+            userId_organizationId: {
+              userId: id,
+              organizationId: organization.id,
             },
           },
         })
