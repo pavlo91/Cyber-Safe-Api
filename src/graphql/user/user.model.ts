@@ -24,6 +24,7 @@ export default createGraphQLModule({
       email: StringFilter
       name: StringFilter
       isStaff: Boolean
+      facebook: FacebookFilter
       isConfirmed: Boolean
       membership: MembershipFilter
     }

@@ -15,7 +15,10 @@ export default createGraphQLModule({
       members: withAuthMember('any', (obj, { page, filter, order }, { prisma, organization }, info) => {
         const where: Prisma.UserWhereInput = {
           ...filter,
-          membership: { organizationId: organization.id },
+          membership: {
+            ...filter?.membership,
+            organizationId: organization.id,
+          },
         }
         const orderBy: Prisma.UserOrderByWithRelationInput = { ...order }
 

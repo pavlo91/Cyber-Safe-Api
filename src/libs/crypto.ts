@@ -14,11 +14,11 @@ export function comparePassword(password: string, hashedPassword: string) {
 }
 
 export function createJwt(user: User) {
-  const data = {
+  const payload = {
     uuid: user.uuid,
   }
 
-  return jwt.sign(data, Config.secret)
+  return jwt.sign(payload, Config.secret)
 }
 
 export function parseJwt(token: string) {
@@ -28,9 +28,9 @@ export function parseJwt(token: string) {
     uuid: z.string(),
   })
 
-  const data = schema.parse(json)
+  const payload = schema.parse(json)
 
   return {
-    uuid: data.uuid,
+    uuid: payload.uuid,
   }
 }

@@ -72,7 +72,7 @@ async function findOrganization(flag: AuthMemberFlag, user: FindUser['user'], ct
 
   if (!membership) {
     throw new Error('You must be part of an organization')
-  } else if (flag !== undefined && membership.isAdmin !== AuthMemberFlag[flag]) {
+  } else if (flag !== 'any' && membership.isAdmin !== AuthMemberFlag[flag]) {
     throw new Error("You don't have the required role in this organization")
   }
 

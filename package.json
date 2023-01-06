@@ -6,7 +6,7 @@
   "author": "Adrian Mateoaea <adrianmteo@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "dev": "ts-node-dev --transpile-only --exit-child --quiet --cls src/index.ts",
+    "dev": "ts-node-dev --transpile-only --exit-child --quiet --cls -r dotenv/config src/index.ts",
     "dev:initial": "rm -rf prisma/migrations && yarn reset && yarn migrate initial",
     "codegen": "graphql-codegen --config codegen.yml",
     "reset": "prisma migrate reset --force",
@@ -26,6 +26,7 @@
     "@types/node": "^18.11.18",
     "@types/node-cron": "^3.0.7",
     "@types/pug": "^2.0.6",
+    "dotenv": "^16.0.3",
     "prisma": "^4.8.1",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",

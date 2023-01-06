@@ -1,5 +1,5 @@
 overwrite: true
-schema: "./src/graphql/**/*.{ts,js}"
+schema: "./src/graphql/**/*.ts"
 generates:
   ./src/types/graphql.ts:
     plugins:
@@ -10,5 +10,9 @@ generates:
       inputMaybeValue: T | undefined
       contextType: ./apollo#ApolloContext
       customResolverFn: "(parent: any, args: TArgs, context: TContext, info: GraphQLResolveInfo) => Promise<any> | any"
+      enumValues:
+        StringFilterMode: "@prisma/client#Prisma.QueryMode"
+        OrderDirection: "@prisma/client#Prisma.SortOrder"
       scalars:
         DateTime: Date
+        Null: null

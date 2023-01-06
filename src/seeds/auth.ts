@@ -34,8 +34,8 @@ export class AuthSeed implements Seed {
       AuthUsers.map((user) =>
         this.prisma.user.upsert({
           where: { email: user.email },
-          create: user,
-          update: user,
+          create: { ...user },
+          update: { ...user },
         })
       )
     )

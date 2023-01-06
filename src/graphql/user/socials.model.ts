@@ -6,5 +6,10 @@ export default createGraphQLModule({
       createdAt: DateTime!
       token: String!
     }
+
+    input FacebookFilter {
+      is: Null
+      isNot: Null
+    }
   `,
 })

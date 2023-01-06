@@ -1,3 +1,6 @@
+import { Prisma } from '@prisma/client';
+import StringFilterMode = Prisma.QueryMode;
+import OrderDirection = Prisma.SortOrder;
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { ApolloContext } from './apollo';
 export type Maybe<T> = T | null;
@@ -7,6 +10,7 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: 
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type ResolverFn<TResult, TParent, TContext, TArgs> = (parent: any, args: TArgs, context: TContext, info: GraphQLResolveInfo) => Promise<any> | any
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
+export type EnumResolverSignature<T, AllowedValues = any> = { [key in keyof T]?: AllowedValues };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -15,6 +19,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   DateTime: Date;
+  Null: any;
 };
 
 export type ActivateInput = {
@@ -30,6 +35,11 @@ export type Facebook = {
   __typename?: 'Facebook';
   createdAt: Scalars['DateTime'];
   token: Scalars['String'];
+};
+
+export type FacebookFilter = {
+  is?: InputMaybe<Scalars['Null']>;
+  isNot?: InputMaybe<Scalars['Null']>;
 };
 
 export type Membership = {
@@ -96,12 +106,8 @@ export type NumberFilter = {
   lte?: InputMaybe<Scalars['Float']>;
 };
 
-export const OrderDirection = {
-  Asc: 'asc',
-  Desc: 'desc'
-} as const;
+export { OrderDirection };
 
-export type OrderDirection = typeof OrderDirection[keyof typeof OrderDirection];
 export type Organization = {
   __typename?: 'Organization';
   createdAt: Scalars['DateTime'];
@@ -186,11 +192,8 @@ export type StringFilter = {
   mode?: InputMaybe<StringFilterMode>;
 };
 
-export const StringFilterMode = {
-  Insensitive: 'insensitive'
-} as const;
+export { StringFilterMode };
 
-export type StringFilterMode = typeof StringFilterMode[keyof typeof StringFilterMode];
 export type Token = {
   __typename?: 'Token';
   token?: Maybe<Scalars['String']>;
@@ -212,6 +215,7 @@ export type User = {
 export type UserFilter = {
   createdAt?: InputMaybe<DateTimeFilter>;
   email?: InputMaybe<StringFilter>;
+  facebook?: InputMaybe<FacebookFilter>;
   id?: InputMaybe<StringFilter>;
   isConfirmed?: InputMaybe<Scalars['Boolean']>;
   isStaff?: InputMaybe<Scalars['Boolean']>;
@@ -295,6 +299,7 @@ export type ResolversTypes = {
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   DateTimeFilter: DateTimeFilter;
   Facebook: ResolverTypeWrapper<Facebook>;
+  FacebookFilter: FacebookFilter;
   Float: ResolverTypeWrapper<Scalars['Float']>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
@@ -302,8 +307,9 @@ export type ResolversTypes = {
   MembershipFilter: MembershipFilter;
   MembershipOrder: MembershipOrder;
   Mutation: ResolverTypeWrapper<{}>;
+  Null: ResolverTypeWrapper<Scalars['Null']>;
   NumberFilter: NumberFilter;
-  OrderDirection: OrderDirection;
+  OrderDirection: Prisma.SortOrder;
   Organization: ResolverTypeWrapper<Organization>;
   OrganizationFilter: OrganizationFilter;
   OrganizationOrder: OrganizationOrder;
@@ -315,7 +321,7 @@ export type ResolversTypes = {
   RegisterInput: RegisterInput;
   String: ResolverTypeWrapper<Scalars['String']>;
   StringFilter: StringFilter;
-  StringFilterMode: StringFilterMode;
+  StringFilterMode: Prisma.QueryMode;
   Token: ResolverTypeWrapper<Token>;
   User: ResolverTypeWrapper<User>;
   UserFilter: UserFilter;
@@ -329,6 +335,7 @@ export type ResolversParentTypes = {
   DateTime: Scalars['DateTime'];
   DateTimeFilter: DateTimeFilter;
   Facebook: Facebook;
+  FacebookFilter: FacebookFilter;
   Float: Scalars['Float'];
   ID: Scalars['ID'];
   Int: Scalars['Int'];
@@ -336,6 +343,7 @@ export type ResolversParentTypes = {
   MembershipFilter: MembershipFilter;
   MembershipOrder: MembershipOrder;
   Mutation: {};
+  Null: Scalars['Null'];
   NumberFilter: NumberFilter;
   Organization: Organization;
   OrganizationFilter: OrganizationFilter;
@@ -379,6 +387,12 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   removeMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveMemberArgs, 'id'>>;
 };
 
+export interface NullScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Null'], any> {
+  name: 'Null';
+}
+
+export type OrderDirectionResolvers = EnumResolverSignature<{ ASC?: any, DESC?: any }, ResolversTypes['OrderDirection']>;
+
 export type OrganizationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Organization'] = ResolversParentTypes['Organization']> = {
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -415,6 +429,8 @@ export type QueryResolvers<ContextType = ApolloContext, ParentType extends Resol
   users?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryUsersArgs>>;
 };
 
+export type StringFilterModeResolvers = EnumResolverSignature<{ INSENSITIVE?: any }, ResolversTypes['StringFilterMode']>;
+
 export type TokenResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Token'] = ResolversParentTypes['Token']> = {
   token?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
@@ -438,11 +454,14 @@ export type Resolvers<ContextType = ApolloContext> = {
   Facebook?: FacebookResolvers<ContextType>;
   Membership?: MembershipResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  Null?: GraphQLScalarType;
+  OrderDirection?: OrderDirectionResolvers;
   Organization?: OrganizationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
   PaginatedOrganization?: PaginatedOrganizationResolvers<ContextType>;
   PaginatedUser?: PaginatedUserResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  StringFilterMode?: StringFilterModeResolvers;
   Token?: TokenResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
 };
