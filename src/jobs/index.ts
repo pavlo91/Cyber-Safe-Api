@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 import cron from 'node-cron'
-import { Logger } from '../libs/logger'
+import { Config } from '../config'
+import { Logger } from '../utils/logger'
+import { SampleJob } from './sample'
 
 export interface Job {
   name: string
@@ -8,12 +10,19 @@ export interface Job {
   execute: () => MaybePromise<void>
 }
 
+function expression(expression: string) {
+  if (Config.dev && Config.jobExpression) {
+    return Config.jobExpression
+  }
+  return expression
+}
+
 export class JobManager {
   private jobs: Job[]
   private logger = Logger.label('job')
 
   constructor(prisma: PrismaClient) {
-    this.jobs = []
+    this.jobs = [new SampleJob('Sample', expression('*/5 * * * *'))]
   }
 
   private async handleJob(job: Job) {
@@ -30,7 +39,7 @@ export class JobManager {
     this.jobs.forEach((job) => {
       if (cron.validate(job.expression)) {
         cron.schedule(job.expression, () => this.handleJob(job), { name: job.name })
-        this.logger.debug('Succesfully scheduled job "%s"', job.name)
+        this.logger.info('Succesfully scheduled job (%s) "%s"', job.expression, job.name)
       } else {
         this.logger.error('Error while validating job expression "%s"', job.name)
       }

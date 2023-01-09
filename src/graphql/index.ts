@@ -3,9 +3,9 @@ import fastifyApollo, { fastifyApolloDrainPlugin } from '@as-integrations/fastif
 import { PrismaClient } from '@prisma/client'
 import { FastifyInstance } from 'fastify'
 import { glob } from 'glob'
-import { Logger } from '../libs/logger'
 import { ApolloContext } from '../types/apollo'
 import { Resolvers } from '../types/graphql'
+import { Logger } from '../utils/logger'
 
 interface GraphQL {
   typeDefs?: string
@@ -28,7 +28,7 @@ export class GraphQLManager {
 
     const modules = paths.map((path) => {
       const module = require(path).default
-      this.logger.debug('Succesfully loaded GraphQL module at "%s"', path)
+      this.logger.info('Succesfully loaded GraphQL module at "%s"', path)
       return module
     })
 

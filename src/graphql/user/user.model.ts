@@ -23,9 +23,9 @@ export default createGraphQLModule({
       createdAt: DateTimeFilter
       email: StringFilter
       name: StringFilter
-      isStaff: Boolean
+      isStaff: BooleanFilter
       facebook: FacebookFilter
-      isConfirmed: Boolean
+      isConfirmed: BooleanFilter
       membership: MembershipFilter
     }
 
@@ -36,6 +36,19 @@ export default createGraphQLModule({
       isStaff: OrderDirection
       isConfirmed: OrderDirection
       membership: MembershipOrder
+    }
+
+    input UserUpdate {
+      email: String
+      name: String
+      isStaff: Boolean
+      isConfirmed: Boolean
+    }
+
+    input ProfileUpdate {
+      email: String
+      password: String
+      name: String
     }
   `,
 })

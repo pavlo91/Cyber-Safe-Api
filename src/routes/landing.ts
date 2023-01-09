@@ -6,6 +6,6 @@ export class LandingRoute implements Route {
   constructor(public path: string, public method: HTTPMethods) {}
 
   handle() {
-    return loadHtml('/html/landing.pug')
+    return loadHtml('html/landing.pug')
   }
 }

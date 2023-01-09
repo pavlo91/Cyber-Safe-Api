@@ -11,13 +11,17 @@ export default createGraphQLModule({
     input MembershipFilter {
       createdAt: DateTimeFilter
       organization: OrganizationFilter
-      isAdmin: Boolean
+      isAdmin: BooleanFilter
     }
 
     input MembershipOrder {
       createdAt: OrderDirection
       organization: OrganizationOrder
       isAdmin: OrderDirection
+    }
+
+    input MembershipUpdate {
+      isAdmin: Boolean
     }
   `,
 })

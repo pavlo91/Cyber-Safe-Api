@@ -1,13 +1,7 @@
 import PostmarkClient from 'postmark'
 import { Config } from '../config'
-import { loadHtml, loadHtmlTitle } from '../helpers/pug'
-import { Logger } from './logger'
-
-type Templates = {
-  confirm: {
-    url: string
-  }
-}
+import { HtmlFileNames, HtmlModel, loadHtml, loadHtmlTitle } from '../helpers/pug'
+import { Logger } from '../utils/logger'
 
 export class Postmark {
   static shared = new Postmark(Config.postmark.token, Config.postmark.from)
@@ -21,21 +15,21 @@ export class Postmark {
     }
   }
 
-  async send<T extends keyof Templates>(email: string, template: T, model?: Templates[T]) {
+  async send<K extends HtmlFileNames>(to: string, fileName: K, model?: HtmlModel<K>) {
     if (!this.client) {
-      this.logger.debug('Sending email "%s" to "%s" with model %o', template, email, model)
+      this.logger.debug('Sending email "%s" to "%s" with model %o', fileName, to, model)
       return
     }
 
-    const html = loadHtml(`/email/${template}.pug`, model)
+    const html = loadHtml(fileName, model)
     const title = loadHtmlTitle(html)
 
     await this.client
       .sendEmail({
-        From: this.from!,
-        To: email,
+        To: to,
         Subject: title,
         HtmlBody: html,
+        From: this.from!,
       })
       .catch((error) => {
         this.logger.error('Error while sending email via Postmark: %s', error)

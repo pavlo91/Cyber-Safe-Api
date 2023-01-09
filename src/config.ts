@@ -25,13 +25,22 @@ function composeUrl(this: ComposeUrl, key: keyof ComposeUrl, path: string, query
   return url.toString()
 }
 
+function parseNumber(value: string | undefined) {
+  if (value) {
+    const valueAsNumber = parseInt(value)
+    if (!isNaN(valueAsNumber)) return valueAsNumber
+  }
+}
+
 export const Config = {
   composeUrl,
   dev: process.env.NODE_ENV !== 'production',
-  port: parseInt(process.env.PORT ?? '3001'),
+  port: parseNumber(process.env.PORT) ?? 3001,
   secret: process.env.SECRET ?? 'secret',
   apiUrl: process.env.API_URL ?? 'http://localhost:3001',
   webUrl: process.env.WEB_URL ?? 'http://localhost:3000',
+  jobExpression: process.env.JOB_EXPRESSION,
+  logLevel: process.env.LOG_LEVEL,
   postmark: {
     token: process.env.POSTMARK_TOKEN,
     from: process.env.POSTMARK_FROM,

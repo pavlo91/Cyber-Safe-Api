@@ -1,32 +1,41 @@
 import { Config } from '../config'
 
-const LoggerLevel = {
+const LogLevel = {
   debug: 1,
   info: 2,
   warn: 3,
   error: 4,
 } as const
 
-type LoggerLevel = keyof typeof LoggerLevel
+type LogLevel = keyof typeof LogLevel
 
-const LoggerFn = {
+const LogFn = {
   debug: console.debug,
   info: console.info,
   warn: console.warn,
   error: console.error,
 } as const
 
+function logLevel(): LogLevel {
+  if (Config.logLevel && Config.logLevel in LogLevel) {
+    return Config.logLevel as LogLevel
+  } else if (Config.dev) {
+    return 'debug'
+  }
+  return 'info'
+}
+
 type LoggerProps = {
-  level: LoggerLevel
+  level: LogLevel
   label?: string
   task?: string
 }
 
 export class Logger {
-  static global = new Logger({ level: Config.dev ? 'debug' : 'info' })
+  static global = new Logger({ level: logLevel() })
 
   static label(label: string) {
-    return new Logger({ level: Config.dev ? 'debug' : 'info', label })
+    return new Logger({ level: logLevel(), label })
   }
 
   constructor(private props: LoggerProps) {}
@@ -35,8 +44,8 @@ export class Logger {
     return new Logger({ ...this.props, task })
   }
 
-  private log(level: LoggerLevel, message: string, ...args: any[]) {
-    if (LoggerLevel[level] < LoggerLevel[this.props.level]) return
+  private log(level: LogLevel, message: string, ...args: any[]) {
+    if (LogLevel[level] < LogLevel[this.props.level]) return
 
     const { label, task } = this.props
 
@@ -48,7 +57,7 @@ export class Logger {
     const _components = [_time, _level, _label, _task, message]
     const _message = _components.filter((e) => !!e).join(' ')
 
-    LoggerFn[level](_message, ...args)
+    LogFn[level](_message, ...args)
   }
 
   debug(message: string, ...args: any[]) {

@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { FastifyInstance, FastifyReply, FastifyRequest, HTTPMethods } from 'fastify'
-import { Logger } from '../libs/logger'
+import { Logger } from '../utils/logger'
 import { ConfirmRoute } from './confirm'
 import { LandingRoute } from './landing'
 
@@ -36,21 +36,14 @@ export class RouteManager {
   }
 
   registerRoutes() {
-    const paths = this.routes.map((route) => {
+    this.routes.forEach((route) => {
       this.fastify.route({
         url: route.path,
         method: route.method,
         handler: (req, res) => this.handleRoute(route, req, res),
       })
 
-      this.logger.debug('Succesfully registered route at "%s"', route.path)
-
-      return {
-        path: route.path,
-        method: route.method,
-      }
+      this.logger.info('Succesfully registered route at [%s] "%s"', route.method, route.path)
     })
-
-    return { paths }
   }
 }

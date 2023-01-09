@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { createGraphQLModule } from '..'
 import { withAuth, withAuthMember } from '../../helpers/auth'
-import { paginated, select } from '../../helpers/graphql'
+import { paginated, select } from '../../helpers/parse'
 
 export default createGraphQLModule({
   typeDefs: `#graphql

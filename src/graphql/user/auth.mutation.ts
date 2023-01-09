@@ -1,6 +1,6 @@
 import { createGraphQLModule } from '..'
-import { select } from '../../helpers/graphql'
-import { comparePassword, createJwt } from '../../libs/crypto'
+import { select } from '../../helpers/parse'
+import { comparePassword, createJwt } from '../../utils/crypto'
 
 export default createGraphQLModule({
   typeDefs: `#graphql

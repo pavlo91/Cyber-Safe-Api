@@ -1,8 +1,8 @@
 import { Prisma, PrismaClient } from '@prisma/client'
 import { Middleware } from '.'
 import { Config } from '../config'
-import { hashPassword } from '../libs/crypto'
 import { Postmark } from '../libs/postmark'
+import { hashPassword } from '../utils/crypto'
 
 function use<T>(data: T, callback: (data: T) => void) {
   callback(data)
@@ -23,7 +23,7 @@ export class UserMiddleware implements Middleware {
 
     for (const user of users) {
       const url = Config.composeUrl('apiUrl', '/api/confirm/:uuid', { uuid: user.uuid })
-      Postmark.shared.send(user.email, 'confirm', { url })
+      Postmark.shared.send(user.email, 'email/confirm.pug', { url })
     }
   }
 

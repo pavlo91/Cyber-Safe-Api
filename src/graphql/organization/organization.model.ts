@@ -22,5 +22,9 @@ export default createGraphQLModule({
       name: OrderDirection
       createdAt: OrderDirection
     }
+
+    input OrganizationUpdate {
+      name: String
+    }
   `,
 })

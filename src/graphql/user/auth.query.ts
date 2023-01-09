@@ -1,6 +1,6 @@
 import { createGraphQLModule } from '..'
 import { withAuth } from '../../helpers/auth'
-import { select } from '../../helpers/graphql'
+import { select } from '../../helpers/parse'
 
 export default createGraphQLModule({
   typeDefs: `#graphql

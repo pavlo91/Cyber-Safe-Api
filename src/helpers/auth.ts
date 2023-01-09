@@ -1,5 +1,5 @@
-import { parseJwt } from '../libs/crypto'
 import { ApolloContext } from '../types/apollo'
+import { parseJwt } from '../utils/crypto'
 
 type Callback<P, A, C, I, R> = (obj: P, args: A, ctx: C, info: I) => MaybePromise<R>
 

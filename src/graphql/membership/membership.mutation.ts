@@ -4,8 +4,9 @@ import { withAuthMember } from '../../helpers/auth'
 export default createGraphQLModule({
   typeDefs: `#graphql
     extend type Mutation {
-      inviteMember(email: String!, isAdmin: Boolean!): ID
+      inviteMember(email: String!, isAdmin: Boolean): ID
       removeMember(id: ID!): ID
+      updateMember(id: ID!, input: MembershipUpdate!): ID
     }
   `,
   resolvers: {
@@ -17,7 +18,7 @@ export default createGraphQLModule({
             name: '',
             membership: {
               create: {
-                isAdmin,
+                isAdmin: isAdmin ?? false,
                 organizationId: organization.id,
               },
             },
@@ -32,6 +33,12 @@ export default createGraphQLModule({
               organizationId: organization.id,
             },
           },
+        })
+      }),
+      updateMember: withAuthMember('admin', async (obj, { id, input }, { prisma }, info) => {
+        await prisma.membership.update({
+          where: { userId: id },
+          data: { ...input },
         })
       }),
     },

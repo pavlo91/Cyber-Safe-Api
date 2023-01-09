@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { Config } from '../config'
-import { Logger } from '../libs/logger'
+import { Logger } from '../utils/logger'
 import { AuthSeed } from './auth'
 import { MembersSeed } from './members'
 import { OrgsSeed } from './orgs'

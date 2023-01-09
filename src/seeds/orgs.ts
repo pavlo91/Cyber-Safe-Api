@@ -1,7 +1,7 @@
 import { randCompanyName } from '@ngneat/falso'
 import { PrismaClient } from '@prisma/client'
 import { Seed } from '.'
-import { mapCount } from '../helpers/rand'
+import { mapCount } from '../helpers/seed'
 
 export class OrgsSeed implements Seed {
   constructor(public name: string, private prisma: PrismaClient) {}

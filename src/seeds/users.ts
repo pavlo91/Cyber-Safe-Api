@@ -1,7 +1,7 @@
 import { randEmail, randFullName } from '@ngneat/falso'
 import { PrismaClient } from '@prisma/client'
 import { Seed } from '.'
-import { mapCount } from '../helpers/rand'
+import { mapCount } from '../helpers/seed'
 import { AuthUsers } from './auth'
 
 export class UsersSeed implements Seed {

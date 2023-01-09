@@ -15,4 +15,4 @@ generates:
         OrderDirection: "@prisma/client#Prisma.SortOrder"
       scalars:
         DateTime: Date
-        Null: null
+        NullObject: "null"

@@ -3,8 +3,8 @@ import { DateTimeResolver } from 'graphql-scalars'
 import { createGraphQLModule } from '.'
 import { PageInfo } from '../types/graphql'
 
-const NullResolver = new GraphQLScalarType({
-  name: 'Null',
+const NullObjectResolver = new GraphQLScalarType({
+  name: 'NullObject',
   parseLiteral(node) {
     if (node.kind === Kind.NULL) {
       return null
@@ -20,7 +20,7 @@ const NullResolver = new GraphQLScalarType({
 export default createGraphQLModule({
   typeDefs: `#graphql
     scalar DateTime
-    scalar Null
+    scalar NullObject
 
     input Page {
       index: Int
@@ -37,21 +37,39 @@ export default createGraphQLModule({
     }
 
     enum StringFilterMode {
+      DEFAULT
       INSENSITIVE
     }
 
     input StringFilter {
+      not: String
       equals: String
       contains: String
-      mode: StringFilterMode
+      mode: StringFilterMode = INSENSITIVE
     }
 
-    input NumberFilter {
+    input IntFilter {
+      not: Int
+      equals: Int
+      gte: Int
+      lte: Int
+    }
+
+    input FloatFilter {
+      not: Float
+      equals: Float
       gte: Float
       lte: Float
     }
 
+    input BooleanFilter {
+      not: Boolean
+      equals: Boolean
+    }
+
     input DateTimeFilter {
+      not: DateTime
+      equals: DateTime
       gte: DateTime
       lte: DateTime
     }
@@ -63,7 +81,7 @@ export default createGraphQLModule({
   `,
   resolvers: {
     DateTime: DateTimeResolver,
-    Null: NullResolver,
+    NullObject: NullObjectResolver,
     PageInfo: {
       hasPrev({ index }: PageInfo) {
         return index > 0
@@ -73,6 +91,7 @@ export default createGraphQLModule({
       },
     },
     StringFilterMode: {
+      DEFAULT: 'default',
       INSENSITIVE: 'insensitive',
     },
     OrderDirection: {
