@@ -62,6 +62,12 @@ export type IntFilter = {
   not?: InputMaybe<Scalars['Int']>;
 };
 
+export type Jwt = {
+  __typename?: 'JWT';
+  token?: Maybe<Scalars['String']>;
+  user: User;
+};
+
 export type Membership = {
   __typename?: 'Membership';
   createdAt: Scalars['DateTime'];
@@ -91,7 +97,7 @@ export type Mutation = {
   inviteMember?: Maybe<Scalars['ID']>;
   inviteStaff?: Maybe<Scalars['ID']>;
   linkFacebook?: Maybe<Scalars['ID']>;
-  login: Token;
+  login: Jwt;
   register?: Maybe<Scalars['ID']>;
   removeMember?: Maybe<Scalars['ID']>;
   unlinkSocial?: Maybe<Scalars['ID']>;
@@ -268,12 +274,6 @@ export type StringFilter = {
 
 export { StringFilterMode };
 
-export type Token = {
-  __typename?: 'Token';
-  token?: Maybe<Scalars['String']>;
-  user: User;
-};
-
 export type User = {
   __typename?: 'User';
   createdAt: Scalars['DateTime'];
@@ -387,6 +387,7 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   IntFilter: IntFilter;
+  JWT: ResolverTypeWrapper<Jwt>;
   Membership: ResolverTypeWrapper<Membership>;
   MembershipFilter: MembershipFilter;
   MembershipOrder: MembershipOrder;
@@ -409,7 +410,6 @@ export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars['String']>;
   StringFilter: StringFilter;
   StringFilterMode: Prisma.QueryMode;
-  Token: ResolverTypeWrapper<Token>;
   User: ResolverTypeWrapper<User>;
   UserFilter: UserFilter;
   UserOrder: UserOrder;
@@ -430,6 +430,7 @@ export type ResolversParentTypes = {
   ID: Scalars['ID'];
   Int: Scalars['Int'];
   IntFilter: IntFilter;
+  JWT: Jwt;
   Membership: Membership;
   MembershipFilter: MembershipFilter;
   MembershipOrder: MembershipOrder;
@@ -449,7 +450,6 @@ export type ResolversParentTypes = {
   RegisterInput: RegisterInput;
   String: Scalars['String'];
   StringFilter: StringFilter;
-  Token: Token;
   User: User;
   UserFilter: UserFilter;
   UserOrder: UserOrder;
@@ -465,6 +465,12 @@ export type FacebookResolvers<ContextType = ApolloContext, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type JwtResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['JWT'] = ResolversParentTypes['JWT']> = {
+  token?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type MembershipResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Membership'] = ResolversParentTypes['Membership']> = {
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   isAdmin?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -477,7 +483,7 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   inviteMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteMemberArgs, 'email'>>;
   inviteStaff?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteStaffArgs, 'email'>>;
   linkFacebook?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
-  login?: Resolver<ResolversTypes['Token'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
+  login?: Resolver<ResolversTypes['JWT'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
   register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'input' | 'password'>>;
   removeMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveMemberArgs, 'id'>>;
   unlinkSocial?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, Partial<MutationUnlinkSocialArgs>>;
@@ -531,12 +537,6 @@ export type QueryResolvers<ContextType = ApolloContext, ParentType extends Resol
 
 export type StringFilterModeResolvers = EnumResolverSignature<{ DEFAULT?: any, INSENSITIVE?: any }, ResolversTypes['StringFilterMode']>;
 
-export type TokenResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Token'] = ResolversParentTypes['Token']> = {
-  token?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type UserResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -552,6 +552,7 @@ export type UserResolvers<ContextType = ApolloContext, ParentType extends Resolv
 export type Resolvers<ContextType = ApolloContext> = {
   DateTime?: GraphQLScalarType;
   Facebook?: FacebookResolvers<ContextType>;
+  JWT?: JwtResolvers<ContextType>;
   Membership?: MembershipResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   NullObject?: GraphQLScalarType;
@@ -562,7 +563,6 @@ export type Resolvers<ContextType = ApolloContext> = {
   PaginatedUser?: PaginatedUserResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   StringFilterMode?: StringFilterModeResolvers;
-  Token?: TokenResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
 };
 

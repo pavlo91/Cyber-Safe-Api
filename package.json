@@ -35,7 +35,7 @@
   "dependencies": {
     "@apollo/server": "^4.3.0",
     "@as-integrations/fastify": "^1.2.0",
-    "@ngneat/falso": "^6.3.2",
+    "@ngneat/falso": "^6.4.0",
     "@paljs/plugins": "^5.2.0",
     "@prisma/client": "^4.8.1",
     "bcrypt": "^5.1.0",

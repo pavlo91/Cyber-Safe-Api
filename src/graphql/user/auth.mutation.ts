@@ -4,7 +4,7 @@ import { comparePassword, createJwt } from '../../utils/crypto'
 
 export default createGraphQLModule({
   typeDefs: `#graphql
-    type Token {
+    type JWT {
       token: String
       user: User!
     }
@@ -19,7 +19,7 @@ export default createGraphQLModule({
     }
 
     type Mutation {
-      login(email: String!, password: String!): Token!
+      login(email: String!, password: String!): JWT!
       register(email: String!, password: String!, input: RegisterInput!): ID
       activate(token: String!, password: String!, input: ActivateInput!): ID
     }
