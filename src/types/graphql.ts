@@ -91,7 +91,7 @@ export type IntFilter = {
 
 export type Jwt = {
   __typename?: 'JWT';
-  token?: Maybe<Scalars['String']>;
+  token: Scalars['String'];
   user: User;
 };
 
@@ -581,7 +581,7 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 }
 
 export type JwtResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['JWT'] = ResolversParentTypes['JWT']> = {
-  token?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  token?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

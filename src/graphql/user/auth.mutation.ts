@@ -6,7 +6,7 @@ import { comparePassword, createJwt } from '../../utils/crypto'
 export default createGraphQLModule({
   typeDefs: `#graphql
     type JWT {
-      token: String
+      token: String!
       user: User!
     }
 
@@ -35,6 +35,7 @@ export default createGraphQLModule({
 
         if (!args.select) args.select = {}
         args.select.password = true
+        args.select.uuid = true
 
         const user = await prisma.user.findUniqueOrThrow(args)
 

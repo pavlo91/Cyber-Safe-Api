@@ -1,3 +1,4 @@
+import cors from '@fastify/cors'
 import { PrismaClient } from '@prisma/client'
 import Fastify from 'fastify'
 import { Config } from './config'
@@ -18,6 +19,7 @@ async function main() {
   job.registerJobs()
 
   const fastify = Fastify()
+  await fastify.register(cors)
 
   const route = new RouteManager(fastify, prisma)
   route.registerRoutes()
