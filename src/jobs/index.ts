@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client'
 import cron from 'node-cron'
 import { Config } from '../config'
 import { Logger } from '../utils/logger'
-import { SampleJob } from './sample'
 
 export interface Job {
   name: string
@@ -22,7 +21,7 @@ export class JobManager {
   private logger = Logger.label('job')
 
   constructor(prisma: PrismaClient) {
-    this.jobs = [new SampleJob('Sample', expression('*/5 * * * *'))]
+    this.jobs = []
   }
 
   private async handleJob(job: Job) {

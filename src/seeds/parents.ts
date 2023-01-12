@@ -16,22 +16,18 @@ export class ParentsSeed implements Seed {
 
     await this.prisma.$transaction(
       users.map((user) =>
-        this.prisma.relationship.create({
+        this.prisma.user.create({
           data: {
-            parentUser: {
+            name: randFullName(),
+            email: randEmail(),
+            password: 'password',
+            isConfirmed: true,
+            children: {
               create: {
-                name: randFullName(),
-                email: randEmail(),
-                password: 'password',
-                isConfirmed: true,
+                childUserId: user.id,
+                relation: rand(['Mom', 'Dad']),
               },
             },
-            childUser: {
-              connect: {
-                id: user.id,
-              },
-            },
-            relation: rand(['Mom', 'Dad']),
           },
         })
       )
