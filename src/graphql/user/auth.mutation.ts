@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { createGraphQLModule } from '..'
 import { select } from '../../helpers/parse'
 import { comparePassword, createJwt } from '../../utils/crypto'
@@ -11,7 +12,7 @@ export default createGraphQLModule({
 
     input RegisterInput {
       name: String!
-      organizationName: String!
+      organization: OrganizationCreate!
     }
 
     input ActivateInput {
@@ -27,10 +28,15 @@ export default createGraphQLModule({
   resolvers: {
     Mutation: {
       async login(obj, { email, password }, { prisma }, info) {
-        const user = await prisma.user.findUniqueOrThrow({
+        const args: Prisma.UserFindUniqueOrThrowArgs = {
           ...select(info, 'User', 'user'),
           where: { email },
-        })
+        }
+
+        if (!args.select) args.select = {}
+        args.select.password = true
+
+        const user = await prisma.user.findUniqueOrThrow(args)
 
         if (!user.password || !comparePassword(password, user.password)) {
           throw new Error("Passwords don't match")
@@ -40,18 +46,26 @@ export default createGraphQLModule({
 
         return { token, user }
       },
-      async register(obj, { email, password, input: { name, organizationName } }, { prisma }, info) {
+      async register(obj, { email, password, input: { name, organization } }, { prisma }, info) {
         await prisma.user.create({
           data: {
             email,
             password,
             name,
-            membership: {
+            memberships: {
               create: {
                 isAdmin: true,
                 organization: {
                   create: {
-                    name: organizationName,
+                    name: organization.name,
+                    address: {
+                      create: {
+                        street: organization.address.street,
+                        city: organization.address.city,
+                        state: organization.address.state,
+                        zip: organization.address.zip,
+                      },
+                    },
                   },
                 },
               },

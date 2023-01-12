@@ -1,4 +1,4 @@
-import { randCompanyName } from '@ngneat/falso'
+import { randCity, randCompanyName, randState, randStreetAddress, randZipCode } from '@ngneat/falso'
 import { PrismaClient } from '@prisma/client'
 import { Seed } from '.'
 import { mapCount } from '../helpers/seed'
@@ -16,6 +16,14 @@ export class OrgsSeed implements Seed {
         this.prisma.organization.create({
           data: {
             name: randCompanyName(),
+            address: {
+              create: {
+                street: randStreetAddress(),
+                city: randCity(),
+                state: randState(),
+                zip: randZipCode(),
+              },
+            },
           },
         })
       )

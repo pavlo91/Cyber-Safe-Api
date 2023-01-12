@@ -6,6 +6,7 @@ export default createGraphQLModule({
       id: ID!
       createdAt: DateTime!
       name: String!
+      address: Address!
     }
 
     type PaginatedOrganization {
@@ -14,17 +15,25 @@ export default createGraphQLModule({
     }
 
     input OrganizationFilter {
-      name: StringFilter
       createdAt: DateTimeFilter
+      name: StringFilter
+      address: AddressFilter
     }
 
     input OrganizationOrder {
-      name: OrderDirection
       createdAt: OrderDirection
+      name: OrderDirection
+      address: AddressOrder
+    }
+    
+    input OrganizationCreate {
+      name: String!
+      address: AddressCreate!
     }
 
     input OrganizationUpdate {
       name: String
+      address: AddressUpdate
     }
   `,
 })

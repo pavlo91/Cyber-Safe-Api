@@ -1,12 +1,13 @@
 import { Prisma } from '@prisma/client'
 import { createGraphQLModule } from '..'
-import { withAuth } from '../../helpers/auth'
+import { withAuth, withAuthMembership } from '../../helpers/auth'
 import { paginated, select } from '../../helpers/parse'
 
 export default createGraphQLModule({
   typeDefs: `#graphql
     extend type Query {
       organizations(page: Page, filter: OrganizationFilter, order: OrganizationOrder): PaginatedOrganization!
+      organization: Organization!
     }
   `,
   resolvers: {
@@ -21,6 +22,12 @@ export default createGraphQLModule({
             prisma.organization.count({ where }),
           ])
         )
+      }),
+      organization: withAuthMembership('admin', (obj, args, { prisma, organization }, info) => {
+        return prisma.organization.findUniqueOrThrow({
+          ...select(info, 'Organization'),
+          where: { id: organization.id },
+        })
       }),
     },
   },

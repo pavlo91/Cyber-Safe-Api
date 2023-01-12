@@ -4,6 +4,7 @@ import { Logger } from '../utils/logger'
 import { AuthSeed } from './auth'
 import { MembersSeed } from './members'
 import { OrgsSeed } from './orgs'
+import { ParentsSeed } from './parents'
 import { UsersSeed } from './users'
 
 export interface Seed {
@@ -22,7 +23,8 @@ export class SeedManager {
         new AuthSeed('AuthSeed', prisma),
         new UsersSeed('UsersSeed', prisma),
         new OrgsSeed('OrgsSeed', prisma),
-        new MembersSeed('MembersSeed', prisma)
+        new MembersSeed('MembersSeed', prisma),
+        new ParentsSeed('ParentsSeed', prisma)
       )
     }
   }

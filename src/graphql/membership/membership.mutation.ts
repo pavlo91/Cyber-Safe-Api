@@ -1,22 +1,30 @@
 import { createGraphQLModule } from '..'
-import { withAuthMember } from '../../helpers/auth'
+import { withAuthMembership } from '../../helpers/auth'
 
 export default createGraphQLModule({
   typeDefs: `#graphql
     extend type Mutation {
       inviteMember(email: String!, isAdmin: Boolean): ID
       removeMember(id: ID!): ID
-      updateMember(id: ID!, input: MembershipUpdate!): ID
     }
   `,
   resolvers: {
     Mutation: {
-      inviteMember: withAuthMember('admin', async (obj, { email, isAdmin }, { prisma, organization }, info) => {
-        await prisma.user.create({
-          data: {
+      inviteMember: withAuthMembership('admin', async (obj, { email, isAdmin }, { prisma, organization }, info) => {
+        await prisma.user.upsert({
+          where: { email },
+          update: {
+            memberships: {
+              create: {
+                isAdmin: isAdmin ?? false,
+                organizationId: organization.id,
+              },
+            },
+          },
+          create: {
             email,
             name: '',
-            membership: {
+            memberships: {
               create: {
                 isAdmin: isAdmin ?? false,
                 organizationId: organization.id,
@@ -25,7 +33,7 @@ export default createGraphQLModule({
           },
         })
       }),
-      removeMember: withAuthMember('admin', async (obj, { id }, { prisma, organization }, info) => {
+      removeMember: withAuthMembership('admin', async (obj, { id }, { prisma, organization }, info) => {
         await prisma.membership.delete({
           where: {
             userId_organizationId: {
@@ -33,12 +41,6 @@ export default createGraphQLModule({
               organizationId: organization.id,
             },
           },
-        })
-      }),
-      updateMember: withAuthMember('admin', async (obj, { id, input }, { prisma }, info) => {
-        await prisma.membership.update({
-          where: { userId: id },
-          data: { ...input },
         })
       }),
     },

@@ -36,7 +36,7 @@ export class MembersSeed implements Seed {
             data: {
               organizationId: org.id,
               userId: user.id,
-              isAdmin: user.email.startsWith('admin') || randBoolean(),
+              isAdmin: user.email.includes('admin') || randBoolean(),
             },
           })
         }

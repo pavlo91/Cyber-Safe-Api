@@ -26,6 +26,43 @@ export type ActivateInput = {
   name: Scalars['String'];
 };
 
+export type Address = {
+  __typename?: 'Address';
+  city: Scalars['String'];
+  id: Scalars['ID'];
+  state: Scalars['String'];
+  street: Scalars['String'];
+  zip: Scalars['String'];
+};
+
+export type AddressCreate = {
+  city: Scalars['String'];
+  state: Scalars['String'];
+  street: Scalars['String'];
+  zip: Scalars['String'];
+};
+
+export type AddressFilter = {
+  city?: InputMaybe<StringFilter>;
+  state?: InputMaybe<StringFilter>;
+  street?: InputMaybe<StringFilter>;
+  zip?: InputMaybe<StringFilter>;
+};
+
+export type AddressOrder = {
+  city?: InputMaybe<OrderDirection>;
+  state?: InputMaybe<OrderDirection>;
+  street?: InputMaybe<OrderDirection>;
+  zip?: InputMaybe<OrderDirection>;
+};
+
+export type AddressUpdate = {
+  city?: InputMaybe<Scalars['String']>;
+  state?: InputMaybe<Scalars['String']>;
+  street?: InputMaybe<Scalars['String']>;
+  zip?: InputMaybe<Scalars['String']>;
+};
+
 export type BooleanFilter = {
   equals?: InputMaybe<Scalars['Boolean']>;
   not?: InputMaybe<Scalars['Boolean']>;
@@ -36,16 +73,6 @@ export type DateTimeFilter = {
   gte?: InputMaybe<Scalars['DateTime']>;
   lte?: InputMaybe<Scalars['DateTime']>;
   not?: InputMaybe<Scalars['DateTime']>;
-};
-
-export type Facebook = {
-  __typename?: 'Facebook';
-  createdAt: Scalars['DateTime'];
-};
-
-export type FacebookFilter = {
-  is?: InputMaybe<Scalars['NullObject']>;
-  isNot?: InputMaybe<Scalars['NullObject']>;
 };
 
 export type FloatFilter = {
@@ -73,18 +100,21 @@ export type Membership = {
   createdAt: Scalars['DateTime'];
   isAdmin: Scalars['Boolean'];
   organization: Organization;
+  user: User;
 };
 
 export type MembershipFilter = {
   createdAt?: InputMaybe<DateTimeFilter>;
   isAdmin?: InputMaybe<BooleanFilter>;
   organization?: InputMaybe<OrganizationFilter>;
+  user?: InputMaybe<UserFilter>;
 };
 
 export type MembershipOrder = {
   createdAt?: InputMaybe<OrderDirection>;
   isAdmin?: InputMaybe<OrderDirection>;
   organization?: InputMaybe<OrganizationOrder>;
+  user?: InputMaybe<UserOrder>;
 };
 
 export type MembershipUpdate = {
@@ -95,15 +125,15 @@ export type Mutation = {
   __typename?: 'Mutation';
   activate?: Maybe<Scalars['ID']>;
   inviteMember?: Maybe<Scalars['ID']>;
+  inviteParent?: Maybe<Scalars['ID']>;
   inviteStaff?: Maybe<Scalars['ID']>;
-  linkFacebook?: Maybe<Scalars['ID']>;
   login: Jwt;
   register?: Maybe<Scalars['ID']>;
   removeMember?: Maybe<Scalars['ID']>;
-  unlinkSocial?: Maybe<Scalars['ID']>;
-  updateMember?: Maybe<Scalars['ID']>;
+  removeParent?: Maybe<Scalars['ID']>;
   updateOrganization?: Maybe<Scalars['ID']>;
   updateProfile?: Maybe<Scalars['ID']>;
+  updateRelationship?: Maybe<Scalars['ID']>;
   updateUser?: Maybe<Scalars['ID']>;
 };
 
@@ -118,6 +148,13 @@ export type MutationActivateArgs = {
 export type MutationInviteMemberArgs = {
   email: Scalars['String'];
   isAdmin?: InputMaybe<Scalars['Boolean']>;
+};
+
+
+export type MutationInviteParentArgs = {
+  childId: Scalars['ID'];
+  email: Scalars['String'];
+  relation?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -144,52 +181,62 @@ export type MutationRemoveMemberArgs = {
 };
 
 
-export type MutationUnlinkSocialArgs = {
-  social?: InputMaybe<SocialType>;
-};
-
-
-export type MutationUpdateMemberArgs = {
+export type MutationRemoveParentArgs = {
+  childId: Scalars['ID'];
   id: Scalars['ID'];
-  input: MembershipUpdate;
 };
 
 
 export type MutationUpdateOrganizationArgs = {
-  input?: InputMaybe<OrganizationUpdate>;
+  input: OrganizationUpdate;
 };
 
 
 export type MutationUpdateProfileArgs = {
-  input?: InputMaybe<ProfileUpdate>;
+  input: ProfileUpdate;
+};
+
+
+export type MutationUpdateRelationshipArgs = {
+  childId: Scalars['ID'];
+  input: RelationshipUpdate;
 };
 
 
 export type MutationUpdateUserArgs = {
   id: Scalars['ID'];
-  input?: InputMaybe<UserUpdate>;
+  input: UserUpdate;
 };
 
 export { OrderDirection };
 
 export type Organization = {
   __typename?: 'Organization';
+  address: Address;
   createdAt: Scalars['DateTime'];
   id: Scalars['ID'];
   name: Scalars['String'];
 };
 
+export type OrganizationCreate = {
+  address: AddressCreate;
+  name: Scalars['String'];
+};
+
 export type OrganizationFilter = {
+  address?: InputMaybe<AddressFilter>;
   createdAt?: InputMaybe<DateTimeFilter>;
   name?: InputMaybe<StringFilter>;
 };
 
 export type OrganizationOrder = {
+  address?: InputMaybe<AddressOrder>;
   createdAt?: InputMaybe<OrderDirection>;
   name?: InputMaybe<OrderDirection>;
 };
 
 export type OrganizationUpdate = {
+  address?: InputMaybe<AddressUpdate>;
   name?: InputMaybe<Scalars['String']>;
 };
 
@@ -208,9 +255,21 @@ export type PageInfo = {
   total: Scalars['Int'];
 };
 
+export type PaginatedMembership = {
+  __typename?: 'PaginatedMembership';
+  nodes: Array<Membership>;
+  page: PageInfo;
+};
+
 export type PaginatedOrganization = {
   __typename?: 'PaginatedOrganization';
   nodes: Array<Organization>;
+  page: PageInfo;
+};
+
+export type PaginatedRelationship = {
+  __typename?: 'PaginatedRelationship';
+  nodes: Array<Relationship>;
   page: PageInfo;
 };
 
@@ -228,16 +287,26 @@ export type ProfileUpdate = {
 
 export type Query = {
   __typename?: 'Query';
-  me: User;
-  members: PaginatedUser;
+  children: PaginatedRelationship;
+  members: PaginatedMembership;
+  organization: Organization;
   organizations: PaginatedOrganization;
+  profile: User;
+  user: User;
   users: PaginatedUser;
 };
 
 
+export type QueryChildrenArgs = {
+  filter?: InputMaybe<RelationshipFilter>;
+  order?: InputMaybe<RelationshipOrder>;
+  page?: InputMaybe<Page>;
+};
+
+
 export type QueryMembersArgs = {
-  filter?: InputMaybe<UserFilter>;
-  order?: InputMaybe<UserOrder>;
+  filter?: InputMaybe<MembershipFilter>;
+  order?: InputMaybe<MembershipOrder>;
   page?: InputMaybe<Page>;
 };
 
@@ -249,6 +318,11 @@ export type QueryOrganizationsArgs = {
 };
 
 
+export type QueryUserArgs = {
+  id?: InputMaybe<Scalars['ID']>;
+};
+
+
 export type QueryUsersArgs = {
   filter?: InputMaybe<UserFilter>;
   order?: InputMaybe<UserOrder>;
@@ -257,14 +331,35 @@ export type QueryUsersArgs = {
 
 export type RegisterInput = {
   name: Scalars['String'];
-  organizationName: Scalars['String'];
+  organization: OrganizationCreate;
 };
 
-export const SocialType = {
-  Facebook: 'FACEBOOK'
-} as const;
+export type Relationship = {
+  __typename?: 'Relationship';
+  childUser: User;
+  createdAt: Scalars['DateTime'];
+  parentUser: User;
+  relation: Scalars['String'];
+};
 
-export type SocialType = typeof SocialType[keyof typeof SocialType];
+export type RelationshipFilter = {
+  childUser?: InputMaybe<UserFilter>;
+  createdAt?: InputMaybe<DateTimeFilter>;
+  parentUser?: InputMaybe<UserFilter>;
+  relation?: InputMaybe<StringFilter>;
+};
+
+export type RelationshipOrder = {
+  childUser?: InputMaybe<UserOrder>;
+  createdAt?: InputMaybe<OrderDirection>;
+  parentUser?: InputMaybe<UserOrder>;
+  relation?: InputMaybe<OrderDirection>;
+};
+
+export type RelationshipUpdate = {
+  relation?: InputMaybe<Scalars['String']>;
+};
+
 export type StringFilter = {
   contains?: InputMaybe<Scalars['String']>;
   equals?: InputMaybe<Scalars['String']>;
@@ -276,24 +371,22 @@ export { StringFilterMode };
 
 export type User = {
   __typename?: 'User';
+  children: Array<Relationship>;
   createdAt: Scalars['DateTime'];
   email: Scalars['String'];
-  facebook?: Maybe<Facebook>;
   id: Scalars['ID'];
   isConfirmed: Scalars['Boolean'];
   isStaff: Scalars['Boolean'];
-  membership?: Maybe<Membership>;
+  memberships: Array<Membership>;
   name: Scalars['String'];
+  parents: Array<Relationship>;
 };
 
 export type UserFilter = {
   createdAt?: InputMaybe<DateTimeFilter>;
   email?: InputMaybe<StringFilter>;
-  facebook?: InputMaybe<FacebookFilter>;
-  id?: InputMaybe<StringFilter>;
   isConfirmed?: InputMaybe<BooleanFilter>;
   isStaff?: InputMaybe<BooleanFilter>;
-  membership?: InputMaybe<MembershipFilter>;
   name?: InputMaybe<StringFilter>;
 };
 
@@ -302,7 +395,6 @@ export type UserOrder = {
   email?: InputMaybe<OrderDirection>;
   isConfirmed?: InputMaybe<OrderDirection>;
   isStaff?: InputMaybe<OrderDirection>;
-  membership?: InputMaybe<MembershipOrder>;
   name?: InputMaybe<OrderDirection>;
 };
 
@@ -376,12 +468,15 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   ActivateInput: ActivateInput;
+  Address: ResolverTypeWrapper<Address>;
+  AddressCreate: AddressCreate;
+  AddressFilter: AddressFilter;
+  AddressOrder: AddressOrder;
+  AddressUpdate: AddressUpdate;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   BooleanFilter: BooleanFilter;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   DateTimeFilter: DateTimeFilter;
-  Facebook: ResolverTypeWrapper<Facebook>;
-  FacebookFilter: FacebookFilter;
   Float: ResolverTypeWrapper<Scalars['Float']>;
   FloatFilter: FloatFilter;
   ID: ResolverTypeWrapper<Scalars['ID']>;
@@ -396,17 +491,23 @@ export type ResolversTypes = {
   NullObject: ResolverTypeWrapper<Scalars['NullObject']>;
   OrderDirection: Prisma.SortOrder;
   Organization: ResolverTypeWrapper<Organization>;
+  OrganizationCreate: OrganizationCreate;
   OrganizationFilter: OrganizationFilter;
   OrganizationOrder: OrganizationOrder;
   OrganizationUpdate: OrganizationUpdate;
   Page: Page;
   PageInfo: ResolverTypeWrapper<PageInfo>;
+  PaginatedMembership: ResolverTypeWrapper<PaginatedMembership>;
   PaginatedOrganization: ResolverTypeWrapper<PaginatedOrganization>;
+  PaginatedRelationship: ResolverTypeWrapper<PaginatedRelationship>;
   PaginatedUser: ResolverTypeWrapper<PaginatedUser>;
   ProfileUpdate: ProfileUpdate;
   Query: ResolverTypeWrapper<{}>;
   RegisterInput: RegisterInput;
-  SocialType: SocialType;
+  Relationship: ResolverTypeWrapper<Relationship>;
+  RelationshipFilter: RelationshipFilter;
+  RelationshipOrder: RelationshipOrder;
+  RelationshipUpdate: RelationshipUpdate;
   String: ResolverTypeWrapper<Scalars['String']>;
   StringFilter: StringFilter;
   StringFilterMode: Prisma.QueryMode;
@@ -419,12 +520,15 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   ActivateInput: ActivateInput;
+  Address: Address;
+  AddressCreate: AddressCreate;
+  AddressFilter: AddressFilter;
+  AddressOrder: AddressOrder;
+  AddressUpdate: AddressUpdate;
   Boolean: Scalars['Boolean'];
   BooleanFilter: BooleanFilter;
   DateTime: Scalars['DateTime'];
   DateTimeFilter: DateTimeFilter;
-  Facebook: Facebook;
-  FacebookFilter: FacebookFilter;
   Float: Scalars['Float'];
   FloatFilter: FloatFilter;
   ID: Scalars['ID'];
@@ -438,16 +542,23 @@ export type ResolversParentTypes = {
   Mutation: {};
   NullObject: Scalars['NullObject'];
   Organization: Organization;
+  OrganizationCreate: OrganizationCreate;
   OrganizationFilter: OrganizationFilter;
   OrganizationOrder: OrganizationOrder;
   OrganizationUpdate: OrganizationUpdate;
   Page: Page;
   PageInfo: PageInfo;
+  PaginatedMembership: PaginatedMembership;
   PaginatedOrganization: PaginatedOrganization;
+  PaginatedRelationship: PaginatedRelationship;
   PaginatedUser: PaginatedUser;
   ProfileUpdate: ProfileUpdate;
   Query: {};
   RegisterInput: RegisterInput;
+  Relationship: Relationship;
+  RelationshipFilter: RelationshipFilter;
+  RelationshipOrder: RelationshipOrder;
+  RelationshipUpdate: RelationshipUpdate;
   String: Scalars['String'];
   StringFilter: StringFilter;
   User: User;
@@ -456,14 +567,18 @@ export type ResolversParentTypes = {
   UserUpdate: UserUpdate;
 };
 
+export type AddressResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Address'] = ResolversParentTypes['Address']> = {
+  city?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  state?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  street?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  zip?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
   name: 'DateTime';
 }
-
-export type FacebookResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Facebook'] = ResolversParentTypes['Facebook']> = {
-  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
 
 export type JwtResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['JWT'] = ResolversParentTypes['JWT']> = {
   token?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -475,22 +590,23 @@ export type MembershipResolvers<ContextType = ApolloContext, ParentType extends 
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   isAdmin?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   organization?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   activate?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationActivateArgs, 'input' | 'password' | 'token'>>;
   inviteMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteMemberArgs, 'email'>>;
+  inviteParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteParentArgs, 'childId' | 'email'>>;
   inviteStaff?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteStaffArgs, 'email'>>;
-  linkFacebook?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   login?: Resolver<ResolversTypes['JWT'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
   register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'input' | 'password'>>;
   removeMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveMemberArgs, 'id'>>;
-  unlinkSocial?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, Partial<MutationUnlinkSocialArgs>>;
-  updateMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateMemberArgs, 'id' | 'input'>>;
-  updateOrganization?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, Partial<MutationUpdateOrganizationArgs>>;
-  updateProfile?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, Partial<MutationUpdateProfileArgs>>;
-  updateUser?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'id'>>;
+  removeParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveParentArgs, 'childId' | 'id'>>;
+  updateOrganization?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateOrganizationArgs, 'input'>>;
+  updateProfile?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
+  updateRelationship?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateRelationshipArgs, 'childId' | 'input'>>;
+  updateUser?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'id' | 'input'>>;
 };
 
 export interface NullObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['NullObject'], any> {
@@ -500,6 +616,7 @@ export interface NullObjectScalarConfig extends GraphQLScalarTypeConfig<Resolver
 export type OrderDirectionResolvers = EnumResolverSignature<{ ASC?: any, DESC?: any }, ResolversTypes['OrderDirection']>;
 
 export type OrganizationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Organization'] = ResolversParentTypes['Organization']> = {
+  address?: Resolver<ResolversTypes['Address'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -516,8 +633,20 @@ export type PageInfoResolvers<ContextType = ApolloContext, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PaginatedMembershipResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['PaginatedMembership'] = ResolversParentTypes['PaginatedMembership']> = {
+  nodes?: Resolver<Array<ResolversTypes['Membership']>, ParentType, ContextType>;
+  page?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type PaginatedOrganizationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['PaginatedOrganization'] = ResolversParentTypes['PaginatedOrganization']> = {
   nodes?: Resolver<Array<ResolversTypes['Organization']>, ParentType, ContextType>;
+  page?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PaginatedRelationshipResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['PaginatedRelationship'] = ResolversParentTypes['PaginatedRelationship']> = {
+  nodes?: Resolver<Array<ResolversTypes['Relationship']>, ParentType, ContextType>;
   page?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -529,29 +658,41 @@ export type PaginatedUserResolvers<ContextType = ApolloContext, ParentType exten
 };
 
 export type QueryResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  me?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  members?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryMembersArgs>>;
+  children?: Resolver<ResolversTypes['PaginatedRelationship'], ParentType, ContextType, Partial<QueryChildrenArgs>>;
+  members?: Resolver<ResolversTypes['PaginatedMembership'], ParentType, ContextType, Partial<QueryMembersArgs>>;
+  organization?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   organizations?: Resolver<ResolversTypes['PaginatedOrganization'], ParentType, ContextType, Partial<QueryOrganizationsArgs>>;
+  profile?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType, Partial<QueryUserArgs>>;
   users?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryUsersArgs>>;
+};
+
+export type RelationshipResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Relationship'] = ResolversParentTypes['Relationship']> = {
+  childUser?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  parentUser?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  relation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type StringFilterModeResolvers = EnumResolverSignature<{ DEFAULT?: any, INSENSITIVE?: any }, ResolversTypes['StringFilterMode']>;
 
 export type UserResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
+  children?: Resolver<Array<ResolversTypes['Relationship']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  facebook?: Resolver<Maybe<ResolversTypes['Facebook']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   isConfirmed?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isStaff?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  membership?: Resolver<Maybe<ResolversTypes['Membership']>, ParentType, ContextType>;
+  memberships?: Resolver<Array<ResolversTypes['Membership']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  parents?: Resolver<Array<ResolversTypes['Relationship']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = ApolloContext> = {
+  Address?: AddressResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
-  Facebook?: FacebookResolvers<ContextType>;
   JWT?: JwtResolvers<ContextType>;
   Membership?: MembershipResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
@@ -559,9 +700,12 @@ export type Resolvers<ContextType = ApolloContext> = {
   OrderDirection?: OrderDirectionResolvers;
   Organization?: OrganizationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
+  PaginatedMembership?: PaginatedMembershipResolvers<ContextType>;
   PaginatedOrganization?: PaginatedOrganizationResolvers<ContextType>;
+  PaginatedRelationship?: PaginatedRelationshipResolvers<ContextType>;
   PaginatedUser?: PaginatedUserResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  Relationship?: RelationshipResolvers<ContextType>;
   StringFilterMode?: StringFilterModeResolvers;
   User?: UserResolvers<ContextType>;
 };

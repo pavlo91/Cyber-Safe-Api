@@ -5,8 +5,8 @@ export default createGraphQLModule({
   typeDefs: `#graphql
     type Mutation {
       inviteStaff(email: String!): ID
-      updateUser(id: ID!, input: UserUpdate): ID
-      updateProfile(input: ProfileUpdate): ID
+      updateUser(id: ID!, input: UserUpdate!): ID
+      updateProfile(input: ProfileUpdate!): ID
     }
   `,
   resolvers: {

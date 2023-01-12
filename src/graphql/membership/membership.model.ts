@@ -3,20 +3,28 @@ import { createGraphQLModule } from '..'
 export default createGraphQLModule({
   typeDefs: `#graphql
     type Membership {
-      createdAt: DateTime!
+      user: User!
       organization: Organization!
+      createdAt: DateTime!
       isAdmin: Boolean!
     }
 
+    type PaginatedMembership {
+      page: PageInfo!
+      nodes: [Membership!]!
+    }
+
     input MembershipFilter {
-      createdAt: DateTimeFilter
+      user: UserFilter
       organization: OrganizationFilter
+      createdAt: DateTimeFilter
       isAdmin: BooleanFilter
     }
 
     input MembershipOrder {
-      createdAt: OrderDirection
+      user: UserOrder
       organization: OrganizationOrder
+      createdAt: OrderDirection
       isAdmin: OrderDirection
     }
 

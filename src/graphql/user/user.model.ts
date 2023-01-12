@@ -9,8 +9,9 @@ export default createGraphQLModule({
       name: String!
       isStaff: Boolean!
       isConfirmed: Boolean!
-      facebook: Facebook
-      membership: Membership
+      memberships: [Membership!]!
+      parents: [Relationship!]!
+      children: [Relationship!]!
     }
 
     type PaginatedUser {
@@ -19,14 +20,11 @@ export default createGraphQLModule({
     }
 
     input UserFilter {
-      id: StringFilter
       createdAt: DateTimeFilter
       email: StringFilter
       name: StringFilter
       isStaff: BooleanFilter
-      facebook: FacebookFilter
       isConfirmed: BooleanFilter
-      membership: MembershipFilter
     }
 
     input UserOrder {
@@ -35,7 +33,6 @@ export default createGraphQLModule({
       name: OrderDirection
       isStaff: OrderDirection
       isConfirmed: OrderDirection
-      membership: MembershipOrder
     }
 
     input UserUpdate {
