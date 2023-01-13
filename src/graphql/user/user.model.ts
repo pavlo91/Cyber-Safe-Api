@@ -33,6 +33,8 @@ export default createGraphQLModule({
       name: OrderDirection
       isStaff: OrderDirection
       isConfirmed: OrderDirection
+      memberships: ArrayOrder
+      children: ArrayOrder
     }
 
     input UserUpdate {

@@ -78,6 +78,10 @@ export default createGraphQLModule({
       ASC
       DESC
     }
+
+    input ArrayOrder {
+      _count: OrderDirection
+    }
   `,
   resolvers: {
     DateTime: DateTimeResolver,

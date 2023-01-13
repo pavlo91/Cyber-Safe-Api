@@ -63,6 +63,10 @@ export type AddressUpdate = {
   zip?: InputMaybe<Scalars['String']>;
 };
 
+export type ArrayOrder = {
+  _count?: InputMaybe<OrderDirection>;
+};
+
 export type BooleanFilter = {
   equals?: InputMaybe<Scalars['Boolean']>;
   not?: InputMaybe<Scalars['Boolean']>;
@@ -391,10 +395,12 @@ export type UserFilter = {
 };
 
 export type UserOrder = {
+  children?: InputMaybe<ArrayOrder>;
   createdAt?: InputMaybe<OrderDirection>;
   email?: InputMaybe<OrderDirection>;
   isConfirmed?: InputMaybe<OrderDirection>;
   isStaff?: InputMaybe<OrderDirection>;
+  memberships?: InputMaybe<ArrayOrder>;
   name?: InputMaybe<OrderDirection>;
 };
 
@@ -473,6 +479,7 @@ export type ResolversTypes = {
   AddressFilter: AddressFilter;
   AddressOrder: AddressOrder;
   AddressUpdate: AddressUpdate;
+  ArrayOrder: ArrayOrder;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   BooleanFilter: BooleanFilter;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
@@ -525,6 +532,7 @@ export type ResolversParentTypes = {
   AddressFilter: AddressFilter;
   AddressOrder: AddressOrder;
   AddressUpdate: AddressUpdate;
+  ArrayOrder: ArrayOrder;
   Boolean: Scalars['Boolean'];
   BooleanFilter: BooleanFilter;
   DateTime: Scalars['DateTime'];
