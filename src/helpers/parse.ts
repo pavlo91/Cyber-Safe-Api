@@ -1,7 +1,7 @@
 import { PrismaSelect } from '@paljs/plugins'
 import { Prisma } from '@prisma/client'
 import { GraphQLResolveInfo } from 'graphql'
-import { InputMaybe, Page } from '../types/graphql'
+import { Page } from '../types/graphql'
 
 export function select(info: GraphQLResolveInfo, modelName: Prisma.ModelName, field?: string) {
   const select = new PrismaSelect(info)
@@ -16,7 +16,7 @@ export function select(info: GraphQLResolveInfo, modelName: Prisma.ModelName, fi
 const DEFAULT_PAGE_SIZE = 15
 
 export async function paginated<T>(
-  page: InputMaybe<Page>,
+  page: Page | undefined | null,
   findManyAndCount: (args: { skip: number; take: number }) => Promise<[T[], number]>
 ) {
   const index = page?.index ?? 0

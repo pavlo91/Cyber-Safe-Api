@@ -6,31 +6,38 @@ export class ParentsSeed implements Seed {
   constructor(public name: string, private prisma: PrismaClient) {}
 
   async canExecute() {
-    return (await this.prisma.relationship.count()) === 0
+    return (await this.prisma.userRole.count({ where: { role: 'PARENT' } })) === 0
   }
 
   async execute() {
-    const users = await this.prisma.user.findMany({
-      where: { memberships: { none: { isAdmin: true } } },
+    const athletes = await this.prisma.userRole.findMany({
+      where: {
+        role: 'ATHLETE',
+      },
     })
 
-    await this.prisma.$transaction(
-      users.map((user) =>
-        this.prisma.user.create({
+    await this.prisma.$transaction(async (prisma) => {
+      for (const athlete of athletes) {
+        await prisma.userRole.create({
           data: {
-            name: randFullName(),
-            email: randEmail(),
-            password: 'password',
-            isConfirmed: true,
-            children: {
+            role: 'PARENT',
+            user: {
               create: {
-                childUserId: user.id,
+                email: randEmail(),
+                emailConfirmed: true,
+                password: 'password',
+                name: randFullName(),
+              },
+            },
+            parentRole: {
+              create: {
+                childUserId: athlete.userId,
                 relation: rand(['Mom', 'Dad']),
               },
             },
           },
         })
-      )
-    )
+      }
+    })
   }
 }

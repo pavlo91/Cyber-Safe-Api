@@ -17,7 +17,7 @@ export class UserMiddleware implements Middleware {
     const users = await this.prisma.user.findMany({
       where: {
         email: { in: emails },
-        isConfirmed: false,
+        emailConfirmed: false,
       },
     })
 

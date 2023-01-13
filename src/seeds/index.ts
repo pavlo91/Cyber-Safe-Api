@@ -2,10 +2,8 @@ import { PrismaClient } from '@prisma/client'
 import { Config } from '../config'
 import { Logger } from '../utils/logger'
 import { AuthSeed } from './auth'
-import { MembersSeed } from './members'
-import { OrgsSeed } from './orgs'
 import { ParentsSeed } from './parents'
-import { UsersSeed } from './users'
+import { TeamsSeed } from './teams'
 
 export interface Seed {
   name: string
@@ -21,9 +19,7 @@ export class SeedManager {
     if (Config.dev) {
       this.seeds.push(
         new AuthSeed('AuthSeed', prisma),
-        new UsersSeed('UsersSeed', prisma),
-        new OrgsSeed('OrgsSeed', prisma),
-        new MembersSeed('MembersSeed', prisma),
+        new TeamsSeed('TeamsSeed', prisma),
         new ParentsSeed('ParentsSeed', prisma)
       )
     }

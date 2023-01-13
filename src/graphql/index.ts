@@ -21,7 +21,7 @@ export class GraphQLManager {
   private apollo: ApolloServer<ApolloContext>
 
   constructor(private fastify: FastifyInstance, private prisma: PrismaClient) {
-    const paths = glob.sync('./**/*.{ts,js}', {
+    const paths = glob.sync('./**/*.{model,query,mutation}.{ts,js}', {
       cwd: __dirname,
       ignore: './index.{ts,js}',
     })

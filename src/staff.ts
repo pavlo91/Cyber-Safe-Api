@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 import readline from 'readline'
 import { MiddlewareManager } from './middlewares'
 
@@ -25,15 +25,25 @@ async function main() {
   const middleware = new MiddlewareManager(prisma)
   middleware.applyMiddlewares()
 
-  const email = await ask('Email: ', true)
+  const email = await ask('E-mail: ', true)
+  const password = await ask('Password (leave empty to send invitation e-mail): ')
 
-  await prisma.user.create({
-    data: {
-      email,
-      name: '',
-      isStaff: true,
+  const data: Prisma.UserCreateInput = {
+    email,
+    name: '',
+    roles: {
+      create: {
+        role: 'STAFF',
+      },
     },
-  })
+  }
+
+  if (!!password) {
+    data.emailConfirmed = true
+    data.password = password
+  }
+
+  await prisma.user.create({ data })
 }
 
 main().finally(() => {

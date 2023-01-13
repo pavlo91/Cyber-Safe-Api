@@ -10,63 +10,65 @@ datasource db {
 }
 
 model User {
-  id              String         @id @default(cuid())
-  uuid            String         @unique @default(uuid())
-  createdAt       DateTime       @default(now())
-  email           String         @unique @db.Citext
-  password        String?
-  activationToken String?        @unique
-  name            String
-  isStaff         Boolean        @default(false)
-  isConfirmed     Boolean        @default(false)
-  memberships     Membership[]
-  parents         Relationship[] @relation(name: "Child")
-  children        Relationship[] @relation(name: "Parent")
+  id             String           @id @default(cuid())
+  uuid           String           @unique @default(uuid())
+  createdAt      DateTime         @default(now())
+  email          String           @unique @db.Citext
+  emailConfirmed Boolean          @default(false)
+  password       String?
+  passwordToken  String?          @unique
+  name           String
+  roles          UserRole[]
+  parentRoles    ParentUserRole[]
 
-  @@index(isStaff)
-  @@index(isConfirmed)
+  @@index([emailConfirmed])
 }
 
-model Address {
-  id           String        @id @default(cuid())
-  street       String
-  city         String
-  state        String
-  zip          String
-  organization Organization?
+model Team {
+  id        String         @id @default(cuid())
+  createdAt DateTime       @default(now())
+  name      String
+  roles     TeamUserRole[]
 }
 
-model Organization {
-  id          String       @id @default(cuid())
-  createdAt   DateTime     @default(now())
-  name        String
-  addressId   String       @unique
-  address     Address      @relation(fields: [addressId], references: [id])
-  memberships Membership[]
+enum Role {
+  STAFF
+  COACH
+  ATHLETE
+  PARENT
 }
 
-model Membership {
-  userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime     @default(now())
-  isAdmin        Boolean
+model UserRole {
+  id         String          @id @default(cuid())
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role
+  teamRole   TeamUserRole?
+  parentRole ParentUserRole?
 
-  @@id([userId, organizationId])
-  @@index(userId)
-  @@index(organizationId)
+  @@index([userId])
+  @@index([role])
 }
 
-model Relationship {
-  parentUserId String
-  parentUser   User     @relation(name: "Parent", fields: [parentUserId], references: [id], onDelete: Cascade)
-  childUserId  String
-  childUser    User     @relation(name: "Child", fields: [childUserId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-  relation     String   @default("")
+model TeamUserRole {
+  teamId     String
+  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userRoleId String   @unique
+  userRole   UserRole @relation(fields: [userRoleId], references: [id], onDelete: Cascade)
 
-  @@id([parentUserId, childUserId])
-  @@index(parentUserId)
-  @@index(childUserId)
+  @@id([teamId, userRoleId])
+  @@index([teamId])
+  @@index([userRoleId])
+}
+
+model ParentUserRole {
+  childUserId String
+  childUser   User     @relation(fields: [childUserId], references: [id], onDelete: Cascade)
+  userRoleId  String   @unique
+  userRole    UserRole @relation(fields: [userRoleId], references: [id], onDelete: Cascade)
+  relation    String?
+
+  @@id([childUserId, userRoleId])
+  @@index([childUserId])
+  @@index([userRoleId])
 }

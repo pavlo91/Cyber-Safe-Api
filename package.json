@@ -7,6 +7,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "ts-node-dev --transpile-only --exit-child --quiet --cls -r dotenv/config src/index.ts",
+    "dev:staff": "ts-node --transpile-only src/staff.ts",
     "dev:initial": "rm -rf prisma/migrations && yarn reset && yarn migrate initial",
     "codegen": "graphql-codegen --config codegen.yml",
     "reset": "prisma migrate reset --force",
