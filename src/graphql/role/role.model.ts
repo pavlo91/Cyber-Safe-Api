@@ -1,9 +1,10 @@
 import { Prisma } from '@prisma/client'
+import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { UserRoleInclude } from './role.include'
 
 export default createGraphQLModule({
-  typeDefs: `#graphql
+  typeDefs: gql`
     enum Role {
       STAFF
       COACH

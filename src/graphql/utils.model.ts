@@ -1,5 +1,6 @@
 import { GraphQLScalarType, Kind } from 'graphql'
 import { DateTimeResolver } from 'graphql-scalars'
+import gql from 'graphql-tag'
 import { createGraphQLModule } from '.'
 import { PageInfo } from '../types/graphql'
 
@@ -18,7 +19,7 @@ const NullObjectResolver = new GraphQLScalarType({
 })
 
 export default createGraphQLModule({
-  typeDefs: `#graphql
+  typeDefs: gql`
     scalar DateTime
     scalar NullObject
 

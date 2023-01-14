@@ -9,8 +9,8 @@ export class AuthSeed implements Seed {
   }
 
   async execute() {
-    await this.prisma.$transaction([
-      this.prisma.user.upsert({
+    await this.prisma.$transaction(async (prisma) => {
+      await prisma.user.upsert({
         where: { email: 'staff@wonderkiln.com' },
         create: {
           email: 'staff@wonderkiln.com',
@@ -24,7 +24,7 @@ export class AuthSeed implements Seed {
           },
         },
         update: {},
-      }),
-    ])
+      })
+    })
   }
 }

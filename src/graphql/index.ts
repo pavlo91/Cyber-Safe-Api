@@ -3,12 +3,13 @@ import fastifyApollo, { fastifyApolloDrainPlugin } from '@as-integrations/fastif
 import { PrismaClient } from '@prisma/client'
 import { FastifyInstance } from 'fastify'
 import { glob } from 'glob'
+import { DocumentNode } from 'graphql'
 import { ApolloContext } from '../types/apollo'
 import { Resolvers } from '../types/graphql'
 import { Logger } from '../utils/logger'
 
 interface GraphQL {
-  typeDefs?: string
+  typeDefs?: DocumentNode
   resolvers?: Resolvers
 }
 

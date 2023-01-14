@@ -14,7 +14,7 @@ function findUser(ctx: ApolloContext, id?: string) {
     const jwt = parseJwt(token)
     where.uuid = jwt.uuid
   } else {
-    throw ''
+    throw new Error('Could not find user')
   }
 
   return ctx.prisma.user.findFirstOrThrow({
@@ -32,7 +32,7 @@ const UserRole = {
     let user = initialUser
 
     if (!user.roles.find((e) => e.role === 'STAFF')) {
-      throw ''
+      throw new Error('Not authorized')
     }
 
     if (typeof behalfId === 'string') {
@@ -42,32 +42,57 @@ const UserRole = {
     return { user }
   },
   coach: async (ctx: ApolloContext, user: User) => {
-    const orgId = ctx.req.headers['x-org-id']
-    if (typeof orgId !== 'string') throw ''
+    const teamId = ctx.req.headers['x-team-id']
+    if (typeof teamId !== 'string') throw new Error('Team ID not found in headers')
 
-    const role = user.roles.find((e) => e.role === 'COACH' && e.teamRole && e.teamRole.team.id === orgId)
-    if (!role) throw new Error('')
+    const role = user.roles.find(
+      (e) => e.role === 'STAFF' || (e.role === 'COACH' && e.teamRole && e.teamRole.team.id === teamId)
+    )
+    if (!role) throw new Error('Not authorized')
 
-    const team = role.teamRole!.team
+    const team = await ctx.prisma.team.findFirstOrThrow({
+      where: { id: teamId },
+    })
 
     return { user, team }
   },
-  athlete: (ctx: ApolloContext, user: User) => {
-    const orgId = ctx.req.headers['x-org-id']
-    if (typeof orgId !== 'string') throw ''
+  athlete: async (ctx: ApolloContext, user: User) => {
+    const teamId = ctx.req.headers['x-team-id']
+    if (typeof teamId !== 'string') throw new Error('Team ID not found in headers')
 
-    const role = user.roles.find((e) => e.role === 'ATHLETE' && e.teamRole && e.teamRole.team.id === orgId)
-    if (!role) throw new Error('')
+    const role = user.roles.find(
+      (e) => e.role === 'STAFF' || (e.role === 'ATHLETE' && e.teamRole && e.teamRole.team.id === teamId)
+    )
+    if (!role) throw new Error('Not authorized')
 
-    const team = role.teamRole!.team
+    const team = await ctx.prisma.team.findFirstOrThrow({
+      where: { id: teamId },
+    })
+
+    return { user, team }
+  },
+  member: async (ctx: ApolloContext, user: User) => {
+    const teamId = ctx.req.headers['x-team-id']
+    if (typeof teamId !== 'string') throw new Error('Team ID not found in headers')
+
+    const role = user.roles.find(
+      (e) =>
+        e.role === 'STAFF' ||
+        ((e.role === 'COACH' || e.role === 'ATHLETE') && e.teamRole && e.teamRole.team.id === teamId)
+    )
+    if (!role) throw new Error('Not authorized')
+
+    const team = await ctx.prisma.team.findFirstOrThrow({
+      where: { id: teamId },
+    })
 
     return { user, team }
   },
   parent: (ctx: ApolloContext, user: User) => {
-    const roles = user.roles.filter((e) => e.role === 'PARENT' && e.parentRole)
+    const roles = user.roles.filter((e) => e.role === 'STAFF' || (e.role === 'PARENT' && e.parentRole))
 
     if (roles.length === 0) {
-      throw new Error('')
+      throw new Error('Not authorized')
     }
 
     const children = roles.map((e) => e.parentRole)

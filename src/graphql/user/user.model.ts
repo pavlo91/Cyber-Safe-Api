@@ -1,7 +1,11 @@
+import { Prisma } from '@prisma/client'
+import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
+import { withAuth } from '../../helpers/auth'
+import { UserInclude } from './user.include'
 
 export default createGraphQLModule({
-  typeDefs: `#graphql
+  typeDefs: gql`
     type User {
       id: ID!
       createdAt: DateTime!
@@ -9,6 +13,7 @@ export default createGraphQLModule({
       emailConfirmed: Boolean!
       name: String!
       roles: [UserRole!]!
+      teamRoles: [UserRole!]!
     }
 
     type PaginatedUser {
@@ -22,4 +27,17 @@ export default createGraphQLModule({
       name: OrderDirection
     }
   `,
+  resolvers: {
+    User: {
+      teamRoles: withAuth('any', (obj: Prisma.UserGetPayload<UserInclude>, args, { req }, info) => {
+        const teamId = req.headers['x-team-id']
+
+        if (typeof teamId === 'string') {
+          return obj.roles.filter((e) => e.teamRole && e.teamRole.teamId === teamId)
+        }
+
+        return []
+      }),
+    },
+  },
 })

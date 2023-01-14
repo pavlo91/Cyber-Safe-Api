@@ -18,21 +18,21 @@ export class ParentsSeed implements Seed {
 
     await this.prisma.$transaction(async (prisma) => {
       for (const athlete of athletes) {
-        await prisma.userRole.create({
+        await prisma.user.create({
           data: {
-            role: 'PARENT',
-            user: {
+            email: randEmail(),
+            emailConfirmed: true,
+            password: 'password',
+            name: randFullName(),
+            roles: {
               create: {
-                email: randEmail(),
-                emailConfirmed: true,
-                password: 'password',
-                name: randFullName(),
-              },
-            },
-            parentRole: {
-              create: {
-                childUserId: athlete.userId,
-                relation: rand(['Mom', 'Dad']),
+                role: 'PARENT',
+                parentRole: {
+                  create: {
+                    childUserId: athlete.userId,
+                    relation: rand(['Mom', 'Dad']),
+                  },
+                },
               },
             },
           },

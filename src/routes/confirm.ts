@@ -19,11 +19,11 @@ export class ConfirmRoute implements Route {
     })
 
     const data: Prisma.UserUpdateInput = {
-      isConfirmed: true,
+      emailConfirmed: true,
     }
 
     if (!user.password) {
-      data.activationToken = randAlphaNumeric({ length: 16 }).join('')
+      data.passwordToken = randAlphaNumeric({ length: 16 }).join('')
     }
 
     await this.prisma.user.update({
@@ -34,7 +34,7 @@ export class ConfirmRoute implements Route {
     let redirect: string
 
     if (!user.password) {
-      redirect = Config.composeUrl('webUrl', '/auth/activate/:token', { token: data.activationToken })
+      redirect = Config.composeUrl('webUrl', '/auth/activate/:passwordToken', { passwordToken: data.passwordToken! })
     } else {
       redirect = Config.composeUrl('webUrl', '/auth/login')
     }

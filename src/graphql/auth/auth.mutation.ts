@@ -1,9 +1,10 @@
+import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { comparePassword, createJwt } from '../../utils/crypto'
 import { UserInclude } from '../user/user.include'
 
 export default createGraphQLModule({
-  typeDefs: `#graphql
+  typeDefs: gql`
     type JWT {
       token: String!
       user: User!
@@ -11,6 +12,8 @@ export default createGraphQLModule({
 
     type Mutation {
       login(email: String!, password: String!): JWT!
+      register(email: String!, password: String!, team: TeamCreate!): ID
+      activate(email: String!, password: String!, passwordToken: String!): ID
     }
   `,
   resolvers: {

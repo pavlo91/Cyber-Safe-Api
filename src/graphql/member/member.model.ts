@@ -3,20 +3,21 @@ import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { withAuth } from '../../helpers/auth'
 import { paginated } from '../../helpers/parse'
-import { UserInclude } from './user.include'
-import { parseUserOrder } from './user.utils'
+import { UserInclude } from '../user/user.include'
+import { parseUserOrder } from '../user/user.utils'
 
 export default createGraphQLModule({
   typeDefs: gql`
     extend type Query {
-      users(page: Page, order: UserOrder): PaginatedUser!
-      user(id: ID!): User!
+      members(page: Page, order: UserOrder): PaginatedUser!
     }
   `,
   resolvers: {
     Query: {
-      users: withAuth('staff', (obj, { page, order }, { prisma }, info) => {
-        const where: Prisma.UserWhereInput = {}
+      members: withAuth('member', (obj, { page, order }, { prisma, team }, info) => {
+        const where: Prisma.UserWhereInput = {
+          roles: { some: { teamRole: { teamId: team.id } } },
+        }
 
         return paginated(page, (args) =>
           prisma.$transaction([
@@ -29,12 +30,6 @@ export default createGraphQLModule({
             prisma.user.count({ where }),
           ])
         )
-      }),
-      user: withAuth('staff', (obj, { id }, { prisma }, info) => {
-        return prisma.user.findUniqueOrThrow({
-          where: { id },
-          include: UserInclude,
-        })
       }),
     },
   },

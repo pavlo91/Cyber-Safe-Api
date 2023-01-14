@@ -11,28 +11,28 @@ export class TeamsSeed implements Seed {
 
   async execute() {
     await this.prisma.$transaction(async (prisma) => {
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 5; i++) {
         const team = await prisma.team.create({
           data: {
             name: randAmericanFootballTeam(),
           },
         })
 
-        for (let i = 0; i < 10; i++) {
-          await prisma.userRole.create({
+        for (let i = 0; i < 3; i++) {
+          await prisma.user.create({
             data: {
-              role: i === 0 ? 'COACH' : 'ATHLETE',
-              user: {
+              email: randEmail(),
+              emailConfirmed: true,
+              password: 'password',
+              name: randFullName(),
+              roles: {
                 create: {
-                  email: randEmail(),
-                  emailConfirmed: true,
-                  password: 'password',
-                  name: randFullName(),
-                },
-              },
-              teamRole: {
-                create: {
-                  teamId: team.id,
+                  role: i === 0 ? 'COACH' : 'ATHLETE',
+                  teamRole: {
+                    create: {
+                      teamId: team.id,
+                    },
+                  },
                 },
               },
             },

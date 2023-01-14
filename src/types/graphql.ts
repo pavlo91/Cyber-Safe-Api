@@ -65,13 +65,54 @@ export type Jwt = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  activate?: Maybe<Scalars['ID']>;
+  inviteAthlete?: Maybe<Scalars['ID']>;
+  inviteCoach?: Maybe<Scalars['ID']>;
+  inviteParent?: Maybe<Scalars['ID']>;
+  inviteStaff?: Maybe<Scalars['ID']>;
   login: Jwt;
+  register?: Maybe<Scalars['ID']>;
+};
+
+
+export type MutationActivateArgs = {
+  email: Scalars['String'];
+  password: Scalars['String'];
+  passwordToken: Scalars['String'];
+};
+
+
+export type MutationInviteAthleteArgs = {
+  email: Scalars['String'];
+};
+
+
+export type MutationInviteCoachArgs = {
+  email: Scalars['String'];
+};
+
+
+export type MutationInviteParentArgs = {
+  childId: Scalars['ID'];
+  email: Scalars['String'];
+};
+
+
+export type MutationInviteStaffArgs = {
+  email: Scalars['String'];
 };
 
 
 export type MutationLoginArgs = {
   email: Scalars['String'];
   password: Scalars['String'];
+};
+
+
+export type MutationRegisterArgs = {
+  email: Scalars['String'];
+  password: Scalars['String'];
+  team: TeamCreate;
 };
 
 export { OrderDirection };
@@ -91,6 +132,12 @@ export type PageInfo = {
   total: Scalars['Int'];
 };
 
+export type PaginatedTeam = {
+  __typename?: 'PaginatedTeam';
+  nodes: Array<Team>;
+  page: PageInfo;
+};
+
 export type PaginatedUser = {
   __typename?: 'PaginatedUser';
   nodes: Array<User>;
@@ -106,8 +153,34 @@ export type ParentRole = UserRole & {
 
 export type Query = {
   __typename?: 'Query';
+  members: PaginatedUser;
   profile: User;
+  team: Team;
+  teams: PaginatedTeam;
+  user: User;
   users: PaginatedUser;
+};
+
+
+export type QueryMembersArgs = {
+  order?: InputMaybe<UserOrder>;
+  page?: InputMaybe<Page>;
+};
+
+
+export type QueryTeamArgs = {
+  id: Scalars['ID'];
+};
+
+
+export type QueryTeamsArgs = {
+  order?: InputMaybe<TeamOrder>;
+  page?: InputMaybe<Page>;
+};
+
+
+export type QueryUserArgs = {
+  id: Scalars['ID'];
 };
 
 
@@ -137,7 +210,18 @@ export type Team = {
   __typename?: 'Team';
   createdAt: Scalars['DateTime'];
   id: Scalars['ID'];
+  memberCount: Scalars['Int'];
   name: Scalars['String'];
+};
+
+export type TeamCreate = {
+  name: Scalars['String'];
+};
+
+export type TeamOrder = {
+  createdAt?: InputMaybe<OrderDirection>;
+  memberCount?: InputMaybe<OrderDirection>;
+  name?: InputMaybe<OrderDirection>;
 };
 
 export type TeamRole = UserRole & {
@@ -154,6 +238,7 @@ export type User = {
   id: Scalars['ID'];
   name: Scalars['String'];
   roles: Array<UserRole>;
+  teamRoles: Array<UserRole>;
 };
 
 export type UserOrder = {
@@ -245,6 +330,7 @@ export type ResolversTypes = {
   OrderDirection: Prisma.SortOrder;
   Page: Page;
   PageInfo: ResolverTypeWrapper<PageInfo>;
+  PaginatedTeam: ResolverTypeWrapper<PaginatedTeam>;
   PaginatedUser: ResolverTypeWrapper<PaginatedUser>;
   ParentRole: ResolverTypeWrapper<ParentRole>;
   Query: ResolverTypeWrapper<{}>;
@@ -253,6 +339,8 @@ export type ResolversTypes = {
   StringFilter: StringFilter;
   StringFilterMode: Prisma.QueryMode;
   Team: ResolverTypeWrapper<Team>;
+  TeamCreate: TeamCreate;
+  TeamOrder: TeamOrder;
   TeamRole: ResolverTypeWrapper<TeamRole>;
   User: ResolverTypeWrapper<User>;
   UserOrder: UserOrder;
@@ -277,12 +365,15 @@ export type ResolversParentTypes = {
   NullObject: Scalars['NullObject'];
   Page: Page;
   PageInfo: PageInfo;
+  PaginatedTeam: PaginatedTeam;
   PaginatedUser: PaginatedUser;
   ParentRole: ParentRole;
   Query: {};
   String: Scalars['String'];
   StringFilter: StringFilter;
   Team: Team;
+  TeamCreate: TeamCreate;
+  TeamOrder: TeamOrder;
   TeamRole: TeamRole;
   User: User;
   UserOrder: UserOrder;
@@ -305,7 +396,13 @@ export type JwtResolvers<ContextType = ApolloContext, ParentType extends Resolve
 };
 
 export type MutationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  activate?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationActivateArgs, 'email' | 'password' | 'passwordToken'>>;
+  inviteAthlete?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteAthleteArgs, 'email'>>;
+  inviteCoach?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteCoachArgs, 'email'>>;
+  inviteParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteParentArgs, 'childId' | 'email'>>;
+  inviteStaff?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteStaffArgs, 'email'>>;
   login?: Resolver<ResolversTypes['JWT'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
+  register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'password' | 'team'>>;
 };
 
 export interface NullObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['NullObject'], any> {
@@ -324,6 +421,12 @@ export type PageInfoResolvers<ContextType = ApolloContext, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PaginatedTeamResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['PaginatedTeam'] = ResolversParentTypes['PaginatedTeam']> = {
+  nodes?: Resolver<Array<ResolversTypes['Team']>, ParentType, ContextType>;
+  page?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type PaginatedUserResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['PaginatedUser'] = ResolversParentTypes['PaginatedUser']> = {
   nodes?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   page?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
@@ -338,7 +441,11 @@ export type ParentRoleResolvers<ContextType = ApolloContext, ParentType extends 
 };
 
 export type QueryResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  members?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryMembersArgs>>;
   profile?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  team?: Resolver<ResolversTypes['Team'], ParentType, ContextType, RequireFields<QueryTeamArgs, 'id'>>;
+  teams?: Resolver<ResolversTypes['PaginatedTeam'], ParentType, ContextType, Partial<QueryTeamsArgs>>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryUsersArgs>>;
 };
 
@@ -347,6 +454,7 @@ export type StringFilterModeResolvers = EnumResolverSignature<{ DEFAULT?: any, I
 export type TeamResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -364,6 +472,7 @@ export type UserResolvers<ContextType = ApolloContext, ParentType extends Resolv
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   roles?: Resolver<Array<ResolversTypes['UserRole']>, ParentType, ContextType>;
+  teamRoles?: Resolver<Array<ResolversTypes['UserRole']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -380,6 +489,7 @@ export type Resolvers<ContextType = ApolloContext> = {
   NullObject?: GraphQLScalarType;
   OrderDirection?: OrderDirectionResolvers;
   PageInfo?: PageInfoResolvers<ContextType>;
+  PaginatedTeam?: PaginatedTeamResolvers<ContextType>;
   PaginatedUser?: PaginatedUserResolvers<ContextType>;
   ParentRole?: ParentRoleResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
