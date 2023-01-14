@@ -12,3 +12,13 @@ export function parseTeamOrder(order: TeamOrder | undefined | null) {
 
   return orderBy
 }
+
+export function parseTeamSearch(contains: string | undefined | null) {
+  if (!contains) return
+
+  const where: Prisma.TeamWhereInput = {
+    OR: [{ name: { contains, mode: 'insensitive' } }],
+  }
+
+  return where
+}

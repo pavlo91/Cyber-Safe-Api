@@ -34,7 +34,7 @@ export class ConfirmRoute implements Route {
     let redirect: string
 
     if (!user.password) {
-      redirect = Config.composeUrl('webUrl', '/auth/activate/:passwordToken', { passwordToken: data.passwordToken! })
+      redirect = Config.composeUrl('webUrl', '/auth/activate/:token', { token: data.passwordToken! })
     } else {
       redirect = Config.composeUrl('webUrl', '/auth/login')
     }

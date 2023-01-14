@@ -4,18 +4,19 @@ import { createGraphQLModule } from '..'
 import { withAuth } from '../../helpers/auth'
 import { paginated } from '../../helpers/parse'
 import { UserInclude } from '../user/user.include'
-import { parseUserOrder } from '../user/user.utils'
+import { parseUserOrder, parseUserSearch } from '../user/user.utils'
 
 export default createGraphQLModule({
   typeDefs: gql`
     extend type Query {
-      members(page: Page, order: UserOrder): PaginatedUser!
+      members(page: Page, order: UserOrder, search: String): PaginatedUser!
     }
   `,
   resolvers: {
     Query: {
-      members: withAuth('member', (obj, { page, order }, { prisma, team }, info) => {
+      members: withAuth('member', (obj, { page, order, search }, { prisma, team }, info) => {
         const where: Prisma.UserWhereInput = {
+          ...parseUserSearch(search),
           roles: { some: { teamRole: { teamId: team.id } } },
         }
 

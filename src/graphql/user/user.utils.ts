@@ -12,3 +12,13 @@ export function parseUserOrder(order: UserOrder | undefined | null) {
 
   return orderBy
 }
+
+export function parseUserSearch(contains: string | undefined | null) {
+  if (!contains) return
+
+  const where: Prisma.UserWhereInput = {
+    OR: [{ email: { contains, mode: 'insensitive' } }, { name: { contains, mode: 'insensitive' } }],
+  }
+
+  return where
+}

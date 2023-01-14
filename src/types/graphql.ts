@@ -76,9 +76,9 @@ export type Mutation = {
 
 
 export type MutationActivateArgs = {
-  email: Scalars['String'];
   password: Scalars['String'];
   passwordToken: Scalars['String'];
+  user: UserCreate;
 };
 
 
@@ -113,6 +113,7 @@ export type MutationRegisterArgs = {
   email: Scalars['String'];
   password: Scalars['String'];
   team: TeamCreate;
+  user: UserCreate;
 };
 
 export { OrderDirection };
@@ -165,6 +166,7 @@ export type Query = {
 export type QueryMembersArgs = {
   order?: InputMaybe<UserOrder>;
   page?: InputMaybe<Page>;
+  search?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -176,6 +178,7 @@ export type QueryTeamArgs = {
 export type QueryTeamsArgs = {
   order?: InputMaybe<TeamOrder>;
   page?: InputMaybe<Page>;
+  search?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -187,6 +190,7 @@ export type QueryUserArgs = {
 export type QueryUsersArgs = {
   order?: InputMaybe<UserOrder>;
   page?: InputMaybe<Page>;
+  search?: InputMaybe<Scalars['String']>;
 };
 
 export const Role = {
@@ -239,6 +243,10 @@ export type User = {
   name: Scalars['String'];
   roles: Array<UserRole>;
   teamRoles: Array<UserRole>;
+};
+
+export type UserCreate = {
+  name: Scalars['String'];
 };
 
 export type UserOrder = {
@@ -343,6 +351,7 @@ export type ResolversTypes = {
   TeamOrder: TeamOrder;
   TeamRole: ResolverTypeWrapper<TeamRole>;
   User: ResolverTypeWrapper<User>;
+  UserCreate: UserCreate;
   UserOrder: UserOrder;
   UserRole: ResolversTypes['AnyUserRole'] | ResolversTypes['ParentRole'] | ResolversTypes['TeamRole'];
 };
@@ -376,6 +385,7 @@ export type ResolversParentTypes = {
   TeamOrder: TeamOrder;
   TeamRole: TeamRole;
   User: User;
+  UserCreate: UserCreate;
   UserOrder: UserOrder;
   UserRole: ResolversParentTypes['AnyUserRole'] | ResolversParentTypes['ParentRole'] | ResolversParentTypes['TeamRole'];
 };
@@ -396,13 +406,13 @@ export type JwtResolvers<ContextType = ApolloContext, ParentType extends Resolve
 };
 
 export type MutationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  activate?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationActivateArgs, 'email' | 'password' | 'passwordToken'>>;
+  activate?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationActivateArgs, 'password' | 'passwordToken' | 'user'>>;
   inviteAthlete?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteAthleteArgs, 'email'>>;
   inviteCoach?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteCoachArgs, 'email'>>;
   inviteParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteParentArgs, 'childId' | 'email'>>;
   inviteStaff?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteStaffArgs, 'email'>>;
   login?: Resolver<ResolversTypes['JWT'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
-  register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'password' | 'team'>>;
+  register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'password' | 'team' | 'user'>>;
 };
 
 export interface NullObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['NullObject'], any> {

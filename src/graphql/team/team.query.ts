@@ -4,19 +4,21 @@ import { createGraphQLModule } from '..'
 import { withAuth } from '../../helpers/auth'
 import { paginated } from '../../helpers/parse'
 import { TeamInclude } from './team.include'
-import { parseTeamOrder } from './team.utils'
+import { parseTeamOrder, parseTeamSearch } from './team.utils'
 
 export default createGraphQLModule({
   typeDefs: gql`
     type Query {
-      teams(page: Page, order: TeamOrder): PaginatedTeam!
+      teams(page: Page, order: TeamOrder, search: String): PaginatedTeam!
       team(id: ID!): Team!
     }
   `,
   resolvers: {
     Query: {
-      teams: withAuth('staff', (obj, { page, order }, { prisma }, info) => {
-        const where: Prisma.TeamWhereInput = {}
+      teams: withAuth('staff', (obj, { page, order, search }, { prisma }, info) => {
+        const where: Prisma.TeamWhereInput = {
+          ...parseTeamSearch(search),
+        }
 
         return paginated(page, (args) =>
           prisma.$transaction([

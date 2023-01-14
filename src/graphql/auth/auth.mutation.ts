@@ -12,8 +12,8 @@ export default createGraphQLModule({
 
     type Mutation {
       login(email: String!, password: String!): JWT!
-      register(email: String!, password: String!, team: TeamCreate!): ID
-      activate(email: String!, password: String!, passwordToken: String!): ID
+      register(email: String!, password: String!, user: UserCreate!, team: TeamCreate!): ID
+      activate(password: String!, passwordToken: String!, user: UserCreate!): ID
     }
   `,
   resolvers: {
@@ -31,6 +31,39 @@ export default createGraphQLModule({
         const token = createJwt(user)
 
         return { token, user }
+      },
+      async register(obj, { email, password, user, team }, { prisma }, info) {
+        await prisma.user.create({
+          data: {
+            ...user,
+            email,
+            password,
+            roles: {
+              create: {
+                role: 'COACH',
+                teamRole: {
+                  create: {
+                    team: {
+                      create: {
+                        ...team,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        })
+      },
+      async activate(obj, { password, passwordToken, user }, { prisma }, info) {
+        await prisma.user.update({
+          where: { passwordToken },
+          data: {
+            ...user,
+            password,
+            passwordToken: null,
+          },
+        })
       },
     },
   },

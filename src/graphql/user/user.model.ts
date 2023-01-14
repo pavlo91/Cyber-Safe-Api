@@ -26,6 +26,10 @@ export default createGraphQLModule({
       email: OrderDirection
       name: OrderDirection
     }
+
+    input UserCreate {
+      name: String!
+    }
   `,
   resolvers: {
     User: {

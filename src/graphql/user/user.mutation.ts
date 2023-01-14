@@ -1,5 +1,6 @@
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
+import { withAuth } from '../../helpers/auth'
 
 export default createGraphQLModule({
   typeDefs: gql`
@@ -7,5 +8,21 @@ export default createGraphQLModule({
       inviteStaff(email: String!): ID
     }
   `,
-  resolvers: {},
+  resolvers: {
+    Mutation: {
+      inviteStaff: withAuth('staff', async (obj, { email }, { prisma }, info) => {
+        await prisma.user.create({
+          data: {
+            email,
+            name: '',
+            roles: {
+              create: {
+                role: 'STAFF',
+              },
+            },
+          },
+        })
+      }),
+    },
+  },
 })
