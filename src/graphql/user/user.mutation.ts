@@ -11,10 +11,18 @@ export default createGraphQLModule({
   resolvers: {
     Mutation: {
       inviteStaff: withAuth('staff', async (obj, { email }, { prisma }, info) => {
-        await prisma.user.create({
-          data: {
+        await prisma.user.upsert({
+          where: { email },
+          create: {
             email,
             name: '',
+            roles: {
+              create: {
+                role: 'STAFF',
+              },
+            },
+          },
+          update: {
             roles: {
               create: {
                 role: 'STAFF',
