@@ -36,6 +36,7 @@ export default createGraphQLModule({
       member: withAuth('member', (obj, { id }, { prisma, team }, info) => {
         return prisma.user.findFirstOrThrow({
           where: {
+            id,
             roles: { some: { teamRole: { teamId: team.id } } },
           },
           include: UserInclude,
