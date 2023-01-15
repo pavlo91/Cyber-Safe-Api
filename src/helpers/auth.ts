@@ -95,9 +95,7 @@ const UserRole = {
       throw new Error('Not authorized')
     }
 
-    const children = roles.map((e) => e.parentRole)
-
-    return { user, children }
+    return { user }
   },
   any: (ctx: ApolloContext, user: User) => {
     return { user }

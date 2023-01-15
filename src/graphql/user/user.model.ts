@@ -15,6 +15,7 @@ export default createGraphQLModule({
       roles: [UserRole!]!
       teamRole: TeamRole
       parentRole: ParentRole
+      childRole: ParentRole
       parentCount: Int!
     }
 
@@ -45,6 +46,9 @@ export default createGraphQLModule({
       }),
       parentRole: withAuth('any', (obj: Prisma.UserGetPayload<UserInclude>, args, ctx, info) => {
         return obj.roles.find((e) => e.parentRole)
+      }),
+      childRole: withAuth('parent', (obj: Prisma.UserGetPayload<UserInclude>, args, { user }, info) => {
+        return user.roles.find((e) => e.parentRole && e.parentRole.childUserId === obj.id)
       }),
       parentCount(obj: Prisma.UserGetPayload<UserInclude>) {
         return obj.parentRoles.length
