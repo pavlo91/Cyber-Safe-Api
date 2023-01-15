@@ -9,6 +9,7 @@ export function parseUserOrder(order: UserOrder | undefined | null) {
   if (order.createdAt) orderBy.createdAt = order.createdAt
   if (order.email) orderBy.email = order.email
   if (order.name) orderBy.name = order.name
+  if (order.parentCount) orderBy.parentRoles = { _count: order.parentCount }
 
   return orderBy
 }

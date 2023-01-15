@@ -10,6 +10,7 @@ export default createGraphQLModule({
   typeDefs: gql`
     extend type Query {
       members(page: Page, order: UserOrder, search: String): PaginatedUser!
+      member(id: ID!): User!
     }
   `,
   resolvers: {
@@ -31,6 +32,14 @@ export default createGraphQLModule({
             prisma.user.count({ where }),
           ])
         )
+      }),
+      member: withAuth('member', (obj, { id }, { prisma, team }, info) => {
+        return prisma.user.findFirstOrThrow({
+          where: {
+            roles: { some: { teamRole: { teamId: team.id } } },
+          },
+          include: UserInclude,
+        })
       }),
     },
   },

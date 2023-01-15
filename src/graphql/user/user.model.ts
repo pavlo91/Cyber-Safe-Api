@@ -13,7 +13,9 @@ export default createGraphQLModule({
       emailConfirmed: Boolean!
       name: String!
       roles: [UserRole!]!
-      teamRoles: [UserRole!]!
+      teamRole: TeamRole
+      parentRole: ParentRole
+      parentCount: Int!
     }
 
     type PaginatedUser {
@@ -25,6 +27,7 @@ export default createGraphQLModule({
       createdAt: OrderDirection
       email: OrderDirection
       name: OrderDirection
+      parentCount: OrderDirection
     }
 
     input UserCreate {
@@ -33,15 +36,19 @@ export default createGraphQLModule({
   `,
   resolvers: {
     User: {
-      teamRoles: withAuth('any', (obj: Prisma.UserGetPayload<UserInclude>, args, { req }, info) => {
+      teamRole: withAuth('any', (obj: Prisma.UserGetPayload<UserInclude>, args, { req }, info) => {
         const teamId = req.headers['x-team-id']
 
         if (typeof teamId === 'string') {
-          return obj.roles.filter((e) => e.teamRole && e.teamRole.teamId === teamId)
+          return obj.roles.find((e) => e.teamRole && e.teamRole.teamId === teamId)
         }
-
-        return []
       }),
+      parentRole: withAuth('any', (obj: Prisma.UserGetPayload<UserInclude>, args, ctx, info) => {
+        return obj.roles.find((e) => e.parentRole)
+      }),
+      parentCount(obj: Prisma.UserGetPayload<UserInclude>) {
+        return obj.parentRoles.length
+      },
     },
   },
 })

@@ -95,6 +95,7 @@ export type MutationInviteCoachArgs = {
 export type MutationInviteParentArgs = {
   childId: Scalars['ID'];
   email: Scalars['String'];
+  relation?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -154,7 +155,10 @@ export type ParentRole = UserRole & {
 
 export type Query = {
   __typename?: 'Query';
+  children: PaginatedUser;
+  member: User;
   members: PaginatedUser;
+  parents: PaginatedUser;
   profile: User;
   team: Team;
   teams: PaginatedTeam;
@@ -163,7 +167,27 @@ export type Query = {
 };
 
 
+export type QueryChildrenArgs = {
+  order?: InputMaybe<UserOrder>;
+  page?: InputMaybe<Page>;
+  search?: InputMaybe<Scalars['String']>;
+};
+
+
+export type QueryMemberArgs = {
+  id: Scalars['ID'];
+};
+
+
 export type QueryMembersArgs = {
+  order?: InputMaybe<UserOrder>;
+  page?: InputMaybe<Page>;
+  search?: InputMaybe<Scalars['String']>;
+};
+
+
+export type QueryParentsArgs = {
+  childId: Scalars['ID'];
   order?: InputMaybe<UserOrder>;
   page?: InputMaybe<Page>;
   search?: InputMaybe<Scalars['String']>;
@@ -241,8 +265,10 @@ export type User = {
   emailConfirmed: Scalars['Boolean'];
   id: Scalars['ID'];
   name: Scalars['String'];
+  parentCount: Scalars['Int'];
+  parentRole?: Maybe<ParentRole>;
   roles: Array<UserRole>;
-  teamRoles: Array<UserRole>;
+  teamRole?: Maybe<TeamRole>;
 };
 
 export type UserCreate = {
@@ -253,6 +279,7 @@ export type UserOrder = {
   createdAt?: InputMaybe<OrderDirection>;
   email?: InputMaybe<OrderDirection>;
   name?: InputMaybe<OrderDirection>;
+  parentCount?: InputMaybe<OrderDirection>;
 };
 
 export type UserRole = {
@@ -451,7 +478,10 @@ export type ParentRoleResolvers<ContextType = ApolloContext, ParentType extends 
 };
 
 export type QueryResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  children?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryChildrenArgs>>;
+  member?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryMemberArgs, 'id'>>;
   members?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryMembersArgs>>;
+  parents?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, RequireFields<QueryParentsArgs, 'childId'>>;
   profile?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   team?: Resolver<ResolversTypes['Team'], ParentType, ContextType, RequireFields<QueryTeamArgs, 'id'>>;
   teams?: Resolver<ResolversTypes['PaginatedTeam'], ParentType, ContextType, Partial<QueryTeamsArgs>>;
@@ -481,8 +511,10 @@ export type UserResolvers<ContextType = ApolloContext, ParentType extends Resolv
   emailConfirmed?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  parentCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  parentRole?: Resolver<Maybe<ResolversTypes['ParentRole']>, ParentType, ContextType>;
   roles?: Resolver<Array<ResolversTypes['UserRole']>, ParentType, ContextType>;
-  teamRoles?: Resolver<Array<ResolversTypes['UserRole']>, ParentType, ContextType>;
+  teamRole?: Resolver<Maybe<ResolversTypes['TeamRole']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

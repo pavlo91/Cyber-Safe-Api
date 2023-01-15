@@ -5,6 +5,7 @@ export const UserInclude = {
   roles: {
     include: UserRoleInclude,
   },
+  parentRoles: true,
 } satisfies Prisma.UserInclude
 
 export type UserInclude = { include: typeof UserInclude }
