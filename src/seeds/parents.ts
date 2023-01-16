@@ -6,7 +6,7 @@ export class ParentsSeed implements Seed {
   constructor(public name: string, private prisma: PrismaClient) {}
 
   async canExecute() {
-    return (await this.prisma.userRole.count({ where: { role: 'PARENT' } })) === 0
+    return (await this.prisma.userRole.count({ where: { role: 'PARENT' } })) <= 1
   }
 
   async execute() {

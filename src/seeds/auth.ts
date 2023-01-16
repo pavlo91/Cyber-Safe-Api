@@ -1,3 +1,4 @@
+import { rand, randAmericanFootballTeam } from '@ngneat/falso'
 import { PrismaClient } from '@prisma/client'
 import { Seed } from '.'
 
@@ -20,6 +21,76 @@ export class AuthSeed implements Seed {
           roles: {
             create: {
               role: 'STAFF',
+            },
+          },
+        },
+        update: {},
+      })
+
+      const team = await prisma.team.create({
+        data: {
+          name: randAmericanFootballTeam(),
+        },
+      })
+
+      await prisma.user.upsert({
+        where: { email: 'coach@wonderkiln.com' },
+        create: {
+          email: 'coach@wonderkiln.com',
+          emailConfirmed: true,
+          password: 'password',
+          name: 'Coach User',
+          roles: {
+            create: {
+              role: 'COACH',
+              teamRole: {
+                create: {
+                  teamId: team.id,
+                },
+              },
+            },
+          },
+        },
+        update: {},
+      })
+
+      const athlete = await prisma.user.upsert({
+        where: { email: 'athlete@wonderkiln.com' },
+        create: {
+          email: 'athlete@wonderkiln.com',
+          emailConfirmed: true,
+          password: 'password',
+          name: 'Athlete User',
+          roles: {
+            create: {
+              role: 'ATHLETE',
+              teamRole: {
+                create: {
+                  teamId: team.id,
+                },
+              },
+            },
+          },
+        },
+        update: {},
+      })
+
+      await prisma.user.upsert({
+        where: { email: 'parent@wonderkiln.com' },
+        create: {
+          email: 'parent@wonderkiln.com',
+          emailConfirmed: true,
+          password: 'password',
+          name: 'Parent User',
+          roles: {
+            create: {
+              role: 'PARENT',
+              parentRole: {
+                create: {
+                  childUserId: athlete.id,
+                  relation: rand(['Mom', 'Dad']),
+                },
+              },
             },
           },
         },

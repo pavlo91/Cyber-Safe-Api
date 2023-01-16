@@ -6,7 +6,7 @@ export class TeamsSeed implements Seed {
   constructor(public name: string, private prisma: PrismaClient) {}
 
   async canExecute() {
-    return (await this.prisma.team.count()) === 0
+    return (await this.prisma.team.count()) <= 1
   }
 
   async execute() {
