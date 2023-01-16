@@ -7,6 +7,7 @@ export default createGraphQLModule({
     extend type Mutation {
       inviteCoach(email: String!): ID
       inviteAthlete(email: String!): ID
+      removeMember(id: ID!): ID
     }
   `,
   resolvers: {
@@ -69,6 +70,16 @@ export default createGraphQLModule({
                   },
                 },
               },
+            },
+          },
+        })
+      }),
+      removeMember: withAuth('coach', async (obj, { id }, { prisma, team }, info) => {
+        await prisma.userRole.deleteMany({
+          where: {
+            userId: id,
+            teamRole: {
+              teamId: team.id,
             },
           },
         })

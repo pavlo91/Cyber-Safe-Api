@@ -72,6 +72,8 @@ export type Mutation = {
   inviteStaff?: Maybe<Scalars['ID']>;
   login: Jwt;
   register?: Maybe<Scalars['ID']>;
+  removeMember?: Maybe<Scalars['ID']>;
+  removeParent?: Maybe<Scalars['ID']>;
 };
 
 
@@ -115,6 +117,17 @@ export type MutationRegisterArgs = {
   password: Scalars['String'];
   team: TeamCreate;
   user: UserCreate;
+};
+
+
+export type MutationRemoveMemberArgs = {
+  id: Scalars['ID'];
+};
+
+
+export type MutationRemoveParentArgs = {
+  childId: Scalars['ID'];
+  id: Scalars['ID'];
 };
 
 export { OrderDirection };
@@ -441,6 +454,8 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   inviteStaff?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteStaffArgs, 'email'>>;
   login?: Resolver<ResolversTypes['JWT'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
   register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'password' | 'team' | 'user'>>;
+  removeMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveMemberArgs, 'id'>>;
+  removeParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveParentArgs, 'childId' | 'id'>>;
 };
 
 export interface NullObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['NullObject'], any> {
