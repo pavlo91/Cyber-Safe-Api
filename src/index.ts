@@ -29,7 +29,7 @@ async function main() {
 
   await fastify.listen({ port: Config.port })
 
-  Logger.global.info('GraphQL server is ready at %s%s', Config.apiUrl, graphQLPath)
+  Logger.global.info('GraphQL server is ready at http://localhost:%d%s', Config.port, graphQLPath)
 
   const seed = new SeedManager(prisma)
   seed.executeSeed()
