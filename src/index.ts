@@ -27,7 +27,7 @@ async function main() {
   const graphQL = new GraphQLManager(fastify, prisma)
   const { path: graphQLPath } = await graphQL.registerServer()
 
-  await fastify.listen({ port: Config.port })
+  await fastify.listen({ host: '0.0.0.0', port: Config.port })
 
   Logger.global.info('GraphQL server is ready at http://localhost:%d%s', Config.port, graphQLPath)
 
