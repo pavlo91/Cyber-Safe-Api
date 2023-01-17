@@ -21,6 +21,7 @@ export class AuthSeed implements Seed {
           roles: {
             create: {
               role: 'STAFF',
+              status: 'ACCEPTED',
             },
           },
         },
@@ -43,6 +44,7 @@ export class AuthSeed implements Seed {
           roles: {
             create: {
               role: 'COACH',
+              status: 'ACCEPTED',
               teamRole: {
                 create: {
                   teamId: team.id,
@@ -64,6 +66,7 @@ export class AuthSeed implements Seed {
           roles: {
             create: {
               role: 'ATHLETE',
+              status: 'ACCEPTED',
               teamRole: {
                 create: {
                   teamId: team.id,
@@ -85,6 +88,7 @@ export class AuthSeed implements Seed {
           roles: {
             create: {
               role: 'PARENT',
+              status: 'ACCEPTED',
               parentRole: {
                 create: {
                   childUserId: athlete.id,

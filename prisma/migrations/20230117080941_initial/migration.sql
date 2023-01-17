@@ -4,6 +4,9 @@ CREATE EXTENSION IF NOT EXISTS "citext";
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('STAFF', 'COACH', 'ATHLETE', 'PARENT');
 
+-- CreateEnum
+CREATE TYPE "RoleStatus" AS ENUM ('PENDING', 'ACCEPTED', 'DECLINED');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -32,6 +35,8 @@ CREATE TABLE "UserRole" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "role" "Role" NOT NULL,
+    "status" "RoleStatus" NOT NULL DEFAULT 'PENDING',
+    "statusToken" TEXT,
 
     CONSTRAINT "UserRole_pkey" PRIMARY KEY ("id")
 );
@@ -64,6 +69,9 @@ CREATE UNIQUE INDEX "User_passwordToken_key" ON "User"("passwordToken");
 
 -- CreateIndex
 CREATE INDEX "User_emailConfirmed_idx" ON "User"("emailConfirmed");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UserRole_statusToken_key" ON "UserRole"("statusToken");
 
 -- CreateIndex
 CREATE INDEX "UserRole_userId_idx" ON "UserRole"("userId");

@@ -1,18 +1,19 @@
 import { randAlphaNumeric } from '@ngneat/falso'
 import { Prisma, PrismaClient } from '@prisma/client'
 import { FastifyReply, FastifyRequest, HTTPMethods } from 'fastify'
+import { z } from 'zod'
 import { Config } from '../config'
 import { Route } from './index'
 
-type Params = {
-  uuid: string
-}
+const schema = z.object({
+  uuid: z.string(),
+})
 
 export class ConfirmRoute implements Route {
   constructor(public path: string, public method: HTTPMethods, private prisma: PrismaClient) {}
 
   async handle(req: FastifyRequest, res: FastifyReply) {
-    const params = req.params as Params
+    const params = schema.parse(req.params)
 
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { uuid: params.uuid },

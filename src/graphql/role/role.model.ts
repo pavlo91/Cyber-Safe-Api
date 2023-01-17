@@ -12,28 +12,42 @@ export default createGraphQLModule({
       PARENT
     }
 
+    enum RoleStatus {
+      PENDING
+      ACCEPTED
+      DECLINED
+    }
+
     interface UserRole {
+      id: ID!
       role: Role!
+      status: RoleStatus!
     }
 
     type AnyUserRole implements UserRole {
+      id: ID!
       role: Role!
+      status: RoleStatus!
     }
 
     type TeamRole implements UserRole {
+      id: ID!
       role: Role!
+      status: RoleStatus!
       team: Team!
     }
 
     type ParentRole implements UserRole {
+      id: ID!
       role: Role!
+      status: RoleStatus!
       childUser: User!
       relation: String
     }
   `,
   resolvers: {
     UserRole: {
-      __resolveType(parent) {
+      __resolveType(parent: any) {
         const obj = parent as Prisma.UserRoleGetPayload<UserRoleInclude>
 
         switch (obj.role) {

@@ -31,7 +31,7 @@ const UserRole = {
 
     let user = initialUser
 
-    if (!user.roles.find((e) => e.role === 'STAFF')) {
+    if (!user.roles.filter((e) => e.status === 'ACCEPTED').find((e) => e.role === 'STAFF')) {
       throw new Error('Not authorized')
     }
 
@@ -45,9 +45,9 @@ const UserRole = {
     const teamId = ctx.req.headers['x-team-id']
     if (typeof teamId !== 'string') throw new Error('Team ID not found in headers')
 
-    const role = user.roles.find(
-      (e) => e.role === 'STAFF' || (e.role === 'COACH' && e.teamRole && e.teamRole.team.id === teamId)
-    )
+    const role = user.roles
+      .filter((e) => e.status === 'ACCEPTED')
+      .find((e) => e.role === 'STAFF' || (e.role === 'COACH' && e.teamRole && e.teamRole.team.id === teamId))
     if (!role) throw new Error('Not authorized')
 
     const team = await ctx.prisma.team.findFirstOrThrow({
@@ -60,9 +60,9 @@ const UserRole = {
     const teamId = ctx.req.headers['x-team-id']
     if (typeof teamId !== 'string') throw new Error('Team ID not found in headers')
 
-    const role = user.roles.find(
-      (e) => e.role === 'STAFF' || (e.role === 'ATHLETE' && e.teamRole && e.teamRole.team.id === teamId)
-    )
+    const role = user.roles
+      .filter((e) => e.status === 'ACCEPTED')
+      .find((e) => e.role === 'STAFF' || (e.role === 'ATHLETE' && e.teamRole && e.teamRole.team.id === teamId))
     if (!role) throw new Error('Not authorized')
 
     const team = await ctx.prisma.team.findFirstOrThrow({
@@ -75,11 +75,13 @@ const UserRole = {
     const teamId = ctx.req.headers['x-team-id']
     if (typeof teamId !== 'string') throw new Error('Team ID not found in headers')
 
-    const role = user.roles.find(
-      (e) =>
-        e.role === 'STAFF' ||
-        ((e.role === 'COACH' || e.role === 'ATHLETE') && e.teamRole && e.teamRole.team.id === teamId)
-    )
+    const role = user.roles
+      .filter((e) => e.status === 'ACCEPTED')
+      .find(
+        (e) =>
+          e.role === 'STAFF' ||
+          ((e.role === 'COACH' || e.role === 'ATHLETE') && e.teamRole && e.teamRole.team.id === teamId)
+      )
     if (!role) throw new Error('Not authorized')
 
     const team = await ctx.prisma.team.findFirstOrThrow({
@@ -89,7 +91,9 @@ const UserRole = {
     return { user, team }
   },
   parent: (ctx: ApolloContext, user: User) => {
-    const roles = user.roles.filter((e) => e.role === 'STAFF' || (e.role === 'PARENT' && e.parentRole))
+    const roles = user.roles
+      .filter((e) => e.status === 'ACCEPTED')
+      .filter((e) => e.role === 'STAFF' || (e.role === 'PARENT' && e.parentRole))
 
     if (roles.length === 0) {
       throw new Error('Not authorized')

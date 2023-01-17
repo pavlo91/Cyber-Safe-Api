@@ -3,6 +3,7 @@ import { FastifyInstance, FastifyReply, FastifyRequest, HTTPMethods } from 'fast
 import { Logger } from '../utils/logger'
 import { ConfirmRoute } from './confirm'
 import { LandingRoute } from './landing'
+import { RespondRoute } from './respond'
 
 export interface Route {
   path: string
@@ -15,7 +16,11 @@ export class RouteManager {
   private logger = Logger.label('route')
 
   constructor(private fastify: FastifyInstance, prisma: PrismaClient) {
-    this.routes = [new LandingRoute('/', 'GET'), new ConfirmRoute('/api/confirm/:uuid', 'GET', prisma)]
+    this.routes = [
+      new LandingRoute('/', 'GET'),
+      new ConfirmRoute('/api/confirm/:uuid', 'GET', prisma),
+      new RespondRoute('/api/respond/:token/:response', 'GET', prisma),
+    ]
   }
 
   private async handleRoute(route: Route, req: FastifyRequest, res: FastifyReply) {

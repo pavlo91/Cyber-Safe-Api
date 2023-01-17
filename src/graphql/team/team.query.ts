@@ -8,7 +8,7 @@ import { parseTeamOrder, parseTeamSearch } from './team.utils'
 
 export default createGraphQLModule({
   typeDefs: gql`
-    type Query {
+    extend type Query {
       teams(page: Page, order: TeamOrder, search: String): PaginatedTeam!
       team(id: ID!): Team!
     }

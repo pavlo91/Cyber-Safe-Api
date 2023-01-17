@@ -28,6 +28,7 @@ export class TeamsSeed implements Seed {
               roles: {
                 create: {
                   role: i === 0 ? 'COACH' : 'ATHLETE',
+                  status: 'ACCEPTED',
                   teamRole: {
                     create: {
                       teamId: team.id,

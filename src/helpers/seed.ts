@@ -7,3 +7,7 @@ export function mapCount<T>(count: number, callback: (index: number) => T) {
 
   return data
 }
+
+export function use<T>(data: T, callback: (data: T) => void) {
+  callback(data)
+}

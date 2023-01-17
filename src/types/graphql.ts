@@ -24,7 +24,9 @@ export type Scalars = {
 
 export type AnyUserRole = UserRole & {
   __typename?: 'AnyUserRole';
+  id: Scalars['ID'];
   role: Role;
+  status: RoleStatus;
 };
 
 export type ArrayOrder = {
@@ -66,6 +68,7 @@ export type Jwt = {
 export type Mutation = {
   __typename?: 'Mutation';
   activate?: Maybe<Scalars['ID']>;
+  createTeam?: Maybe<Scalars['ID']>;
   inviteAthlete?: Maybe<Scalars['ID']>;
   inviteCoach?: Maybe<Scalars['ID']>;
   inviteParent?: Maybe<Scalars['ID']>;
@@ -74,6 +77,7 @@ export type Mutation = {
   register?: Maybe<Scalars['ID']>;
   removeMember?: Maybe<Scalars['ID']>;
   removeParent?: Maybe<Scalars['ID']>;
+  removeRole?: Maybe<Scalars['ID']>;
 };
 
 
@@ -81,6 +85,11 @@ export type MutationActivateArgs = {
   password: Scalars['String'];
   passwordToken: Scalars['String'];
   user: UserCreate;
+};
+
+
+export type MutationCreateTeamArgs = {
+  input: TeamCreate;
 };
 
 
@@ -130,6 +139,11 @@ export type MutationRemoveParentArgs = {
   id: Scalars['ID'];
 };
 
+
+export type MutationRemoveRoleArgs = {
+  id: Scalars['ID'];
+};
+
 export { OrderDirection };
 
 export type Page = {
@@ -162,8 +176,10 @@ export type PaginatedUser = {
 export type ParentRole = UserRole & {
   __typename?: 'ParentRole';
   childUser: User;
+  id: Scalars['ID'];
   relation?: Maybe<Scalars['String']>;
   role: Role;
+  status: RoleStatus;
 };
 
 export type Query = {
@@ -238,6 +254,13 @@ export const Role = {
 } as const;
 
 export type Role = typeof Role[keyof typeof Role];
+export const RoleStatus = {
+  Accepted: 'ACCEPTED',
+  Declined: 'DECLINED',
+  Pending: 'PENDING'
+} as const;
+
+export type RoleStatus = typeof RoleStatus[keyof typeof RoleStatus];
 export type StringFilter = {
   contains?: InputMaybe<Scalars['String']>;
   equals?: InputMaybe<Scalars['String']>;
@@ -267,7 +290,9 @@ export type TeamOrder = {
 
 export type TeamRole = UserRole & {
   __typename?: 'TeamRole';
+  id: Scalars['ID'];
   role: Role;
+  status: RoleStatus;
   team: Team;
 };
 
@@ -297,7 +322,9 @@ export type UserOrder = {
 };
 
 export type UserRole = {
+  id: Scalars['ID'];
   role: Role;
+  status: RoleStatus;
 };
 
 
@@ -384,6 +411,7 @@ export type ResolversTypes = {
   ParentRole: ResolverTypeWrapper<ParentRole>;
   Query: ResolverTypeWrapper<{}>;
   Role: Role;
+  RoleStatus: RoleStatus;
   String: ResolverTypeWrapper<Scalars['String']>;
   StringFilter: StringFilter;
   StringFilterMode: Prisma.QueryMode;
@@ -432,7 +460,9 @@ export type ResolversParentTypes = {
 };
 
 export type AnyUserRoleResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['AnyUserRole'] = ResolversParentTypes['AnyUserRole']> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   role?: Resolver<ResolversTypes['Role'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['RoleStatus'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -448,6 +478,7 @@ export type JwtResolvers<ContextType = ApolloContext, ParentType extends Resolve
 
 export type MutationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   activate?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationActivateArgs, 'password' | 'passwordToken' | 'user'>>;
+  createTeam?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationCreateTeamArgs, 'input'>>;
   inviteAthlete?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteAthleteArgs, 'email'>>;
   inviteCoach?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteCoachArgs, 'email'>>;
   inviteParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteParentArgs, 'childId' | 'email'>>;
@@ -456,6 +487,7 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'password' | 'team' | 'user'>>;
   removeMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveMemberArgs, 'id'>>;
   removeParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveParentArgs, 'childId' | 'id'>>;
+  removeRole?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveRoleArgs, 'id'>>;
 };
 
 export interface NullObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['NullObject'], any> {
@@ -488,8 +520,10 @@ export type PaginatedUserResolvers<ContextType = ApolloContext, ParentType exten
 
 export type ParentRoleResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['ParentRole'] = ResolversParentTypes['ParentRole']> = {
   childUser?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   relation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   role?: Resolver<ResolversTypes['Role'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['RoleStatus'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -516,7 +550,9 @@ export type TeamResolvers<ContextType = ApolloContext, ParentType extends Resolv
 };
 
 export type TeamRoleResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['TeamRole'] = ResolversParentTypes['TeamRole']> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   role?: Resolver<ResolversTypes['Role'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['RoleStatus'], ParentType, ContextType>;
   team?: Resolver<ResolversTypes['Team'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -537,7 +573,9 @@ export type UserResolvers<ContextType = ApolloContext, ParentType extends Resolv
 
 export type UserRoleResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['UserRole'] = ResolversParentTypes['UserRole']> = {
   __resolveType: TypeResolveFn<'AnyUserRole' | 'ParentRole' | 'TeamRole', ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   role?: Resolver<ResolversTypes['Role'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['RoleStatus'], ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = ApolloContext> = {

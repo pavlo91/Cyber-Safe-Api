@@ -38,13 +38,21 @@ enum Role {
   PARENT
 }
 
+enum RoleStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
 model UserRole {
-  id         String          @id @default(cuid())
-  userId     String
-  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role       Role
-  teamRole   TeamUserRole?
-  parentRole ParentUserRole?
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        Role
+  status      RoleStatus      @default(PENDING)
+  statusToken String?         @unique
+  teamRole    TeamUserRole?
+  parentRole  ParentUserRole?
 
   @@index([userId])
   @@index([role])

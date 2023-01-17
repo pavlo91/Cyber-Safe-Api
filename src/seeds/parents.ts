@@ -27,6 +27,7 @@ export class ParentsSeed implements Seed {
             roles: {
               create: {
                 role: 'PARENT',
+                status: 'ACCEPTED',
                 parentRole: {
                   create: {
                     childUserId: athlete.userId,
