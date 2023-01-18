@@ -15,7 +15,7 @@ export default createGraphQLModule({
   `,
   resolvers: {
     Query: {
-      parents: withAuth('member', async (obj, { childId, page, order, search }, { prisma }, info) => {
+      parents: withAuth('member', (obj, { childId, page, order, search }, { prisma }, info) => {
         const where: Prisma.UserWhereInput = {
           ...parseUserSearch(search),
           roles: { some: { parentRole: { childUserId: childId } } },
@@ -26,14 +26,25 @@ export default createGraphQLModule({
             prisma.user.findMany({
               ...args,
               where,
-              include: UserInclude,
+              include: {
+                ...UserInclude,
+                roles: {
+                  ...UserInclude.roles,
+                  where: {
+                    role: 'PARENT',
+                    parentRole: {
+                      childUserId: childId,
+                    },
+                  },
+                },
+              },
               orderBy: parseUserOrder(order),
             }),
             prisma.user.count({ where }),
           ])
         )
       }),
-      children: withAuth('parent', async (obj, { page, order, search }, { prisma, user }, info) => {
+      children: withAuth('parent', (obj, { page, order, search }, { prisma, user }, info) => {
         const where: Prisma.UserWhereInput = {
           ...parseUserSearch(search),
           parentRoles: { some: { userRole: { userId: user.id } } },
