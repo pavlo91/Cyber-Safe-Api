@@ -17,17 +17,23 @@ export default createGraphQLModule({
     Mutation: {
       inviteCoach: withAuth('coach', async (obj, { email }, { prisma, team }, info) => {
         const user = await prisma.user.upsert({
-          include: { roles: true },
           where: { email },
           update: {},
           create: {
             email,
             name: '',
           },
+          include: {
+            roles: {
+              include: {
+                teamRole: true,
+              },
+            },
+          },
         })
 
         const statusToken = randAlphaNumeric({ length: 16 }).join('')
-        const coachRole = user.roles.find((e) => e.role === 'COACH')
+        const coachRole = user.roles.find((e) => e.role === 'COACH' && e.teamRole && e.teamRole.teamId === team.id)
 
         if (!coachRole) {
           await prisma.userRole.create({
@@ -55,17 +61,23 @@ export default createGraphQLModule({
       }),
       inviteAthlete: withAuth('coach', async (obj, { email }, { prisma, team }, info) => {
         const user = await prisma.user.upsert({
-          include: { roles: true },
           where: { email },
           update: {},
           create: {
             email,
             name: '',
           },
+          include: {
+            roles: {
+              include: {
+                teamRole: true,
+              },
+            },
+          },
         })
 
         const statusToken = randAlphaNumeric({ length: 16 }).join('')
-        const coachRole = user.roles.find((e) => e.role === 'ATHLETE')
+        const coachRole = user.roles.find((e) => e.role === 'ATHLETE' && e.teamRole && e.teamRole.teamId === team.id)
 
         if (!coachRole) {
           await prisma.userRole.create({

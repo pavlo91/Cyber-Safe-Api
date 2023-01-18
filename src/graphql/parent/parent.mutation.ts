@@ -20,17 +20,25 @@ export default createGraphQLModule({
         })
 
         const user = await prisma.user.upsert({
-          include: { roles: true },
           where: { email },
           update: {},
           create: {
             email,
             name: '',
           },
+          include: {
+            roles: {
+              include: {
+                parentRole: true,
+              },
+            },
+          },
         })
 
         const statusToken = randAlphaNumeric({ length: 16 }).join('')
-        const parentRole = user.roles.find((e) => e.role === 'PARENT')
+        const parentRole = user.roles.find(
+          (e) => e.role === 'PARENT' && e.parentRole && e.parentRole.childUserId === childId
+        )
 
         if (!parentRole) {
           await prisma.userRole.create({
@@ -52,6 +60,11 @@ export default createGraphQLModule({
             data: {
               statusToken,
               status: 'PENDING',
+              parentRole: {
+                update: {
+                  relation,
+                },
+              },
             },
           })
         }
