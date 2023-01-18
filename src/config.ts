@@ -40,5 +40,6 @@ export const Config = {
   },
   template: {
     appName: process.env.TEMPLATE_APP_NAME ?? 'CyberSafely',
+    webUrl: process.env.WEB_URL ?? 'http://localhost:3000',
   },
 }

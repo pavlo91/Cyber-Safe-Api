@@ -1,12 +1,11 @@
 extends ../layout.pug
 
 block head
-  title You have been invited as a staff
+  title You have been invited as a staff at #{appName}
 
 block body
-  p You have been invited as a staff
   p
-    | You can either 
+    | You have been invited as a staff at #{appName}. You can either 
     a(href=acceptUrl) accept
     |  or 
     a(href=declineUrl) decline
