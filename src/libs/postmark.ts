@@ -1,4 +1,4 @@
-import PostmarkClient from 'postmark'
+import PostmarkLib from 'postmark'
 import { Config } from '../config'
 import { HtmlFileNames, HtmlModel, loadHtml, loadHtmlTitle } from '../helpers/pug'
 import { Logger } from '../utils/logger'
@@ -7,11 +7,11 @@ export class Postmark {
   static shared = new Postmark(Config.postmark.token, Config.postmark.from)
 
   private logger = Logger.label('postmark')
-  private client: PostmarkClient.ServerClient | undefined
+  private client: PostmarkLib.Client | undefined
 
   constructor(token?: string, private from?: string) {
     if (token && from) {
-      this.client = new PostmarkClient.ServerClient(token)
+      this.client = new PostmarkLib.Client(token)
     }
   }
 
