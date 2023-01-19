@@ -56,8 +56,12 @@ export default createGraphQLModule({
         })
       },
       async activate(obj, { password, passwordToken, user }, { prisma }, info) {
-        await prisma.user.update({
+        const foundUser = await prisma.user.findUniqueOrThrow({
           where: { passwordToken },
+        })
+
+        await prisma.user.update({
+          where: { id: foundUser.id },
           data: {
             ...user,
             password,
