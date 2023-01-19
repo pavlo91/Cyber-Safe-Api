@@ -25,7 +25,7 @@ export class RouteManager {
     ]
 
     if (Config.dev) {
-      this.routes.push(new PreviewRoute('/dev/preview/:file', 'GET'))
+      this.routes.push(new PreviewRoute('/dev/preview/email/:file', 'GET'))
     }
   }
 
