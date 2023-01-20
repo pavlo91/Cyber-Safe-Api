@@ -13,9 +13,7 @@ export default createGraphQLModule({
       emailConfirmed: Boolean!
       name: String!
       roles: [UserRole!]!
-      teamRole: TeamRole
       parentRole: ParentRole
-      childRole: ParentRole
       parentCount: Int!
     }
 
@@ -37,18 +35,9 @@ export default createGraphQLModule({
   `,
   resolvers: {
     User: {
-      teamRole: withAuth('any', (obj: Prisma.UserGetPayload<UserInclude>, args, { req }, info) => {
-        const teamId = req.headers['x-team-id']
-
-        if (typeof teamId === 'string') {
-          return obj.roles.find((e) => e.teamRole && e.teamRole.teamId === teamId)
-        }
-      }),
-      parentRole: withAuth('any', (obj: Prisma.UserGetPayload<UserInclude>, args, ctx, info) => {
-        return obj.roles.find((e) => e.parentRole)
-      }),
-      childRole: withAuth('parent', (obj: Prisma.UserGetPayload<UserInclude>, args, { user }, info) => {
-        return user.roles.find((e) => e.parentRole && e.parentRole.childUserId === obj.id)
+      parentRole: withAuth('parent', (obj: Prisma.UserGetPayload<UserInclude>, args, { user }, info) => {
+        const role = obj.parentRoles.find((e) => e.userRole.userId === user.id)
+        return role?.userRole
       }),
       parentCount(obj: Prisma.UserGetPayload<UserInclude>) {
         return obj.parentRoles.length

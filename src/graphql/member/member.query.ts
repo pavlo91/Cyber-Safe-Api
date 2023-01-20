@@ -26,8 +26,21 @@ export default createGraphQLModule({
             prisma.user.findMany({
               ...args,
               where,
-              include: UserInclude,
               orderBy: parseUserOrder(order),
+              include: {
+                ...UserInclude,
+                roles: {
+                  ...UserInclude.roles,
+                  where: {
+                    role: {
+                      in: ['COACH', 'ATHLETE'],
+                    },
+                    teamRole: {
+                      teamId: team.id,
+                    },
+                  },
+                },
+              },
             }),
             prisma.user.count({ where }),
           ])
@@ -39,7 +52,20 @@ export default createGraphQLModule({
             id,
             roles: { some: { teamRole: { teamId: team.id } } },
           },
-          include: UserInclude,
+          include: {
+            ...UserInclude,
+            roles: {
+              ...UserInclude.roles,
+              where: {
+                role: {
+                  in: ['COACH', 'ATHLETE'],
+                },
+                teamRole: {
+                  teamId: team.id,
+                },
+              },
+            },
+          },
         })
       }),
     },

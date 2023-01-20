@@ -38,7 +38,6 @@ export default createGraphQLModule({
                   },
                 },
               },
-              orderBy: parseUserOrder(order),
             }),
             prisma.user.count({ where }),
           ])

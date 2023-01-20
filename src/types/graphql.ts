@@ -298,7 +298,6 @@ export type TeamRole = UserRole & {
 
 export type User = {
   __typename?: 'User';
-  childRole?: Maybe<ParentRole>;
   createdAt: Scalars['DateTime'];
   email: Scalars['String'];
   emailConfirmed: Scalars['Boolean'];
@@ -307,7 +306,6 @@ export type User = {
   parentCount: Scalars['Int'];
   parentRole?: Maybe<ParentRole>;
   roles: Array<UserRole>;
-  teamRole?: Maybe<TeamRole>;
 };
 
 export type UserCreate = {
@@ -558,7 +556,6 @@ export type TeamRoleResolvers<ContextType = ApolloContext, ParentType extends Re
 };
 
 export type UserResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
-  childRole?: Resolver<Maybe<ResolversTypes['ParentRole']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   emailConfirmed?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -567,7 +564,6 @@ export type UserResolvers<ContextType = ApolloContext, ParentType extends Resolv
   parentCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   parentRole?: Resolver<Maybe<ResolversTypes['ParentRole']>, ParentType, ContextType>;
   roles?: Resolver<Array<ResolversTypes['UserRole']>, ParentType, ContextType>;
-  teamRole?: Resolver<Maybe<ResolversTypes['TeamRole']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
