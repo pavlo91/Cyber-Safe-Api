@@ -15,3 +15,12 @@ POSTMARK_TOKEN=
 POSTMARK_FROM=
 TEMPLATE_APP_NAME=
 ```
+
+## Seeded logins
+
+- `staff@wonderkiln.com`
+- `coach@wonderkiln.com`
+- `athlete@wonderkiln.com`
+- `parent@wonderkiln.com`
+
+The password for all is `password`.
