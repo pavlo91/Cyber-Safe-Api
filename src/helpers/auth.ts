@@ -2,6 +2,8 @@ import { Prisma } from '@prisma/client'
 import { UserInclude } from '../graphql/user/user.include'
 import { ApolloContext } from '../types/apollo'
 import { parseJwt } from '../utils/crypto'
+import { Logger } from '../utils/logger'
+import { NotAuthorizedError } from './errors'
 
 function findUser(ctx: ApolloContext, id?: string) {
   const token = ctx.req.headers['x-token']
@@ -115,15 +117,20 @@ export function withAuth<Role extends keyof UserRole, P, A, C extends ApolloCont
   callback: Callback<P, A, C & Context<Role>, I, R>
 ) {
   const wrapper: Callback<P, A, C, I, R> = async (obj, args, ctx, info) => {
-    const user = await findUser(ctx)
+    try {
+      const user = await findUser(ctx)
 
-    const currentUser = await UserRole.staff(ctx, user)
-      .then((e) => e.user)
-      .catch(() => user)
+      const currentUser = await UserRole.staff(ctx, user)
+        .then((e) => e.user)
+        .catch(() => user)
 
-    const context = (await UserRole[role](ctx, currentUser)) as Context<Role>
+      const context = (await UserRole[role](ctx, currentUser)) as Context<Role>
 
-    return await callback(obj, args, { ...ctx, ...context }, info)
+      return await callback(obj, args, { ...ctx, ...context }, info)
+    } catch (error) {
+      Logger.global.error('Error in "withAuth" function: %s', error)
+      throw NotAuthorizedError
+    }
   }
 
   return wrapper

@@ -2,6 +2,7 @@ import { randAlphaNumeric } from '@ngneat/falso'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { Config } from '../../config'
+import { UserNotFoundError } from '../../helpers/errors'
 import { Postmark } from '../../libs/postmark'
 import { comparePassword, createJwt } from '../../utils/crypto'
 import { UserInclude } from '../user/user.include'
@@ -24,10 +25,14 @@ export default createGraphQLModule({
   resolvers: {
     Mutation: {
       async login(obj, { email, password }, { prisma }, info) {
-        const user = await prisma.user.findUniqueOrThrow({
-          where: { email },
-          include: UserInclude,
-        })
+        const user = await prisma.user
+          .findUniqueOrThrow({
+            where: { email },
+            include: UserInclude,
+          })
+          .catch(() => {
+            throw UserNotFoundError
+          })
 
         if (!user.password || !comparePassword(password, user.password)) {
           throw new Error("Passwords don't match")
