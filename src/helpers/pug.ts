@@ -26,6 +26,9 @@ type HtmlFileName = {
     acceptUrl: string
     declineUrl: string
   }
+  'email/reset-password.pug': {
+    url: string
+  }
   // Html
   'html/landing.pug': {}
 }

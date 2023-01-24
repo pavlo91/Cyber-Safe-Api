@@ -1,5 +1,8 @@
+import { randAlphaNumeric } from '@ngneat/falso'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
+import { Config } from '../../config'
+import { Postmark } from '../../libs/postmark'
 import { comparePassword, createJwt } from '../../utils/crypto'
 import { UserInclude } from '../user/user.include'
 
@@ -14,6 +17,8 @@ export default createGraphQLModule({
       login(email: String!, password: String!): JWT!
       register(email: String!, password: String!, user: UserCreate!, team: TeamCreate!): ID
       activate(password: String!, passwordToken: String!, user: UserCreate!): ID
+      requestResetPassword(email: String!): ID
+      resetPassword(password: String!, passwordToken: String!): ID
     }
   `,
   resolvers: {
@@ -64,6 +69,30 @@ export default createGraphQLModule({
           where: { id: foundUser.id },
           data: {
             ...user,
+            password,
+            passwordToken: null,
+          },
+        })
+      },
+      async requestResetPassword(obj, { email }, { prisma }, info) {
+        const passwordToken = randAlphaNumeric({ length: 16 }).join('')
+
+        await prisma.user.update({
+          where: { email },
+          data: { passwordToken },
+        })
+
+        const url = Config.composeUrl('webUrl', '/auth/reset/:token', { token: passwordToken })
+        Postmark.shared.send(email, 'email/reset-password.pug', { url })
+      },
+      async resetPassword(obj, { password, passwordToken }, { prisma }, info) {
+        const user = await prisma.user.findUniqueOrThrow({
+          where: { passwordToken },
+        })
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
             password,
             passwordToken: null,
           },

@@ -78,6 +78,8 @@ export type Mutation = {
   removeMember?: Maybe<Scalars['ID']>;
   removeParent?: Maybe<Scalars['ID']>;
   removeRole?: Maybe<Scalars['ID']>;
+  requestResetPassword?: Maybe<Scalars['ID']>;
+  resetPassword?: Maybe<Scalars['ID']>;
 };
 
 
@@ -142,6 +144,17 @@ export type MutationRemoveParentArgs = {
 
 export type MutationRemoveRoleArgs = {
   id: Scalars['ID'];
+};
+
+
+export type MutationRequestResetPasswordArgs = {
+  email: Scalars['String'];
+};
+
+
+export type MutationResetPasswordArgs = {
+  password: Scalars['String'];
+  passwordToken: Scalars['String'];
 };
 
 export { OrderDirection };
@@ -486,6 +499,8 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   removeMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveMemberArgs, 'id'>>;
   removeParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveParentArgs, 'childId' | 'id'>>;
   removeRole?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveRoleArgs, 'id'>>;
+  requestResetPassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRequestResetPasswordArgs, 'email'>>;
+  resetPassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'passwordToken'>>;
 };
 
 export interface NullObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['NullObject'], any> {
