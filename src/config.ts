@@ -39,7 +39,7 @@ export const Config = {
     from: process.env.POSTMARK_FROM,
   },
   template: {
-    appName: process.env.TEMPLATE_APP_NAME ?? 'CyberSafely',
+    appName: process.env.TEMPLATE_APP_NAME ?? 'CyberSafely.ai – Social Media Pivot',
     webUrl: process.env.WEB_URL ?? 'http://localhost:3000',
   },
 }

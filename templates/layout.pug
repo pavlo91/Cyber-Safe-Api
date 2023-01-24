@@ -26,19 +26,24 @@ html(lang="en")
         padding: 1.5rem;
       }
 
-      main {
+      .container {
         margin: 0 auto;
-        padding: 1.5rem;
         max-width: 768px;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+      }
+
+      main {
+        padding: 1.5rem;
         background: white;
         border-radius: 0.5rem;
         border: 1px solid rgb(240, 240, 240);
       }
       
       footer {
-        margin: 0 auto;
-        max-width: 768px;
-        margin-top: 1rem;
         font-size: 0.9rem;
         margin-top: 1.5rem;
         text-align: center;
@@ -49,12 +54,25 @@ html(lang="en")
       }
 
       a {
-        color: blue;
+        color: #dd3333;
+      }
+
+      h1.title {
+        font-size: 1.2rem;
+      }
+
+      img.logo {
+        width: 162px;
+        display: inline-block;
       }
   body
-    main
-      block body
-    footer
-      | &copy; #{new Date().getFullYear()} 
-      a(href=webUrl) #{appName}
-      |  | All Rights Reserved
+    div.container
+      header
+        a(href=webUrl)
+          img.logo(src=webUrl + "/images/logo-black.png")
+        h1.title #{appName}
+      main
+        block body
+      footer
+        | &copy; 2022 - #{new Date().getFullYear()} 
+        a(href=webUrl) #{appName}
