@@ -2,7 +2,6 @@ import { Prisma } from '@prisma/client'
 import { UserInclude } from '../graphql/user/user.include'
 import { ApolloContext } from '../types/apollo'
 import { parseJwt } from '../utils/crypto'
-import { Logger } from '../utils/logger'
 import { NotAuthorizedError } from './errors'
 
 function findUser(ctx: ApolloContext, id?: string) {
@@ -92,7 +91,7 @@ const UserRole = {
 
     return { user, team }
   },
-  parent: (ctx: ApolloContext, user: User) => {
+  parent: async (ctx: ApolloContext, user: User) => {
     const roles = user.roles
       .filter((e) => e.status === 'ACCEPTED')
       .filter((e) => e.role === 'STAFF' || (e.role === 'PARENT' && e.parentRole))
@@ -103,7 +102,7 @@ const UserRole = {
 
     return { user }
   },
-  any: (ctx: ApolloContext, user: User) => {
+  any: async (ctx: ApolloContext, user: User) => {
     return { user }
   },
 } as const
@@ -117,20 +116,19 @@ export function withAuth<Role extends keyof UserRole, P, A, C extends ApolloCont
   callback: Callback<P, A, C & Context<Role>, I, R>
 ) {
   const wrapper: Callback<P, A, C, I, R> = async (obj, args, ctx, info) => {
-    try {
-      const user = await findUser(ctx)
-
-      const currentUser = await UserRole.staff(ctx, user)
-        .then((e) => e.user)
-        .catch(() => user)
-
-      const context = (await UserRole[role](ctx, currentUser)) as Context<Role>
-
-      return await callback(obj, args, { ...ctx, ...context }, info)
-    } catch (error) {
-      Logger.global.error('Error in "withAuth" function: %s', error)
+    const user = await findUser(ctx).catch(() => {
       throw NotAuthorizedError
-    }
+    })
+
+    const currentUser = await UserRole.staff(ctx, user)
+      .then((e) => e.user)
+      .catch(() => user)
+
+    const context = (await UserRole[role](ctx, currentUser).catch(() => {
+      throw NotAuthorizedError
+    })) as Context<Role>
+
+    return await callback(obj, args, { ...ctx, ...context }, info)
   }
 
   return wrapper

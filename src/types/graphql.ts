@@ -80,6 +80,8 @@ export type Mutation = {
   removeRole?: Maybe<Scalars['ID']>;
   requestResetPassword?: Maybe<Scalars['ID']>;
   resetPassword?: Maybe<Scalars['ID']>;
+  updatePassword?: Maybe<Scalars['ID']>;
+  updateProfile?: Maybe<Scalars['ID']>;
 };
 
 
@@ -155,6 +157,17 @@ export type MutationRequestResetPasswordArgs = {
 export type MutationResetPasswordArgs = {
   password: Scalars['String'];
   passwordToken: Scalars['String'];
+};
+
+
+export type MutationUpdatePasswordArgs = {
+  newPassword: Scalars['String'];
+  oldPassword: Scalars['String'];
+};
+
+
+export type MutationUpdateProfileArgs = {
+  input: UpdateProfileInput;
 };
 
 export { OrderDirection };
@@ -309,6 +322,10 @@ export type TeamRole = UserRole & {
   team: Team;
 };
 
+export type UpdateProfileInput = {
+  name?: InputMaybe<Scalars['String']>;
+};
+
 export type User = {
   __typename?: 'User';
   createdAt: Scalars['DateTime'];
@@ -430,6 +447,7 @@ export type ResolversTypes = {
   TeamCreate: TeamCreate;
   TeamOrder: TeamOrder;
   TeamRole: ResolverTypeWrapper<TeamRole>;
+  UpdateProfileInput: UpdateProfileInput;
   User: ResolverTypeWrapper<User>;
   UserCreate: UserCreate;
   UserOrder: UserOrder;
@@ -464,6 +482,7 @@ export type ResolversParentTypes = {
   TeamCreate: TeamCreate;
   TeamOrder: TeamOrder;
   TeamRole: TeamRole;
+  UpdateProfileInput: UpdateProfileInput;
   User: User;
   UserCreate: UserCreate;
   UserOrder: UserOrder;
@@ -501,6 +520,8 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   removeRole?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveRoleArgs, 'id'>>;
   requestResetPassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRequestResetPasswordArgs, 'email'>>;
   resetPassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'passwordToken'>>;
+  updatePassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdatePasswordArgs, 'newPassword' | 'oldPassword'>>;
+  updateProfile?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
 };
 
 export interface NullObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['NullObject'], any> {
