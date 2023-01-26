@@ -73,6 +73,7 @@ export type Mutation = {
   inviteCoach?: Maybe<Scalars['ID']>;
   inviteParent?: Maybe<Scalars['ID']>;
   inviteStaff?: Maybe<Scalars['ID']>;
+  leaveTeam?: Maybe<Scalars['ID']>;
   login: Jwt;
   register?: Maybe<Scalars['ID']>;
   removeMember?: Maybe<Scalars['ID']>;
@@ -82,6 +83,7 @@ export type Mutation = {
   resetPassword?: Maybe<Scalars['ID']>;
   updatePassword?: Maybe<Scalars['ID']>;
   updateProfile?: Maybe<Scalars['ID']>;
+  updateTeam?: Maybe<Scalars['ID']>;
 };
 
 
@@ -168,6 +170,11 @@ export type MutationUpdatePasswordArgs = {
 
 export type MutationUpdateProfileArgs = {
   input: UpdateProfileInput;
+};
+
+
+export type MutationUpdateTeamArgs = {
+  input: UpdateTeamInput;
 };
 
 export { OrderDirection };
@@ -326,6 +333,10 @@ export type UpdateProfileInput = {
   name?: InputMaybe<Scalars['String']>;
 };
 
+export type UpdateTeamInput = {
+  name?: InputMaybe<Scalars['String']>;
+};
+
 export type User = {
   __typename?: 'User';
   createdAt: Scalars['DateTime'];
@@ -448,6 +459,7 @@ export type ResolversTypes = {
   TeamOrder: TeamOrder;
   TeamRole: ResolverTypeWrapper<TeamRole>;
   UpdateProfileInput: UpdateProfileInput;
+  UpdateTeamInput: UpdateTeamInput;
   User: ResolverTypeWrapper<User>;
   UserCreate: UserCreate;
   UserOrder: UserOrder;
@@ -483,6 +495,7 @@ export type ResolversParentTypes = {
   TeamOrder: TeamOrder;
   TeamRole: TeamRole;
   UpdateProfileInput: UpdateProfileInput;
+  UpdateTeamInput: UpdateTeamInput;
   User: User;
   UserCreate: UserCreate;
   UserOrder: UserOrder;
@@ -513,6 +526,7 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   inviteCoach?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteCoachArgs, 'email'>>;
   inviteParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteParentArgs, 'childId' | 'email'>>;
   inviteStaff?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteStaffArgs, 'email'>>;
+  leaveTeam?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   login?: Resolver<ResolversTypes['JWT'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
   register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'password' | 'team' | 'user'>>;
   removeMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveMemberArgs, 'id'>>;
@@ -522,6 +536,7 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   resetPassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'passwordToken'>>;
   updatePassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdatePasswordArgs, 'newPassword' | 'oldPassword'>>;
   updateProfile?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
+  updateTeam?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateTeamArgs, 'input'>>;
 };
 
 export interface NullObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['NullObject'], any> {
