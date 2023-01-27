@@ -42,4 +42,7 @@ export const Config = {
     appName: process.env.TEMPLATE_APP_NAME ?? 'CyberSafely.ai – Social Media Pivot',
     webUrl: process.env.WEB_URL ?? 'http://localhost:3000',
   },
+  email: {
+    contact: process.env.EMAIL_CONTACT ?? 'annettef@cybersafely.ai',
+  },
 }

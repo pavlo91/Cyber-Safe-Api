@@ -29,6 +29,18 @@ type HtmlFileName = {
   'email/reset-password.pug': {
     url: string
   }
+  'email/contact.pug': {
+    firstName: string
+    lastName: string
+    email: string
+    phone?: string | null
+    jobTitle?: string | null
+    schoolName: string
+    state: string
+    students: string
+    describe: string
+    comments?: string | null
+  }
   // Html
   'html/landing.pug': {}
 }

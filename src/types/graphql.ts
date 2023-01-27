@@ -38,6 +38,19 @@ export type BooleanFilter = {
   not?: InputMaybe<Scalars['Boolean']>;
 };
 
+export type ContactInput = {
+  comments?: InputMaybe<Scalars['String']>;
+  describe: Scalars['String'];
+  email: Scalars['String'];
+  firstName: Scalars['String'];
+  jobTitle?: InputMaybe<Scalars['String']>;
+  lastName: Scalars['String'];
+  phone?: InputMaybe<Scalars['String']>;
+  schoolName: Scalars['String'];
+  state: Scalars['String'];
+  students: Scalars['String'];
+};
+
 export type DateTimeFilter = {
   equals?: InputMaybe<Scalars['DateTime']>;
   gte?: InputMaybe<Scalars['DateTime']>;
@@ -68,6 +81,7 @@ export type Jwt = {
 export type Mutation = {
   __typename?: 'Mutation';
   activate?: Maybe<Scalars['ID']>;
+  contact?: Maybe<Scalars['ID']>;
   createTeam?: Maybe<Scalars['ID']>;
   inviteAthlete?: Maybe<Scalars['ID']>;
   inviteCoach?: Maybe<Scalars['ID']>;
@@ -91,6 +105,11 @@ export type MutationActivateArgs = {
   password: Scalars['String'];
   passwordToken: Scalars['String'];
   user: UserCreate;
+};
+
+
+export type MutationContactArgs = {
+  input: ContactInput;
 };
 
 
@@ -462,6 +481,7 @@ export type ResolversTypes = {
   ArrayOrder: ArrayOrder;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   BooleanFilter: BooleanFilter;
+  ContactInput: ContactInput;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   DateTimeFilter: DateTimeFilter;
   Float: ResolverTypeWrapper<Scalars['Float']>;
@@ -503,6 +523,7 @@ export type ResolversParentTypes = {
   ArrayOrder: ArrayOrder;
   Boolean: Scalars['Boolean'];
   BooleanFilter: BooleanFilter;
+  ContactInput: ContactInput;
   DateTime: Scalars['DateTime'];
   DateTimeFilter: DateTimeFilter;
   Float: Scalars['Float'];
@@ -553,6 +574,7 @@ export type JwtResolvers<ContextType = ApolloContext, ParentType extends Resolve
 
 export type MutationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   activate?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationActivateArgs, 'password' | 'passwordToken' | 'user'>>;
+  contact?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationContactArgs, 'input'>>;
   createTeam?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationCreateTeamArgs, 'input'>>;
   inviteAthlete?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteAthleteArgs, 'email'>>;
   inviteCoach?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteCoachArgs, 'email'>>;
