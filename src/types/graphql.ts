@@ -222,6 +222,8 @@ export type Query = {
   members: PaginatedUser;
   parents: PaginatedUser;
   profile: User;
+  statsOfCreatedMembers: Array<StatByDay>;
+  statsOfCreatedParents: Array<StatByDay>;
   statsOfCreatedTeams: Array<StatByDay>;
   statsOfCreatedUsers: Array<StatByDay>;
   team: Team;
@@ -255,6 +257,16 @@ export type QueryParentsArgs = {
   order?: InputMaybe<UserOrder>;
   page?: InputMaybe<Page>;
   search?: InputMaybe<Scalars['String']>;
+};
+
+
+export type QueryStatsOfCreatedMembersArgs = {
+  days?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QueryStatsOfCreatedParentsArgs = {
+  days?: InputMaybe<Scalars['Int']>;
 };
 
 
@@ -602,6 +614,8 @@ export type QueryResolvers<ContextType = ApolloContext, ParentType extends Resol
   members?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryMembersArgs>>;
   parents?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, RequireFields<QueryParentsArgs, 'childId'>>;
   profile?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  statsOfCreatedMembers?: Resolver<Array<ResolversTypes['StatByDay']>, ParentType, ContextType, RequireFields<QueryStatsOfCreatedMembersArgs, 'days'>>;
+  statsOfCreatedParents?: Resolver<Array<ResolversTypes['StatByDay']>, ParentType, ContextType, RequireFields<QueryStatsOfCreatedParentsArgs, 'days'>>;
   statsOfCreatedTeams?: Resolver<Array<ResolversTypes['StatByDay']>, ParentType, ContextType, RequireFields<QueryStatsOfCreatedTeamsArgs, 'days'>>;
   statsOfCreatedUsers?: Resolver<Array<ResolversTypes['StatByDay']>, ParentType, ContextType, RequireFields<QueryStatsOfCreatedUsersArgs, 'days'>>;
   team?: Resolver<ResolversTypes['Team'], ParentType, ContextType, RequireFields<QueryTeamArgs, 'id'>>;

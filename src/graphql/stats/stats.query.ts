@@ -10,7 +10,7 @@ type StatByDay = {
 async function getStatsByDay(days: number, findMany: (startDate: Date) => Promise<StatByDay[]>) {
   const date = new Date()
   date.setDate(date.getDate() - days)
-  date.setHours(0, 0, 0, 0)
+  date.setUTCHours(0, 0, 0, 0)
 
   const data = await findMany(date)
   const result: StatByDay[] = []
@@ -38,6 +38,8 @@ export default createGraphQLModule({
     extend type Query {
       statsOfCreatedUsers(days: Int = 15): [StatByDay!]!
       statsOfCreatedTeams(days: Int = 15): [StatByDay!]!
+      statsOfCreatedMembers(days: Int = 15): [StatByDay!]!
+      statsOfCreatedParents(days: Int = 15): [StatByDay!]!
     }
   `,
   resolvers: {
@@ -66,6 +68,36 @@ export default createGraphQLModule({
                 TO_CHAR("createdAt", 'YYYY-MM-DD') AS day,
                 CAST(COUNT(*) AS INTEGER) AS value
               FROM "Team"
+              WHERE "createdAt" >= ${startDate}
+              GROUP BY day
+              ORDER BY day DESC
+            `
+        )
+      }),
+      statsOfCreatedMembers: withAuth('staff', (obj, { days }, { prisma }, info) => {
+        return getStatsByDay(
+          days,
+          (startDate) =>
+            prisma.$queryRaw`
+              SELECT
+                TO_CHAR("createdAt", 'YYYY-MM-DD') AS day,
+                CAST(COUNT(*) AS INTEGER) AS value
+              FROM "TeamUserRole"
+              WHERE "createdAt" >= ${startDate}
+              GROUP BY day
+              ORDER BY day DESC
+            `
+        )
+      }),
+      statsOfCreatedParents: withAuth('staff', (obj, { days }, { prisma }, info) => {
+        return getStatsByDay(
+          days,
+          (startDate) =>
+            prisma.$queryRaw`
+              SELECT
+                TO_CHAR("createdAt", 'YYYY-MM-DD') AS day,
+                CAST(COUNT(*) AS INTEGER) AS value
+              FROM "ParentUserRole"
               WHERE "createdAt" >= ${startDate}
               GROUP BY day
               ORDER BY day DESC

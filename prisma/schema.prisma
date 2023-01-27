@@ -46,6 +46,7 @@ enum RoleStatus {
 
 model UserRole {
   id          String          @id @default(cuid())
+  createdAt   DateTime        @default(now())
   userId      String
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   role        Role
@@ -63,6 +64,7 @@ model TeamUserRole {
   team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   userRoleId String   @unique
   userRole   UserRole @relation(fields: [userRoleId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
 
   @@id([teamId, userRoleId])
   @@index([teamId])
@@ -74,6 +76,7 @@ model ParentUserRole {
   childUser   User     @relation(fields: [childUserId], references: [id], onDelete: Cascade)
   userRoleId  String   @unique
   userRole    UserRole @relation(fields: [userRoleId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
   relation    String?
 
   @@id([childUserId, userRoleId])
