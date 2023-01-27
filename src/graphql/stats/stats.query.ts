@@ -7,12 +7,12 @@ type StatByDay = {
   value: number
 }
 
-async function getStatsByDay(days: number, findMany: (startDate: Date) => Promise<[StatByDay[], number]>) {
+async function getStatsByDay(days: number, findManyAndCount: (startDate: Date) => Promise<[StatByDay[], number]>) {
   const date = new Date()
   date.setDate(date.getDate() - days)
   date.setUTCHours(0, 0, 0, 0)
 
-  const [data, total] = await findMany(date)
+  const [data, total] = await findManyAndCount(date)
   const stats: StatByDay[] = []
 
   for (let i = 0; i < days; i++) {
