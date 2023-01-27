@@ -222,7 +222,8 @@ export type Query = {
   members: PaginatedUser;
   parents: PaginatedUser;
   profile: User;
-  statsByCreatedUsers: Array<StatsByDay>;
+  statsOfCreatedTeams: Array<StatByDay>;
+  statsOfCreatedUsers: Array<StatByDay>;
   team: Team;
   teams: PaginatedTeam;
   user: User;
@@ -257,7 +258,12 @@ export type QueryParentsArgs = {
 };
 
 
-export type QueryStatsByCreatedUsersArgs = {
+export type QueryStatsOfCreatedTeamsArgs = {
+  days?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QueryStatsOfCreatedUsersArgs = {
   days?: InputMaybe<Scalars['Int']>;
 };
 
@@ -300,8 +306,8 @@ export const RoleStatus = {
 } as const;
 
 export type RoleStatus = typeof RoleStatus[keyof typeof RoleStatus];
-export type StatsByDay = {
-  __typename?: 'StatsByDay';
+export type StatByDay = {
+  __typename?: 'StatByDay';
   day: Scalars['DateTime'];
   value: Scalars['Int'];
 };
@@ -463,7 +469,7 @@ export type ResolversTypes = {
   Query: ResolverTypeWrapper<{}>;
   Role: Role;
   RoleStatus: RoleStatus;
-  StatsByDay: ResolverTypeWrapper<StatsByDay>;
+  StatByDay: ResolverTypeWrapper<StatByDay>;
   String: ResolverTypeWrapper<Scalars['String']>;
   StringFilter: StringFilter;
   StringFilterMode: Prisma.QueryMode;
@@ -501,7 +507,7 @@ export type ResolversParentTypes = {
   PaginatedUser: PaginatedUser;
   ParentRole: ParentRole;
   Query: {};
-  StatsByDay: StatsByDay;
+  StatByDay: StatByDay;
   String: Scalars['String'];
   StringFilter: StringFilter;
   Team: Team;
@@ -596,14 +602,15 @@ export type QueryResolvers<ContextType = ApolloContext, ParentType extends Resol
   members?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryMembersArgs>>;
   parents?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, RequireFields<QueryParentsArgs, 'childId'>>;
   profile?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  statsByCreatedUsers?: Resolver<Array<ResolversTypes['StatsByDay']>, ParentType, ContextType, RequireFields<QueryStatsByCreatedUsersArgs, 'days'>>;
+  statsOfCreatedTeams?: Resolver<Array<ResolversTypes['StatByDay']>, ParentType, ContextType, RequireFields<QueryStatsOfCreatedTeamsArgs, 'days'>>;
+  statsOfCreatedUsers?: Resolver<Array<ResolversTypes['StatByDay']>, ParentType, ContextType, RequireFields<QueryStatsOfCreatedUsersArgs, 'days'>>;
   team?: Resolver<ResolversTypes['Team'], ParentType, ContextType, RequireFields<QueryTeamArgs, 'id'>>;
   teams?: Resolver<ResolversTypes['PaginatedTeam'], ParentType, ContextType, Partial<QueryTeamsArgs>>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryUsersArgs>>;
 };
 
-export type StatsByDayResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['StatsByDay'] = ResolversParentTypes['StatsByDay']> = {
+export type StatByDayResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['StatByDay'] = ResolversParentTypes['StatByDay']> = {
   day?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   value?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -658,7 +665,7 @@ export type Resolvers<ContextType = ApolloContext> = {
   PaginatedUser?: PaginatedUserResolvers<ContextType>;
   ParentRole?: ParentRoleResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  StatsByDay?: StatsByDayResolvers<ContextType>;
+  StatByDay?: StatByDayResolvers<ContextType>;
   StringFilterMode?: StringFilterModeResolvers;
   Team?: TeamResolvers<ContextType>;
   TeamRole?: TeamRoleResolvers<ContextType>;
