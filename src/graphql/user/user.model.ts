@@ -6,7 +6,7 @@ import { UserInclude } from './user.include'
 
 export default createGraphQLModule({
   typeDefs: gql`
-    type User {
+    type User implements NotificationObject {
       id: ID!
       createdAt: DateTime!
       email: String!
