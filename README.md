@@ -16,7 +16,7 @@ POSTMARK_FROM=
 TEMPLATE_APP_NAME=
 ```
 
-## Seeded logins
+## Seeded Logins
 
 - `staff@wonderkiln.com`
 - `coach@wonderkiln.com`
