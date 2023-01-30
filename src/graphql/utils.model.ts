@@ -83,11 +83,6 @@ export default createGraphQLModule({
     input ArrayOrder {
       _count: OrderDirection
     }
-
-    # This needs to be here in order to reference
-    interface NotificationObject {
-      id: ID!
-    }
   `,
   resolvers: {
     DateTime: DateTimeResolver,

@@ -33,6 +33,7 @@ CREATE TABLE "Team" (
 -- CreateTable
 CREATE TABLE "UserRole" (
     "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "userId" TEXT NOT NULL,
     "role" "Role" NOT NULL,
     "status" "RoleStatus" NOT NULL DEFAULT 'PENDING',
@@ -45,6 +46,7 @@ CREATE TABLE "UserRole" (
 CREATE TABLE "TeamUserRole" (
     "teamId" TEXT NOT NULL,
     "userRoleId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "TeamUserRole_pkey" PRIMARY KEY ("teamId","userRoleId")
 );
@@ -53,6 +55,7 @@ CREATE TABLE "TeamUserRole" (
 CREATE TABLE "ParentUserRole" (
     "childUserId" TEXT NOT NULL,
     "userRoleId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "relation" TEXT,
 
     CONSTRAINT "ParentUserRole_pkey" PRIMARY KEY ("childUserId","userRoleId")

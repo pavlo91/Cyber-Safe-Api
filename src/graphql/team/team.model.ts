@@ -5,7 +5,7 @@ import { TeamInclude } from './team.include'
 
 export default createGraphQLModule({
   typeDefs: gql`
-    type Team implements NotificationObject {
+    type Team {
       id: ID!
       createdAt: DateTime!
       name: String!
