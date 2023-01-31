@@ -37,6 +37,7 @@ model Team {
 
 enum Role {
   STAFF
+  ADMIN
   COACH
   ATHLETE
   PARENT

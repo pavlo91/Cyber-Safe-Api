@@ -27,13 +27,13 @@ export class NotificationManager {
     return new NotificationManager(userIds, undefined, prisma)
   }
 
-  static toCoach(teamId: string, prisma: PrismaClient) {
+  static toAdmin(teamId: string, prisma: PrismaClient) {
     const userIds = prisma.user
       .findMany({
         where: {
           roles: {
             some: {
-              role: 'COACH',
+              role: 'ADMIN',
               status: 'ACCEPTED',
               teamRole: {
                 teamId,
@@ -88,14 +88,14 @@ export const Notification = {
     return {
       message: `The user with e-mail ${args.email} has accepted their member role`,
       url: Config.composeUrl('webUrl', '/dashboard/coach/members', { search: args.email }),
-      manager: NotificationManager.toCoach(args.teamId, args.prisma),
+      manager: NotificationManager.toAdmin(args.teamId, args.prisma),
     }
   },
   declinedMemberRole: (args: { email: string; teamId: string; prisma: PrismaClient }) => {
     return {
       message: `The user with e-mail ${args.email} has declined their member role`,
       url: Config.composeUrl('webUrl', '/dashboard/coach/members', { search: args.email }),
-      manager: NotificationManager.toCoach(args.teamId, args.prisma),
+      manager: NotificationManager.toAdmin(args.teamId, args.prisma),
     }
   },
 } satisfies Record<string, NotificationTemplate<any>>

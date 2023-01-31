@@ -19,13 +19,8 @@ export default createGraphQLModule({
           where: { id: childId },
         })
 
-        const user = await prisma.user.upsert({
+        let user = await prisma.user.findUnique({
           where: { email },
-          update: {},
-          create: {
-            email,
-            name: '',
-          },
           include: {
             roles: {
               include: {
@@ -34,6 +29,22 @@ export default createGraphQLModule({
             },
           },
         })
+
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email,
+              name: '',
+            },
+            include: {
+              roles: {
+                include: {
+                  parentRole: true,
+                },
+              },
+            },
+          })
+        }
 
         const statusToken = randomToken()
         const parentRole = user.roles.find(

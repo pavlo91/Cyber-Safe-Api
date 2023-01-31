@@ -21,7 +21,7 @@ export default createGraphQLModule({
           data: { ...input },
         })
       }),
-      updateTeam: withAuth('coach', async (obj, { input }, { prisma, team }, info) => {
+      updateTeam: withAuth('admin', async (obj, { input }, { prisma, team }, info) => {
         await prisma.team.update({
           where: { id: team.id },
           data: {

@@ -7,6 +7,7 @@ export default createGraphQLModule({
   typeDefs: gql`
     enum Role {
       STAFF
+      ADMIN
       COACH
       ATHLETE
       PARENT
@@ -24,7 +25,7 @@ export default createGraphQLModule({
       status: RoleStatus!
     }
 
-    type AnyUserRole implements UserRole {
+    type AnyRole implements UserRole {
       id: ID!
       role: Role!
       status: RoleStatus!
@@ -52,7 +53,8 @@ export default createGraphQLModule({
 
         switch (obj.role) {
           case 'STAFF':
-            return 'AnyUserRole'
+            return 'AnyRole'
+          case 'ADMIN':
           case 'COACH':
           case 'ATHLETE':
             return 'TeamRole'

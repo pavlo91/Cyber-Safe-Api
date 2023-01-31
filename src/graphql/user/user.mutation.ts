@@ -14,15 +14,20 @@ export default createGraphQLModule({
   resolvers: {
     Mutation: {
       inviteStaff: withAuth('staff', async (obj, { email }, { prisma }, info) => {
-        const user = await prisma.user.upsert({
-          include: { roles: true },
+        let user = await prisma.user.findUnique({
           where: { email },
-          update: {},
-          create: {
-            email,
-            name: '',
-          },
+          include: { roles: true },
         })
+
+        if (!user) {
+          user = await prisma.user.create({
+            include: { roles: true },
+            data: {
+              email,
+              name: '',
+            },
+          })
+        }
 
         const statusToken = randomToken()
         const staffRole = user.roles.find((e) => e.role === 'STAFF')

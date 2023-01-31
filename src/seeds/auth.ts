@@ -35,6 +35,28 @@ export class AuthSeed implements Seed {
       })
 
       await prisma.user.upsert({
+        where: { email: 'admin@wonderkiln.com' },
+        create: {
+          email: 'admin@wonderkiln.com',
+          emailConfirmed: true,
+          password: 'password',
+          name: 'Admin User',
+          roles: {
+            create: {
+              role: 'ADMIN',
+              status: 'ACCEPTED',
+              teamRole: {
+                create: {
+                  teamId: team.id,
+                },
+              },
+            },
+          },
+        },
+        update: {},
+      })
+
+      await prisma.user.upsert({
         where: { email: 'coach@wonderkiln.com' },
         create: {
           email: 'coach@wonderkiln.com',

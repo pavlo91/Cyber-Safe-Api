@@ -33,7 +33,7 @@ export default createGraphQLModule({
                   ...UserInclude.roles,
                   where: {
                     role: {
-                      in: ['COACH', 'ATHLETE'],
+                      in: ['ADMIN', 'COACH', 'ATHLETE'],
                     },
                     teamRole: {
                       teamId: team.id,
@@ -58,7 +58,7 @@ export default createGraphQLModule({
               ...UserInclude.roles,
               where: {
                 role: {
-                  in: ['COACH', 'ATHLETE'],
+                  in: ['ADMIN', 'COACH', 'ATHLETE'],
                 },
                 teamRole: {
                   teamId: team.id,

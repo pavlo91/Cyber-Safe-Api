@@ -22,8 +22,8 @@ export type Scalars = {
   NullObject: null;
 };
 
-export type AnyUserRole = UserRole & {
-  __typename?: 'AnyUserRole';
+export type AnyRole = UserRole & {
+  __typename?: 'AnyRole';
   id: Scalars['ID'];
   role: Role;
   status: RoleStatus;
@@ -72,6 +72,13 @@ export type IntFilter = {
   not?: InputMaybe<Scalars['Int']>;
 };
 
+export const InviteMemberRole = {
+  Admin: 'ADMIN',
+  Athlete: 'ATHLETE',
+  Coach: 'COACH'
+} as const;
+
+export type InviteMemberRole = typeof InviteMemberRole[keyof typeof InviteMemberRole];
 export type Jwt = {
   __typename?: 'JWT';
   token: Scalars['String'];
@@ -83,8 +90,7 @@ export type Mutation = {
   activate?: Maybe<Scalars['ID']>;
   contact?: Maybe<Scalars['ID']>;
   createTeam?: Maybe<Scalars['ID']>;
-  inviteAthlete?: Maybe<Scalars['ID']>;
-  inviteCoach?: Maybe<Scalars['ID']>;
+  inviteMember?: Maybe<Scalars['ID']>;
   inviteParent?: Maybe<Scalars['ID']>;
   inviteStaff?: Maybe<Scalars['ID']>;
   leaveTeam?: Maybe<Scalars['ID']>;
@@ -119,13 +125,9 @@ export type MutationCreateTeamArgs = {
 };
 
 
-export type MutationInviteAthleteArgs = {
+export type MutationInviteMemberArgs = {
   email: Scalars['String'];
-};
-
-
-export type MutationInviteCoachArgs = {
-  email: Scalars['String'];
+  role: InviteMemberRole;
 };
 
 
@@ -345,6 +347,7 @@ export type QueryUsersArgs = {
 };
 
 export const Role = {
+  Admin: 'ADMIN',
   Athlete: 'ATHLETE',
   Coach: 'COACH',
   Parent: 'PARENT',
@@ -506,7 +509,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
-  AnyUserRole: ResolverTypeWrapper<AnyUserRole>;
+  AnyRole: ResolverTypeWrapper<AnyRole>;
   ArrayOrder: ArrayOrder;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   BooleanFilter: BooleanFilter;
@@ -518,6 +521,7 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   IntFilter: IntFilter;
+  InviteMemberRole: InviteMemberRole;
   JWT: ResolverTypeWrapper<Jwt>;
   Mutation: ResolverTypeWrapper<{}>;
   Notification: ResolverTypeWrapper<Notification>;
@@ -546,12 +550,12 @@ export type ResolversTypes = {
   User: ResolverTypeWrapper<User>;
   UserCreate: UserCreate;
   UserOrder: UserOrder;
-  UserRole: ResolversTypes['AnyUserRole'] | ResolversTypes['ParentRole'] | ResolversTypes['TeamRole'];
+  UserRole: ResolversTypes['AnyRole'] | ResolversTypes['ParentRole'] | ResolversTypes['TeamRole'];
 };
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
-  AnyUserRole: AnyUserRole;
+  AnyRole: AnyRole;
   ArrayOrder: ArrayOrder;
   Boolean: Scalars['Boolean'];
   BooleanFilter: BooleanFilter;
@@ -587,10 +591,10 @@ export type ResolversParentTypes = {
   User: User;
   UserCreate: UserCreate;
   UserOrder: UserOrder;
-  UserRole: ResolversParentTypes['AnyUserRole'] | ResolversParentTypes['ParentRole'] | ResolversParentTypes['TeamRole'];
+  UserRole: ResolversParentTypes['AnyRole'] | ResolversParentTypes['ParentRole'] | ResolversParentTypes['TeamRole'];
 };
 
-export type AnyUserRoleResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['AnyUserRole'] = ResolversParentTypes['AnyUserRole']> = {
+export type AnyRoleResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['AnyRole'] = ResolversParentTypes['AnyRole']> = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   role?: Resolver<ResolversTypes['Role'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['RoleStatus'], ParentType, ContextType>;
@@ -611,8 +615,7 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   activate?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationActivateArgs, 'password' | 'passwordToken' | 'user'>>;
   contact?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationContactArgs, 'input'>>;
   createTeam?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationCreateTeamArgs, 'input'>>;
-  inviteAthlete?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteAthleteArgs, 'email'>>;
-  inviteCoach?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteCoachArgs, 'email'>>;
+  inviteMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteMemberArgs, 'email' | 'role'>>;
   inviteParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteParentArgs, 'childId' | 'email'>>;
   inviteStaff?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteStaffArgs, 'email'>>;
   leaveTeam?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
@@ -741,14 +744,14 @@ export type UserResolvers<ContextType = ApolloContext, ParentType extends Resolv
 };
 
 export type UserRoleResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['UserRole'] = ResolversParentTypes['UserRole']> = {
-  __resolveType: TypeResolveFn<'AnyUserRole' | 'ParentRole' | 'TeamRole', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'AnyRole' | 'ParentRole' | 'TeamRole', ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   role?: Resolver<ResolversTypes['Role'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['RoleStatus'], ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = ApolloContext> = {
-  AnyUserRole?: AnyUserRoleResolvers<ContextType>;
+  AnyRole?: AnyRoleResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
   JWT?: JwtResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;

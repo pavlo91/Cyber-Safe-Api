@@ -46,6 +46,7 @@ export class RespondRoute implements Route {
 
         break
 
+      case 'ADMIN':
       case 'COACH':
       case 'ATHLETE':
         NotificationManager.notify(hasAccepted ? Notification.acceptedMemberRole : Notification.declinedMemberRole, {

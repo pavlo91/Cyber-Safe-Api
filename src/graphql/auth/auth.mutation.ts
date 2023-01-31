@@ -49,7 +49,7 @@ export default createGraphQLModule({
             password,
             roles: {
               create: {
-                role: 'COACH',
+                role: 'ADMIN',
                 teamRole: {
                   create: {
                     team: {

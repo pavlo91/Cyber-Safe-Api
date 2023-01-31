@@ -7,22 +7,22 @@ import { randomToken } from '../../utils/crypto'
 
 export default createGraphQLModule({
   typeDefs: gql`
+    enum InviteMemberRole {
+      ADMIN
+      COACH
+      ATHLETE
+    }
+
     extend type Mutation {
-      inviteCoach(email: String!): ID
-      inviteAthlete(email: String!): ID
+      inviteMember(email: String!, role: InviteMemberRole!): ID
       removeMember(id: ID!): ID
     }
   `,
   resolvers: {
     Mutation: {
-      inviteCoach: withAuth('coach', async (obj, { email }, { prisma, team }, info) => {
-        const user = await prisma.user.upsert({
+      inviteMember: withAuth('admin', async (obj, { email, role }, { prisma, team }, info) => {
+        let user = await prisma.user.findUnique({
           where: { email },
-          update: {},
-          create: {
-            email,
-            name: '',
-          },
           include: {
             roles: {
               include: {
@@ -32,14 +32,30 @@ export default createGraphQLModule({
           },
         })
 
-        const statusToken = randomToken()
-        const coachRole = user.roles.find((e) => e.role === 'COACH' && e.teamRole && e.teamRole.teamId === team.id)
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email,
+              name: '',
+            },
+            include: {
+              roles: {
+                include: {
+                  teamRole: true,
+                },
+              },
+            },
+          })
+        }
 
-        if (!coachRole) {
+        const statusToken = randomToken()
+        const teamRole = user.roles.find((e) => e.role === role && e.teamRole && e.teamRole.teamId === team.id)
+
+        if (!teamRole) {
           await prisma.userRole.create({
             data: {
+              role,
               statusToken,
-              role: 'COACH',
               userId: user.id,
               teamRole: {
                 create: {
@@ -51,62 +67,15 @@ export default createGraphQLModule({
         } else {
           await prisma.userRole.update({
             data: { statusToken },
-            where: { id: coachRole.id },
+            where: { id: teamRole.id },
           })
         }
 
         const acceptUrl = Config.composeUrl('apiUrl', '/api/respond/:statusToken/accept', { statusToken })
         const declineUrl = Config.composeUrl('apiUrl', '/api/respond/:statusToken/decline', { statusToken })
-        Postmark.shared.send(email, 'email/invite-coach.pug', { teamName: team.name, acceptUrl, declineUrl })
+        Postmark.shared.send(email, 'email/invite-member.pug', { teamName: team.name, acceptUrl, declineUrl })
       }),
-      inviteAthlete: withAuth('coach', async (obj, { email }, { prisma, team }, info) => {
-        const user = await prisma.user.upsert({
-          where: { email },
-          update: {},
-          create: {
-            email,
-            name: '',
-          },
-          include: {
-            roles: {
-              include: {
-                teamRole: true,
-              },
-            },
-          },
-        })
-
-        const statusToken = randomToken()
-        const coachRole = user.roles.find((e) => e.role === 'ATHLETE' && e.teamRole && e.teamRole.teamId === team.id)
-
-        if (!coachRole) {
-          await prisma.userRole.create({
-            data: {
-              statusToken,
-              role: 'ATHLETE',
-              userId: user.id,
-              teamRole: {
-                create: {
-                  teamId: team.id,
-                },
-              },
-            },
-          })
-        } else {
-          await prisma.userRole.update({
-            where: { id: coachRole.id },
-            data: {
-              statusToken,
-              status: 'PENDING',
-            },
-          })
-        }
-
-        const acceptUrl = Config.composeUrl('apiUrl', '/api/respond/:statusToken/accept', { statusToken })
-        const declineUrl = Config.composeUrl('apiUrl', '/api/respond/:statusToken/decline', { statusToken })
-        Postmark.shared.send(email, 'email/invite-athlete.pug', { teamName: team.name, acceptUrl, declineUrl })
-      }),
-      removeMember: withAuth('coach', async (obj, { id }, { prisma, team }, info) => {
+      removeMember: withAuth('admin', async (obj, { id }, { prisma, team }, info) => {
         await prisma.userRole.deleteMany({
           where: {
             userId: id,
