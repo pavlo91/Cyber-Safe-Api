@@ -28,9 +28,9 @@ function findUserWithRolesOrThrow({ req, prisma }: ApolloContext, roles: Role[],
 
   const { uuid } = parseJwt(token)
 
-  let OR: Prisma.UserRoleWhereInput[] = []
+  const OR: Prisma.UserRoleWhereInput[] = []
 
-  for (const role of roles) {
+  roles.forEach((role) => {
     const where: Prisma.UserRoleWhereInput = { role }
 
     if (!!teamId) {
@@ -38,7 +38,7 @@ function findUserWithRolesOrThrow({ req, prisma }: ApolloContext, roles: Role[],
     }
 
     OR.push(where)
-  }
+  })
 
   if (OR.length > 0) {
     if (!OR.find((e) => e.role === 'STAFF')) {
@@ -46,10 +46,9 @@ function findUserWithRolesOrThrow({ req, prisma }: ApolloContext, roles: Role[],
     }
 
     // Make them all accepted
-    OR = OR.map((e) => ({
-      ...e,
-      status: 'ACCEPTED',
-    }))
+    OR.forEach((or) => {
+      or.status = 'ACCEPTED'
+    })
   }
 
   const where: Prisma.UserWhereInput = { uuid }
@@ -67,9 +66,10 @@ function findUserWithRolesOrThrow({ req, prisma }: ApolloContext, roles: Role[],
     }
   }
 
-  return prisma.user.findFirstOrThrow({ where, include }) as Prisma.Prisma__UserClient<
-    Prisma.UserGetPayload<UserInclude>
-  >
+  return prisma.user.findFirstOrThrow({
+    where,
+    include: include as typeof UserInclude,
+  })
 }
 
 type AuthFn = (ctx: ApolloContext) => Promise<any>
@@ -96,7 +96,18 @@ const Auth = {
   },
   parent: async (ctx) => {
     const user = await findUserWithRolesOrThrow(ctx, ['PARENT'])
-    return { user }
+
+    const checkChild = (childId: string) => {
+      if (
+        !user.roles.find(
+          (e) => e.role === 'PARENT' && e.status === 'ACCEPTED' && e.parentRole && e.parentRole.childUserId === childId
+        )
+      ) {
+        throw new Error('You are not a parent of this child')
+      }
+    }
+
+    return { user, checkChild }
   },
   member: async (ctx) => {
     const team = await findTeamOrThrow(ctx)
@@ -132,7 +143,7 @@ export function withAuth<K extends keyof Auth, P, A, C extends ApolloContext, I,
       const context = (await Auth[role](ctx)) as Context<K>
       return await callback(obj, args, { ...ctx, ...context }, info)
     } catch (error) {
-      Logger.global.error('Error while auth route: %s', error)
+      Logger.global.error('Error while authorizing route: %s', error)
       throw NotAuthorizedError
     }
   }
