@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import { FastifyReply, FastifyRequest, HTTPMethods } from 'fastify'
 import { z } from 'zod'
 import { Config } from '../config'
+import { Notification, NotificationManager } from '../utils/notification'
 import { Route } from './index'
 
 const schema = z.object({
@@ -20,15 +21,44 @@ export class RespondRoute implements Route {
         status: 'PENDING',
         statusToken: params.token,
       },
+      include: {
+        user: true,
+        teamRole: true,
+      },
     })
+
+    const hasAccepted = params.response === 'accept'
 
     await this.prisma.userRole.update({
       where: { id: role.id },
       data: {
         statusToken: null,
-        status: params.response === 'accept' ? 'ACCEPTED' : 'DECLINED',
+        status: hasAccepted ? 'ACCEPTED' : 'DECLINED',
       },
     })
+
+    switch (role.role) {
+      case 'STAFF':
+        NotificationManager.notify(hasAccepted ? Notification.acceptedStaffRole : Notification.declinedStaffRole, {
+          prisma: this.prisma,
+          email: role.user.email,
+        })
+
+        break
+
+      case 'COACH':
+      case 'ATHLETE':
+        NotificationManager.notify(hasAccepted ? Notification.acceptedMemberRole : Notification.declinedMemberRole, {
+          prisma: this.prisma,
+          email: role.user.email,
+          teamId: role.teamRole!.teamId,
+        })
+
+        break
+
+      default:
+        break
+    }
 
     res.redirect(Config.composeUrl('webUrl', '/auth/login'))
   }

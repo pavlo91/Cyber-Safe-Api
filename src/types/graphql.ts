@@ -89,6 +89,7 @@ export type Mutation = {
   inviteStaff?: Maybe<Scalars['ID']>;
   leaveTeam?: Maybe<Scalars['ID']>;
   login: Jwt;
+  readAllNotifications?: Maybe<Scalars['ID']>;
   register?: Maybe<Scalars['ID']>;
   removeMember?: Maybe<Scalars['ID']>;
   removeParent?: Maybe<Scalars['ID']>;
@@ -196,6 +197,14 @@ export type MutationUpdateTeamArgs = {
   input: UpdateTeamInput;
 };
 
+export type Notification = {
+  __typename?: 'Notification';
+  createdAt: Scalars['DateTime'];
+  id: Scalars['ID'];
+  message: Scalars['String'];
+  url?: Maybe<Scalars['String']>;
+};
+
 export { OrderDirection };
 
 export type Page = {
@@ -211,6 +220,12 @@ export type PageInfo = {
   index: Scalars['Int'];
   size: Scalars['Int'];
   total: Scalars['Int'];
+};
+
+export type PaginatedNotification = {
+  __typename?: 'PaginatedNotification';
+  nodes: Array<Notification>;
+  page: PageInfo;
 };
 
 export type PaginatedTeam = {
@@ -239,6 +254,8 @@ export type Query = {
   children: PaginatedUser;
   member: User;
   members: PaginatedUser;
+  notifications: PaginatedNotification;
+  notificationsCount: Scalars['Int'];
   parents: PaginatedUser;
   profile: User;
   statsOfCreatedMembers: StatsByDay;
@@ -268,6 +285,11 @@ export type QueryMembersArgs = {
   order?: InputMaybe<UserOrder>;
   page?: InputMaybe<Page>;
   search?: InputMaybe<Scalars['String']>;
+};
+
+
+export type QueryNotificationsArgs = {
+  page?: InputMaybe<Page>;
 };
 
 
@@ -497,10 +519,12 @@ export type ResolversTypes = {
   IntFilter: IntFilter;
   JWT: ResolverTypeWrapper<Jwt>;
   Mutation: ResolverTypeWrapper<{}>;
+  Notification: ResolverTypeWrapper<Notification>;
   NullObject: ResolverTypeWrapper<Scalars['NullObject']>;
   OrderDirection: Prisma.SortOrder;
   Page: Page;
   PageInfo: ResolverTypeWrapper<PageInfo>;
+  PaginatedNotification: ResolverTypeWrapper<PaginatedNotification>;
   PaginatedTeam: ResolverTypeWrapper<PaginatedTeam>;
   PaginatedUser: ResolverTypeWrapper<PaginatedUser>;
   ParentRole: ResolverTypeWrapper<ParentRole>;
@@ -540,9 +564,11 @@ export type ResolversParentTypes = {
   IntFilter: IntFilter;
   JWT: Jwt;
   Mutation: {};
+  Notification: Notification;
   NullObject: Scalars['NullObject'];
   Page: Page;
   PageInfo: PageInfo;
+  PaginatedNotification: PaginatedNotification;
   PaginatedTeam: PaginatedTeam;
   PaginatedUser: PaginatedUser;
   ParentRole: ParentRole;
@@ -590,6 +616,7 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   inviteStaff?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteStaffArgs, 'email'>>;
   leaveTeam?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   login?: Resolver<ResolversTypes['JWT'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
+  readAllNotifications?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'password' | 'team' | 'user'>>;
   removeMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveMemberArgs, 'id'>>;
   removeParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveParentArgs, 'childId' | 'id'>>;
@@ -599,6 +626,14 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   updatePassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdatePasswordArgs, 'newPassword' | 'oldPassword'>>;
   updateProfile?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
   updateTeam?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateTeamArgs, 'input'>>;
+};
+
+export type NotificationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = {
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export interface NullObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['NullObject'], any> {
@@ -614,6 +649,12 @@ export type PageInfoResolvers<ContextType = ApolloContext, ParentType extends Re
   index?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   size?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PaginatedNotificationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['PaginatedNotification'] = ResolversParentTypes['PaginatedNotification']> = {
+  nodes?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
+  page?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -642,6 +683,8 @@ export type QueryResolvers<ContextType = ApolloContext, ParentType extends Resol
   children?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryChildrenArgs>>;
   member?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryMemberArgs, 'id'>>;
   members?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryMembersArgs>>;
+  notifications?: Resolver<ResolversTypes['PaginatedNotification'], ParentType, ContextType, Partial<QueryNotificationsArgs>>;
+  notificationsCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   parents?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, RequireFields<QueryParentsArgs, 'childId'>>;
   profile?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   statsOfCreatedMembers?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedMembersArgs, 'days'>>;
@@ -708,9 +751,11 @@ export type Resolvers<ContextType = ApolloContext> = {
   DateTime?: GraphQLScalarType;
   JWT?: JwtResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  Notification?: NotificationResolvers<ContextType>;
   NullObject?: GraphQLScalarType;
   OrderDirection?: OrderDirectionResolvers;
   PageInfo?: PageInfoResolvers<ContextType>;
+  PaginatedNotification?: PaginatedNotificationResolvers<ContextType>;
   PaginatedTeam?: PaginatedTeamResolvers<ContextType>;
   PaginatedUser?: PaginatedUserResolvers<ContextType>;
   ParentRole?: ParentRoleResolvers<ContextType>;

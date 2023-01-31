@@ -20,15 +20,17 @@ model User {
   name           String
   roles          UserRole[]
   parentRoles    ParentUserRole[]
+  notifications  Notification[]
 
   @@index([emailConfirmed])
 }
 
 model Team {
-  id        String         @id @default(cuid())
-  createdAt DateTime       @default(now())
-  name      String
-  roles     TeamUserRole[]
+  id            String         @id @default(cuid())
+  createdAt     DateTime       @default(now())
+  name          String
+  roles         TeamUserRole[]
+  notifications Notification[]
 }
 
 enum Role {
@@ -82,4 +84,20 @@ model ParentUserRole {
   @@id([childUserId, userRoleId])
   @@index([childUserId])
   @@index([userRoleId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  unread    Boolean  @default(true)
+  message   String
+  url       String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId    String?
+  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([unread])
+  @@index([userId])
+  @@index([teamId])
 }

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { Prisma, Team } from '@prisma/client'
 import { UserInclude } from '../graphql/user/user.include'
 import { ApolloContext } from '../types/apollo'
 import { parseJwt } from '../utils/crypto'
@@ -103,7 +103,27 @@ const UserRole = {
     return { user }
   },
   any: async (ctx: ApolloContext, user: User) => {
-    return { user }
+    let team: Team | undefined | null
+    const teamId = ctx.req.headers['x-team-id']
+
+    if (typeof teamId === 'string') {
+      team = await ctx.prisma.team.findFirst({
+        where: {
+          id: teamId,
+          roles: {
+            some: {
+              userRole: {
+                userId: user.id,
+                status: 'ACCEPTED',
+                role: { in: ['COACH', 'ATHLETE'] },
+              },
+            },
+          },
+        },
+      })
+    }
+
+    return { user, team }
   },
 } as const
 
