@@ -1,175 +1,140 @@
-import { Prisma, Team } from '@prisma/client'
+import { Prisma, Role } from '@prisma/client'
+import { TeamInclude } from '../graphql/team/team.include'
 import { UserInclude } from '../graphql/user/user.include'
 import { ApolloContext } from '../types/apollo'
 import { parseJwt } from '../utils/crypto'
+import { Logger } from '../utils/logger'
 import { NotAuthorizedError } from './errors'
 
-function findUser(ctx: ApolloContext, id?: string) {
-  const token = ctx.req.headers['x-token']
+function findTeamOrThrow({ req, prisma }: ApolloContext) {
+  const id = req.headers['x-team-id']
 
-  const where: Prisma.UserWhereInput = {}
-
-  if (typeof id === 'string') {
-    where.id = id
-  } else if (typeof token === 'string') {
-    const jwt = parseJwt(token)
-    where.uuid = jwt.uuid
-  } else {
-    throw new Error('Could not find user')
+  if (typeof id !== 'string') {
+    throw new Error('No x-team-id found in headers')
   }
 
-  return ctx.prisma.user.findFirstOrThrow({
-    where,
-    include: UserInclude,
+  return prisma.team.findUniqueOrThrow({
+    where: { id },
+    include: TeamInclude,
   })
 }
 
-type User = Awaited<ReturnType<typeof findUser>>
+function findUserWithRolesOrThrow({ req, prisma }: ApolloContext, roles: Role[], teamId?: string) {
+  const token = req.headers['x-token']
 
-const UserRole = {
-  staff: async (ctx: ApolloContext, initialUser: User) => {
-    const behalfId = ctx.req.headers['x-behalf-id']
+  if (typeof token !== 'string') {
+    throw new Error('No x-token found in headers')
+  }
 
-    let user = initialUser
+  const { uuid } = parseJwt(token)
 
-    if (!user.roles.filter((e) => e.status === 'ACCEPTED').find((e) => e.role === 'STAFF')) {
-      throw new Error('Not authorized')
+  let OR: Prisma.UserRoleWhereInput[] = []
+
+  for (const role of roles) {
+    const where: Prisma.UserRoleWhereInput = { role }
+
+    if (!!teamId) {
+      where.teamRole = { teamId }
     }
 
-    if (typeof behalfId === 'string') {
-      user = await findUser(ctx, behalfId)
+    OR.push(where)
+  }
+
+  if (OR.length > 0) {
+    if (!OR.find((e) => e.role === 'STAFF')) {
+      OR.push({ role: 'STAFF' })
     }
 
+    // Make them all accepted
+    OR = OR.map((e) => ({
+      ...e,
+      status: 'ACCEPTED',
+    }))
+  }
+
+  const where: Prisma.UserWhereInput = { uuid }
+  let include: Prisma.UserInclude = UserInclude
+
+  if (OR.length > 0) {
+    where.roles = { some: { OR } }
+
+    include = {
+      ...UserInclude,
+      roles: {
+        ...UserInclude.roles,
+        where: { OR },
+      },
+    }
+  }
+
+  return prisma.user.findFirstOrThrow({ where, include }) as Prisma.Prisma__UserClient<
+    Prisma.UserGetPayload<UserInclude>
+  >
+}
+
+type AuthFn = (ctx: ApolloContext) => Promise<any>
+
+const Auth = {
+  staff: async (ctx) => {
+    const user = await findUserWithRolesOrThrow(ctx, ['STAFF'])
     return { user }
   },
-  admin: async (ctx: ApolloContext, user: User) => {
-    const teamId = ctx.req.headers['x-team-id']
-    if (typeof teamId !== 'string') throw new Error('Team ID not found in headers')
-
-    const role = user.roles
-      .filter((e) => e.status === 'ACCEPTED')
-      .find((e) => e.role === 'STAFF' || (e.role === 'ADMIN' && e.teamRole && e.teamRole.team.id === teamId))
-    if (!role) throw new Error('Not authorized')
-
-    const team = await ctx.prisma.team.findFirstOrThrow({
-      where: { id: teamId },
-    })
-
+  admin: async (ctx) => {
+    const team = await findTeamOrThrow(ctx)
+    const user = await findUserWithRolesOrThrow(ctx, ['ADMIN'], team.id)
     return { user, team }
   },
-  coach: async (ctx: ApolloContext, user: User) => {
-    const teamId = ctx.req.headers['x-team-id']
-    if (typeof teamId !== 'string') throw new Error('Team ID not found in headers')
-
-    const role = user.roles
-      .filter((e) => e.status === 'ACCEPTED')
-      .find(
-        (e) =>
-          e.role === 'STAFF' ||
-          ((e.role === 'ADMIN' || e.role === 'COACH') && e.teamRole && e.teamRole.team.id === teamId)
-      )
-    if (!role) throw new Error('Not authorized')
-
-    const team = await ctx.prisma.team.findFirstOrThrow({
-      where: { id: teamId },
-    })
-
+  coach: async (ctx) => {
+    const team = await findTeamOrThrow(ctx)
+    const user = await findUserWithRolesOrThrow(ctx, ['ADMIN', 'COACH'], team.id)
     return { user, team }
   },
-  athlete: async (ctx: ApolloContext, user: User) => {
-    const teamId = ctx.req.headers['x-team-id']
-    if (typeof teamId !== 'string') throw new Error('Team ID not found in headers')
-
-    const role = user.roles
-      .filter((e) => e.status === 'ACCEPTED')
-      .find((e) => e.role === 'STAFF' || (e.role === 'ATHLETE' && e.teamRole && e.teamRole.team.id === teamId))
-    if (!role) throw new Error('Not authorized')
-
-    const team = await ctx.prisma.team.findFirstOrThrow({
-      where: { id: teamId },
-    })
-
+  athlete: async (ctx) => {
+    const team = await findTeamOrThrow(ctx)
+    const user = await findUserWithRolesOrThrow(ctx, ['ATHLETE'], team.id)
     return { user, team }
   },
-  member: async (ctx: ApolloContext, user: User) => {
-    const teamId = ctx.req.headers['x-team-id']
-    if (typeof teamId !== 'string') throw new Error('Team ID not found in headers')
-
-    const role = user.roles
-      .filter((e) => e.status === 'ACCEPTED')
-      .find(
-        (e) =>
-          e.role === 'STAFF' ||
-          ((e.role === 'ADMIN' || e.role === 'COACH' || e.role === 'ATHLETE') &&
-            e.teamRole &&
-            e.teamRole.team.id === teamId)
-      )
-    if (!role) throw new Error('Not authorized')
-
-    const team = await ctx.prisma.team.findFirstOrThrow({
-      where: { id: teamId },
-    })
-
-    return { user, team }
-  },
-  parent: async (ctx: ApolloContext, user: User) => {
-    const roles = user.roles
-      .filter((e) => e.status === 'ACCEPTED')
-      .filter((e) => e.role === 'STAFF' || (e.role === 'PARENT' && e.parentRole))
-
-    if (roles.length === 0) {
-      throw new Error('Not authorized')
-    }
-
+  parent: async (ctx) => {
+    const user = await findUserWithRolesOrThrow(ctx, ['PARENT'])
     return { user }
   },
-  any: async (ctx: ApolloContext, user: User) => {
-    let team: Team | undefined | null
-    const teamId = ctx.req.headers['x-team-id']
+  member: async (ctx) => {
+    const team = await findTeamOrThrow(ctx)
+    const user = await findUserWithRolesOrThrow(ctx, ['ADMIN', 'COACH', 'ATHLETE'], team.id)
+    return { user, team }
+  },
+  any: async (ctx) => {
+    const team = await findTeamOrThrow(ctx).catch(() => undefined)
+    let user
 
-    if (typeof teamId === 'string') {
-      team = await ctx.prisma.team.findFirst({
-        where: {
-          id: teamId,
-          roles: {
-            some: {
-              userRole: {
-                userId: user.id,
-                status: 'ACCEPTED',
-                role: { in: ['ADMIN', 'COACH', 'ATHLETE'] },
-              },
-            },
-          },
-        },
-      })
+    if (team) {
+      user = await findUserWithRolesOrThrow(ctx, ['ADMIN', 'COACH', 'ATHLETE'], team.id).catch(() =>
+        findUserWithRolesOrThrow(ctx, [])
+      )
+    } else {
+      user = await findUserWithRolesOrThrow(ctx, [])
     }
 
     return { user, team }
   },
-} as const
+} satisfies Record<string, AuthFn>
 
-type UserRole = typeof UserRole
-type Context<K extends keyof UserRole> = Awaited<ReturnType<UserRole[K]>>
+type Auth = typeof Auth
+type Context<K extends keyof Auth> = Awaited<ReturnType<Auth[K]>>
 type Callback<P, A, C, I, R> = (obj: P, args: A, ctx: C, info: I) => MaybePromise<R>
 
-export function withAuth<Role extends keyof UserRole, P, A, C extends ApolloContext, I, R>(
-  role: Role,
-  callback: Callback<P, A, C & Context<Role>, I, R>
+export function withAuth<K extends keyof Auth, P, A, C extends ApolloContext, I, R>(
+  role: K,
+  callback: Callback<P, A, C & Context<K>, I, R>
 ) {
   const wrapper: Callback<P, A, C, I, R> = async (obj, args, ctx, info) => {
-    const user = await findUser(ctx).catch(() => {
+    try {
+      const context = (await Auth[role](ctx)) as Context<K>
+      return await callback(obj, args, { ...ctx, ...context }, info)
+    } catch (error) {
+      Logger.global.error('Error while auth route: %s', error)
       throw NotAuthorizedError
-    })
-
-    const currentUser = await UserRole.staff(ctx, user)
-      .then((e) => e.user)
-      .catch(() => user)
-
-    const context = (await UserRole[role](ctx, currentUser).catch(() => {
-      throw NotAuthorizedError
-    })) as Context<Role>
-
-    return await callback(obj, args, { ...ctx, ...context }, info)
+    }
   }
 
   return wrapper

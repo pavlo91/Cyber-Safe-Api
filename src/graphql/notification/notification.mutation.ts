@@ -15,7 +15,7 @@ export default createGraphQLModule({
           where: {
             unread: true,
             userId: user.id,
-            teamId: team?.id,
+            teamId: team?.id ?? null,
           },
           data: {
             unread: false,

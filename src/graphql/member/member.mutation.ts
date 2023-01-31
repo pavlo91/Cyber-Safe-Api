@@ -20,8 +20,12 @@ export default createGraphQLModule({
   `,
   resolvers: {
     Mutation: {
-      inviteMember: withAuth('admin', async (obj, { email, role }, { prisma, team }, info) => {
-        let user = await prisma.user.findUnique({
+      inviteMember: withAuth('coach', async (obj, { email, role }, { prisma, user, team }, info) => {
+        if (role === 'ADMIN' && !user.roles.find((e) => e.role === 'ADMIN')) {
+          throw new Error("You don't have the permission to invite admins")
+        }
+
+        let member = await prisma.user.findUnique({
           where: { email },
           include: {
             roles: {
@@ -32,8 +36,8 @@ export default createGraphQLModule({
           },
         })
 
-        if (!user) {
-          user = await prisma.user.create({
+        if (!member) {
+          member = await prisma.user.create({
             data: {
               email,
               name: '',
@@ -49,14 +53,14 @@ export default createGraphQLModule({
         }
 
         const statusToken = randomToken()
-        const teamRole = user.roles.find((e) => e.role === role && e.teamRole && e.teamRole.teamId === team.id)
+        const teamRole = member.roles.find((e) => e.role === role && e.teamRole && e.teamRole.teamId === team.id)
 
         if (!teamRole) {
           await prisma.userRole.create({
             data: {
               role,
               statusToken,
-              userId: user.id,
+              userId: member.id,
               teamRole: {
                 create: {
                   teamId: team.id,

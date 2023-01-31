@@ -17,7 +17,7 @@ export default createGraphQLModule({
         const where: Prisma.NotificationWhereInput = {
           unread: true,
           userId: user.id,
-          teamId: team?.id,
+          teamId: team?.id ?? null,
         }
 
         return paginated(page, (args) =>
@@ -32,7 +32,7 @@ export default createGraphQLModule({
           where: {
             unread: true,
             userId: user.id,
-            teamId: team?.id,
+            teamId: team?.id ?? null,
           },
         })
       }),
