@@ -408,6 +408,7 @@ export type TeamRole = UserRole & {
 
 export type UpdateProfileInput = {
   name?: InputMaybe<Scalars['String']>;
+  newEmail?: InputMaybe<Scalars['String']>;
 };
 
 export type UpdateTeamInput = {

@@ -1,12 +1,12 @@
-import { randAlphaNumeric } from '@ngneat/falso'
 import { Prisma, PrismaClient } from '@prisma/client'
 import { FastifyReply, FastifyRequest, HTTPMethods } from 'fastify'
 import { z } from 'zod'
 import { Config } from '../config'
+import { randomToken } from '../utils/crypto'
 import { Route } from './index'
 
 const schema = z.object({
-  uuid: z.string(),
+  token: z.string(),
 })
 
 export class ConfirmRoute implements Route {
@@ -16,15 +16,21 @@ export class ConfirmRoute implements Route {
     const params = schema.parse(req.params)
 
     const user = await this.prisma.user.findUniqueOrThrow({
-      where: { uuid: params.uuid },
+      where: { newEmailToken: params.token },
     })
 
     const data: Prisma.UserUpdateInput = {
+      newEmailToken: null,
       emailConfirmed: true,
     }
 
     if (!user.password) {
-      data.passwordToken = randAlphaNumeric({ length: 16 }).join('')
+      data.passwordToken = randomToken()
+    }
+
+    if (!!user.newEmail) {
+      data.newEmail = null
+      data.email = user.newEmail
     }
 
     await this.prisma.user.update({

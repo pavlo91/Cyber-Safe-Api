@@ -1,10 +1,9 @@
-import { randAlphaNumeric } from '@ngneat/falso'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { Config } from '../../config'
 import { UserNotFoundError } from '../../helpers/errors'
 import { Postmark } from '../../libs/postmark'
-import { comparePassword, createJwt } from '../../utils/crypto'
+import { comparePassword, createJwt, randomToken } from '../../utils/crypto'
 import { UserInclude } from '../user/user.include'
 
 export default createGraphQLModule({
@@ -80,7 +79,7 @@ export default createGraphQLModule({
         })
       },
       async requestResetPassword(obj, { email }, { prisma }, info) {
-        const passwordToken = randAlphaNumeric({ length: 16 }).join('')
+        const passwordToken = randomToken()
 
         await prisma.user.update({
           where: { email },

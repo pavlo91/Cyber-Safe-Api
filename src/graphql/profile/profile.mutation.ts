@@ -6,6 +6,7 @@ import { comparePassword } from '../../utils/crypto'
 export default createGraphQLModule({
   typeDefs: gql`
     input UpdateProfileInput {
+      newEmail: String
       name: String
     }
 
@@ -20,6 +21,7 @@ export default createGraphQLModule({
         await prisma.user.update({
           where: { id: user.id },
           data: {
+            newEmail: input.newEmail ?? undefined,
             name: input.name ?? undefined,
           },
         })

@@ -20,7 +20,7 @@ export class RouteManager {
   constructor(private fastify: FastifyInstance, prisma: PrismaClient) {
     this.routes = [
       new LandingRoute('/', 'GET'),
-      new ConfirmRoute('/api/confirm/:uuid', 'GET', prisma),
+      new ConfirmRoute('/api/confirm/:token', 'GET', prisma),
       new RespondRoute('/api/respond/:token/:response', 'GET', prisma),
     ]
 

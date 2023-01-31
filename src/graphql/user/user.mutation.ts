@@ -1,9 +1,9 @@
-import { randAlphaNumeric } from '@ngneat/falso'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { Config } from '../../config'
 import { withAuth } from '../../helpers/auth'
 import { Postmark } from '../../libs/postmark'
+import { randomToken } from '../../utils/crypto'
 
 export default createGraphQLModule({
   typeDefs: gql`
@@ -24,7 +24,7 @@ export default createGraphQLModule({
           },
         })
 
-        const statusToken = randAlphaNumeric({ length: 16 }).join('')
+        const statusToken = randomToken()
         const staffRole = user.roles.find((e) => e.role === 'STAFF')
 
         if (!staffRole) {
