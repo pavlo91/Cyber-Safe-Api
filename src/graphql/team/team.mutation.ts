@@ -1,16 +1,13 @@
+import { Prisma } from '@prisma/client'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { withAuth } from '../../helpers/auth'
 
 export default createGraphQLModule({
   typeDefs: gql`
-    input UpdateTeamInput {
-      name: String
-    }
-
     extend type Mutation {
       createTeam(input: TeamCreate!): ID
-      updateTeam(input: UpdateTeamInput!): ID
+      updateTeam(input: TeamUpdate!): ID
       leaveTeam: ID
     }
   `,
@@ -22,10 +19,24 @@ export default createGraphQLModule({
         })
       }),
       updateTeam: withAuth('coach', async (obj, { input }, { prisma, team }, info) => {
+        let address: Prisma.AddressUpdateOneWithoutTeamNestedInput | undefined
+
+        if (input.address === null) {
+          address = { delete: true }
+        } else if (input.address) {
+          address = {
+            upsert: {
+              create: input.address,
+              update: input.address,
+            },
+          }
+        }
+
         await prisma.team.update({
           where: { id: team.id },
           data: {
             name: input.name ?? undefined,
+            address,
           },
         })
       }),

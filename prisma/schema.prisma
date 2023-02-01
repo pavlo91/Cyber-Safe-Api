@@ -20,6 +20,7 @@ model User {
   password       String?
   passwordToken  String?          @unique
   name           String
+  avatar         Image?
   roles          UserRole[]
   parentRoles    ParentUserRole[]
   notifications  Notification[]
@@ -31,6 +32,8 @@ model Team {
   id            String         @id @default(cuid())
   createdAt     DateTime       @default(now())
   name          String
+  address       Address?
+  logo          Image?
   roles         TeamUserRole[]
   notifications Notification[]
 }
@@ -101,6 +104,32 @@ model Notification {
   team      Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@index([unread])
+  @@index([userId])
+  @@index([teamId])
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  street    String
+  city      String
+  state     String
+  zip       String
+  teamId    String?  @unique
+  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId])
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  url       String
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId    String?  @unique
+  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([teamId])
 }

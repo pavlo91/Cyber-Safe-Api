@@ -1,4 +1,4 @@
-import { rand, randAmericanFootballTeam } from '@ngneat/falso'
+import { rand, randAmericanFootballTeam, randCity, randState, randStreetAddress, randZipCode } from '@ngneat/falso'
 import { PrismaClient } from '@prisma/client'
 import { Seed } from '.'
 
@@ -31,6 +31,14 @@ export class AuthSeed implements Seed {
       const team = await prisma.team.create({
         data: {
           name: randAmericanFootballTeam(),
+          address: {
+            create: {
+              street: randStreetAddress(),
+              city: randCity(),
+              state: randState(),
+              zip: randZipCode(),
+            },
+          },
         },
       })
 
