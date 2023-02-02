@@ -1,9 +1,7 @@
-import { randAvatar } from '@ngneat/falso'
 import { Prisma } from '@prisma/client'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { withAuth } from '../../helpers/auth'
-import { Image } from '../../types/graphql'
 import { UserInclude } from './user.include'
 
 export default createGraphQLModule({
@@ -38,15 +36,6 @@ export default createGraphQLModule({
   `,
   resolvers: {
     User: {
-      avatar(obj: Prisma.UserGetPayload<UserInclude>): Image {
-        if (obj.avatar) {
-          return obj.avatar
-        }
-
-        return {
-          url: randAvatar(),
-        }
-      },
       parentRole: withAuth('parent', (obj: Prisma.UserGetPayload<UserInclude>, args, { user }, info) => {
         const role = obj.parentRoles.find((e) => e.userRole.userId === user.id)
         return role?.userRole
