@@ -1,25 +1,25 @@
 import { Prisma, Role } from '@prisma/client'
-import { TeamInclude } from '../graphql/team/team.include'
+import { SchoolInclude } from '../graphql/school/school.include'
 import { UserInclude } from '../graphql/user/user.include'
 import { ApolloContext } from '../types/apollo'
 import { parseJwt } from '../utils/crypto'
 import { Logger } from '../utils/logger'
 import { NotAuthorizedError } from './errors'
 
-function findTeamOrThrow({ req, prisma }: ApolloContext) {
-  const id = req.headers['x-team-id']
+function findSchoolOrThrow({ req, prisma }: ApolloContext) {
+  const id = req.headers['x-school-id']
 
   if (typeof id !== 'string') {
-    throw new Error('No x-team-id found in headers')
+    throw new Error('No x-school-id found in headers')
   }
 
-  return prisma.team.findUniqueOrThrow({
+  return prisma.school.findUniqueOrThrow({
     where: { id },
-    include: TeamInclude,
+    include: SchoolInclude,
   })
 }
 
-function findUserWithRolesOrThrow({ req, prisma }: ApolloContext, roles: Role[], teamId?: string) {
+function findUserWithRolesOrThrow({ req, prisma }: ApolloContext, roles: Role[], schoolId?: string) {
   const token = req.headers['x-token']
 
   if (typeof token !== 'string') {
@@ -33,8 +33,8 @@ function findUserWithRolesOrThrow({ req, prisma }: ApolloContext, roles: Role[],
   roles.forEach((role) => {
     const where: Prisma.UserRoleWhereInput = { role }
 
-    if (!!teamId) {
-      where.teamRole = { teamId }
+    if (!!schoolId) {
+      where.schoolRole = { schoolId }
     }
 
     OR.push(where)
@@ -80,19 +80,19 @@ const Auth = {
     return { user }
   },
   admin: async (ctx) => {
-    const team = await findTeamOrThrow(ctx)
-    const user = await findUserWithRolesOrThrow(ctx, ['ADMIN'], team.id)
-    return { user, team }
+    const school = await findSchoolOrThrow(ctx)
+    const user = await findUserWithRolesOrThrow(ctx, ['ADMIN'], school.id)
+    return { user, school }
   },
   coach: async (ctx) => {
-    const team = await findTeamOrThrow(ctx)
-    const user = await findUserWithRolesOrThrow(ctx, ['ADMIN', 'COACH'], team.id)
-    return { user, team }
+    const school = await findSchoolOrThrow(ctx)
+    const user = await findUserWithRolesOrThrow(ctx, ['ADMIN', 'COACH'], school.id)
+    return { user, school }
   },
   athlete: async (ctx) => {
-    const team = await findTeamOrThrow(ctx)
-    const user = await findUserWithRolesOrThrow(ctx, ['ATHLETE'], team.id)
-    return { user, team }
+    const school = await findSchoolOrThrow(ctx)
+    const user = await findUserWithRolesOrThrow(ctx, ['ATHLETE'], school.id)
+    return { user, school }
   },
   parent: async (ctx) => {
     const user = await findUserWithRolesOrThrow(ctx, ['PARENT'])
@@ -110,23 +110,23 @@ const Auth = {
     return { user, checkChild }
   },
   member: async (ctx) => {
-    const team = await findTeamOrThrow(ctx)
-    const user = await findUserWithRolesOrThrow(ctx, ['ADMIN', 'COACH', 'ATHLETE'], team.id)
-    return { user, team }
+    const school = await findSchoolOrThrow(ctx)
+    const user = await findUserWithRolesOrThrow(ctx, ['ADMIN', 'COACH', 'ATHLETE'], school.id)
+    return { user, school }
   },
   any: async (ctx) => {
-    const team = await findTeamOrThrow(ctx).catch(() => undefined)
+    const school = await findSchoolOrThrow(ctx).catch(() => undefined)
     let user
 
-    if (team) {
-      user = await findUserWithRolesOrThrow(ctx, ['ADMIN', 'COACH', 'ATHLETE'], team.id).catch(() =>
+    if (school) {
+      user = await findUserWithRolesOrThrow(ctx, ['ADMIN', 'COACH', 'ATHLETE'], school.id).catch(() =>
         findUserWithRolesOrThrow(ctx, [])
       )
     } else {
       user = await findUserWithRolesOrThrow(ctx, [])
     }
 
-    return { user, team }
+    return { user, school }
   },
 } satisfies Record<string, AuthFn>
 

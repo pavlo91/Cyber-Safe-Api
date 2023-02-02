@@ -110,11 +110,10 @@ export type Mutation = {
   __typename?: 'Mutation';
   activate?: Maybe<Scalars['ID']>;
   contact?: Maybe<Scalars['ID']>;
-  createTeam?: Maybe<Scalars['ID']>;
+  createSchool?: Maybe<Scalars['ID']>;
   inviteMember?: Maybe<Scalars['ID']>;
   inviteParent?: Maybe<Scalars['ID']>;
   inviteStaff?: Maybe<Scalars['ID']>;
-  leaveTeam?: Maybe<Scalars['ID']>;
   login: Jwt;
   readAllNotifications?: Maybe<Scalars['ID']>;
   register?: Maybe<Scalars['ID']>;
@@ -125,7 +124,7 @@ export type Mutation = {
   resetPassword?: Maybe<Scalars['ID']>;
   updatePassword?: Maybe<Scalars['ID']>;
   updateProfile?: Maybe<Scalars['ID']>;
-  updateTeam?: Maybe<Scalars['ID']>;
+  updateSchool?: Maybe<Scalars['ID']>;
 };
 
 
@@ -141,8 +140,8 @@ export type MutationContactArgs = {
 };
 
 
-export type MutationCreateTeamArgs = {
-  input: TeamCreate;
+export type MutationCreateSchoolArgs = {
+  input: SchoolCreate;
 };
 
 
@@ -173,7 +172,7 @@ export type MutationLoginArgs = {
 export type MutationRegisterArgs = {
   email: Scalars['String'];
   password: Scalars['String'];
-  team: TeamCreate;
+  school: SchoolCreate;
   user: UserCreate;
 };
 
@@ -216,8 +215,8 @@ export type MutationUpdateProfileArgs = {
 };
 
 
-export type MutationUpdateTeamArgs = {
-  input: TeamUpdate;
+export type MutationUpdateSchoolArgs = {
+  input: SchoolUpdate;
 };
 
 export type Notification = {
@@ -251,9 +250,9 @@ export type PaginatedNotification = {
   page: PageInfo;
 };
 
-export type PaginatedTeam = {
-  __typename?: 'PaginatedTeam';
-  nodes: Array<Team>;
+export type PaginatedSchool = {
+  __typename?: 'PaginatedSchool';
+  nodes: Array<School>;
   page: PageInfo;
 };
 
@@ -281,15 +280,15 @@ export type Query = {
   notificationsCount: Scalars['Int'];
   parents: PaginatedUser;
   profile: User;
-  statsOfAcceptedMembersInTeam: StatsByDay;
+  school: School;
+  schools: PaginatedSchool;
+  statsOfAcceptedMembersInSchool: StatsByDay;
   statsOfCreatedMembers: StatsByDay;
-  statsOfCreatedMembersInTeam: StatsByDay;
+  statsOfCreatedMembersInSchool: StatsByDay;
   statsOfCreatedParents: StatsByDay;
-  statsOfCreatedTeams: StatsByDay;
+  statsOfCreatedSchools: StatsByDay;
   statsOfCreatedUsers: StatsByDay;
-  statsOfInvitedMembersInTeam: StatsByDay;
-  team: Team;
-  teams: PaginatedTeam;
+  statsOfInvitedMembersInSchool: StatsByDay;
   user: User;
   users: PaginatedUser;
 };
@@ -327,7 +326,19 @@ export type QueryParentsArgs = {
 };
 
 
-export type QueryStatsOfAcceptedMembersInTeamArgs = {
+export type QuerySchoolArgs = {
+  id: Scalars['ID'];
+};
+
+
+export type QuerySchoolsArgs = {
+  order?: InputMaybe<SchoolOrder>;
+  page?: InputMaybe<Page>;
+  search?: InputMaybe<Scalars['String']>;
+};
+
+
+export type QueryStatsOfAcceptedMembersInSchoolArgs = {
   days?: InputMaybe<Scalars['Int']>;
 };
 
@@ -337,7 +348,7 @@ export type QueryStatsOfCreatedMembersArgs = {
 };
 
 
-export type QueryStatsOfCreatedMembersInTeamArgs = {
+export type QueryStatsOfCreatedMembersInSchoolArgs = {
   days?: InputMaybe<Scalars['Int']>;
 };
 
@@ -347,7 +358,7 @@ export type QueryStatsOfCreatedParentsArgs = {
 };
 
 
-export type QueryStatsOfCreatedTeamsArgs = {
+export type QueryStatsOfCreatedSchoolsArgs = {
   days?: InputMaybe<Scalars['Int']>;
 };
 
@@ -357,20 +368,8 @@ export type QueryStatsOfCreatedUsersArgs = {
 };
 
 
-export type QueryStatsOfInvitedMembersInTeamArgs = {
+export type QueryStatsOfInvitedMembersInSchoolArgs = {
   days?: InputMaybe<Scalars['Int']>;
-};
-
-
-export type QueryTeamArgs = {
-  id: Scalars['ID'];
-};
-
-
-export type QueryTeamsArgs = {
-  order?: InputMaybe<TeamOrder>;
-  page?: InputMaybe<Page>;
-  search?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -401,6 +400,39 @@ export const RoleStatus = {
 } as const;
 
 export type RoleStatus = typeof RoleStatus[keyof typeof RoleStatus];
+export type School = {
+  __typename?: 'School';
+  address?: Maybe<Address>;
+  createdAt: Scalars['DateTime'];
+  id: Scalars['ID'];
+  logo?: Maybe<Image>;
+  memberCount: Scalars['Int'];
+  name: Scalars['String'];
+};
+
+export type SchoolCreate = {
+  name: Scalars['String'];
+};
+
+export type SchoolOrder = {
+  createdAt?: InputMaybe<OrderDirection>;
+  memberCount?: InputMaybe<OrderDirection>;
+  name?: InputMaybe<OrderDirection>;
+};
+
+export type SchoolRole = UserRole & {
+  __typename?: 'SchoolRole';
+  id: Scalars['ID'];
+  role: Role;
+  school: School;
+  status: RoleStatus;
+};
+
+export type SchoolUpdate = {
+  address?: InputMaybe<AddressUpdate>;
+  name?: InputMaybe<Scalars['String']>;
+};
+
 export type StatByDay = {
   __typename?: 'StatByDay';
   day: Scalars['DateTime'];
@@ -421,39 +453,6 @@ export type StringFilter = {
 };
 
 export { StringFilterMode };
-
-export type Team = {
-  __typename?: 'Team';
-  address?: Maybe<Address>;
-  createdAt: Scalars['DateTime'];
-  id: Scalars['ID'];
-  logo?: Maybe<Image>;
-  memberCount: Scalars['Int'];
-  name: Scalars['String'];
-};
-
-export type TeamCreate = {
-  name: Scalars['String'];
-};
-
-export type TeamOrder = {
-  createdAt?: InputMaybe<OrderDirection>;
-  memberCount?: InputMaybe<OrderDirection>;
-  name?: InputMaybe<OrderDirection>;
-};
-
-export type TeamRole = UserRole & {
-  __typename?: 'TeamRole';
-  id: Scalars['ID'];
-  role: Role;
-  status: RoleStatus;
-  team: Team;
-};
-
-export type TeamUpdate = {
-  address?: InputMaybe<AddressUpdate>;
-  name?: InputMaybe<Scalars['String']>;
-};
 
 export type UpdateProfileInput = {
   name?: InputMaybe<Scalars['String']>;
@@ -576,27 +575,27 @@ export type ResolversTypes = {
   Page: Page;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   PaginatedNotification: ResolverTypeWrapper<PaginatedNotification>;
-  PaginatedTeam: ResolverTypeWrapper<PaginatedTeam>;
+  PaginatedSchool: ResolverTypeWrapper<PaginatedSchool>;
   PaginatedUser: ResolverTypeWrapper<PaginatedUser>;
   ParentRole: ResolverTypeWrapper<ParentRole>;
   Query: ResolverTypeWrapper<{}>;
   Role: Role;
   RoleStatus: RoleStatus;
+  School: ResolverTypeWrapper<School>;
+  SchoolCreate: SchoolCreate;
+  SchoolOrder: SchoolOrder;
+  SchoolRole: ResolverTypeWrapper<SchoolRole>;
+  SchoolUpdate: SchoolUpdate;
   StatByDay: ResolverTypeWrapper<StatByDay>;
   StatsByDay: ResolverTypeWrapper<StatsByDay>;
   String: ResolverTypeWrapper<Scalars['String']>;
   StringFilter: StringFilter;
   StringFilterMode: Prisma.QueryMode;
-  Team: ResolverTypeWrapper<Team>;
-  TeamCreate: TeamCreate;
-  TeamOrder: TeamOrder;
-  TeamRole: ResolverTypeWrapper<TeamRole>;
-  TeamUpdate: TeamUpdate;
   UpdateProfileInput: UpdateProfileInput;
   User: ResolverTypeWrapper<User>;
   UserCreate: UserCreate;
   UserOrder: UserOrder;
-  UserRole: ResolversTypes['AnyRole'] | ResolversTypes['ParentRole'] | ResolversTypes['TeamRole'];
+  UserRole: ResolversTypes['AnyRole'] | ResolversTypes['ParentRole'] | ResolversTypes['SchoolRole'];
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -623,24 +622,24 @@ export type ResolversParentTypes = {
   Page: Page;
   PageInfo: PageInfo;
   PaginatedNotification: PaginatedNotification;
-  PaginatedTeam: PaginatedTeam;
+  PaginatedSchool: PaginatedSchool;
   PaginatedUser: PaginatedUser;
   ParentRole: ParentRole;
   Query: {};
+  School: School;
+  SchoolCreate: SchoolCreate;
+  SchoolOrder: SchoolOrder;
+  SchoolRole: SchoolRole;
+  SchoolUpdate: SchoolUpdate;
   StatByDay: StatByDay;
   StatsByDay: StatsByDay;
   String: Scalars['String'];
   StringFilter: StringFilter;
-  Team: Team;
-  TeamCreate: TeamCreate;
-  TeamOrder: TeamOrder;
-  TeamRole: TeamRole;
-  TeamUpdate: TeamUpdate;
   UpdateProfileInput: UpdateProfileInput;
   User: User;
   UserCreate: UserCreate;
   UserOrder: UserOrder;
-  UserRole: ResolversParentTypes['AnyRole'] | ResolversParentTypes['ParentRole'] | ResolversParentTypes['TeamRole'];
+  UserRole: ResolversParentTypes['AnyRole'] | ResolversParentTypes['ParentRole'] | ResolversParentTypes['SchoolRole'];
 };
 
 export type AddressResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Address'] = ResolversParentTypes['Address']> = {
@@ -677,14 +676,13 @@ export type JwtResolvers<ContextType = ApolloContext, ParentType extends Resolve
 export type MutationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   activate?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationActivateArgs, 'password' | 'passwordToken' | 'user'>>;
   contact?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationContactArgs, 'input'>>;
-  createTeam?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationCreateTeamArgs, 'input'>>;
+  createSchool?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationCreateSchoolArgs, 'input'>>;
   inviteMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteMemberArgs, 'email' | 'role'>>;
   inviteParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteParentArgs, 'childId' | 'email'>>;
   inviteStaff?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteStaffArgs, 'email'>>;
-  leaveTeam?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   login?: Resolver<ResolversTypes['JWT'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
   readAllNotifications?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
-  register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'password' | 'team' | 'user'>>;
+  register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'password' | 'school' | 'user'>>;
   removeMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveMemberArgs, 'id'>>;
   removeParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveParentArgs, 'childId' | 'id'>>;
   removeRole?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveRoleArgs, 'id'>>;
@@ -692,7 +690,7 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   resetPassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'passwordToken'>>;
   updatePassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdatePasswordArgs, 'newPassword' | 'oldPassword'>>;
   updateProfile?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
-  updateTeam?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateTeamArgs, 'input'>>;
+  updateSchool?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateSchoolArgs, 'input'>>;
 };
 
 export type NotificationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = {
@@ -725,8 +723,8 @@ export type PaginatedNotificationResolvers<ContextType = ApolloContext, ParentTy
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PaginatedTeamResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['PaginatedTeam'] = ResolversParentTypes['PaginatedTeam']> = {
-  nodes?: Resolver<Array<ResolversTypes['Team']>, ParentType, ContextType>;
+export type PaginatedSchoolResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['PaginatedSchool'] = ResolversParentTypes['PaginatedSchool']> = {
+  nodes?: Resolver<Array<ResolversTypes['School']>, ParentType, ContextType>;
   page?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -754,17 +752,35 @@ export type QueryResolvers<ContextType = ApolloContext, ParentType extends Resol
   notificationsCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   parents?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, RequireFields<QueryParentsArgs, 'childId'>>;
   profile?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  statsOfAcceptedMembersInTeam?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfAcceptedMembersInTeamArgs, 'days'>>;
+  school?: Resolver<ResolversTypes['School'], ParentType, ContextType, RequireFields<QuerySchoolArgs, 'id'>>;
+  schools?: Resolver<ResolversTypes['PaginatedSchool'], ParentType, ContextType, Partial<QuerySchoolsArgs>>;
+  statsOfAcceptedMembersInSchool?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfAcceptedMembersInSchoolArgs, 'days'>>;
   statsOfCreatedMembers?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedMembersArgs, 'days'>>;
-  statsOfCreatedMembersInTeam?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedMembersInTeamArgs, 'days'>>;
+  statsOfCreatedMembersInSchool?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedMembersInSchoolArgs, 'days'>>;
   statsOfCreatedParents?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedParentsArgs, 'days'>>;
-  statsOfCreatedTeams?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedTeamsArgs, 'days'>>;
+  statsOfCreatedSchools?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedSchoolsArgs, 'days'>>;
   statsOfCreatedUsers?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedUsersArgs, 'days'>>;
-  statsOfInvitedMembersInTeam?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfInvitedMembersInTeamArgs, 'days'>>;
-  team?: Resolver<ResolversTypes['Team'], ParentType, ContextType, RequireFields<QueryTeamArgs, 'id'>>;
-  teams?: Resolver<ResolversTypes['PaginatedTeam'], ParentType, ContextType, Partial<QueryTeamsArgs>>;
+  statsOfInvitedMembersInSchool?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfInvitedMembersInSchoolArgs, 'days'>>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryUsersArgs>>;
+};
+
+export type SchoolResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['School'] = ResolversParentTypes['School']> = {
+  address?: Resolver<Maybe<ResolversTypes['Address']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  logo?: Resolver<Maybe<ResolversTypes['Image']>, ParentType, ContextType>;
+  memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type SchoolRoleResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['SchoolRole'] = ResolversParentTypes['SchoolRole']> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  role?: Resolver<ResolversTypes['Role'], ParentType, ContextType>;
+  school?: Resolver<ResolversTypes['School'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['RoleStatus'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type StatByDayResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['StatByDay'] = ResolversParentTypes['StatByDay']> = {
@@ -781,24 +797,6 @@ export type StatsByDayResolvers<ContextType = ApolloContext, ParentType extends 
 
 export type StringFilterModeResolvers = EnumResolverSignature<{ DEFAULT?: any, INSENSITIVE?: any }, ResolversTypes['StringFilterMode']>;
 
-export type TeamResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
-  address?: Resolver<Maybe<ResolversTypes['Address']>, ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  logo?: Resolver<Maybe<ResolversTypes['Image']>, ParentType, ContextType>;
-  memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type TeamRoleResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['TeamRole'] = ResolversParentTypes['TeamRole']> = {
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  role?: Resolver<ResolversTypes['Role'], ParentType, ContextType>;
-  status?: Resolver<ResolversTypes['RoleStatus'], ParentType, ContextType>;
-  team?: Resolver<ResolversTypes['Team'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type UserResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   avatar?: Resolver<Maybe<ResolversTypes['Image']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -813,7 +811,7 @@ export type UserResolvers<ContextType = ApolloContext, ParentType extends Resolv
 };
 
 export type UserRoleResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['UserRole'] = ResolversParentTypes['UserRole']> = {
-  __resolveType: TypeResolveFn<'AnyRole' | 'ParentRole' | 'TeamRole', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'AnyRole' | 'ParentRole' | 'SchoolRole', ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   role?: Resolver<ResolversTypes['Role'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['RoleStatus'], ParentType, ContextType>;
@@ -831,15 +829,15 @@ export type Resolvers<ContextType = ApolloContext> = {
   OrderDirection?: OrderDirectionResolvers;
   PageInfo?: PageInfoResolvers<ContextType>;
   PaginatedNotification?: PaginatedNotificationResolvers<ContextType>;
-  PaginatedTeam?: PaginatedTeamResolvers<ContextType>;
+  PaginatedSchool?: PaginatedSchoolResolvers<ContextType>;
   PaginatedUser?: PaginatedUserResolvers<ContextType>;
   ParentRole?: ParentRoleResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  School?: SchoolResolvers<ContextType>;
+  SchoolRole?: SchoolRoleResolvers<ContextType>;
   StatByDay?: StatByDayResolvers<ContextType>;
   StatsByDay?: StatsByDayResolvers<ContextType>;
   StringFilterMode?: StringFilterModeResolvers;
-  Team?: TeamResolvers<ContextType>;
-  TeamRole?: TeamRoleResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   UserRole?: UserRoleResolvers<ContextType>;
 };

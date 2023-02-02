@@ -13,11 +13,11 @@ export default createGraphQLModule({
   `,
   resolvers: {
     Query: {
-      notifications: withAuth('any', (obj, { page }, { prisma, user, team }, info) => {
+      notifications: withAuth('any', (obj, { page }, { prisma, user, school }, info) => {
         const where: Prisma.NotificationWhereInput = {
           unread: true,
           userId: user.id,
-          teamId: team?.id ?? null,
+          schoolId: school?.id ?? null,
         }
 
         return paginated(page, (args) =>
@@ -27,12 +27,12 @@ export default createGraphQLModule({
           ])
         )
       }),
-      notificationsCount: withAuth('any', (obj, args, { prisma, user, team }, info) => {
+      notificationsCount: withAuth('any', (obj, args, { prisma, user, school }, info) => {
         return prisma.notification.count({
           where: {
             unread: true,
             userId: user.id,
-            teamId: team?.id ?? null,
+            schoolId: school?.id ?? null,
           },
         })
       }),

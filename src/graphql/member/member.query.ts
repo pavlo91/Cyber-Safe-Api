@@ -15,10 +15,10 @@ export default createGraphQLModule({
   `,
   resolvers: {
     Query: {
-      members: withAuth('member', (obj, { page, order, search }, { prisma, team }, info) => {
+      members: withAuth('member', (obj, { page, order, search }, { prisma, school }, info) => {
         const where: Prisma.UserWhereInput = {
           ...parseUserSearch(search),
-          roles: { some: { teamRole: { teamId: team.id } } },
+          roles: { some: { schoolRole: { schoolId: school.id } } },
         }
 
         return paginated(page, (args) =>
@@ -35,8 +35,8 @@ export default createGraphQLModule({
                     role: {
                       in: ['ADMIN', 'COACH', 'ATHLETE'],
                     },
-                    teamRole: {
-                      teamId: team.id,
+                    schoolRole: {
+                      schoolId: school.id,
                     },
                   },
                 },
@@ -46,11 +46,11 @@ export default createGraphQLModule({
           ])
         )
       }),
-      member: withAuth('member', (obj, { id }, { prisma, team }, info) => {
+      member: withAuth('member', (obj, { id }, { prisma, school }, info) => {
         return prisma.user.findFirstOrThrow({
           where: {
             id,
-            roles: { some: { teamRole: { teamId: team.id } } },
+            roles: { some: { schoolRole: { schoolId: school.id } } },
           },
           include: {
             ...UserInclude,
@@ -60,8 +60,8 @@ export default createGraphQLModule({
                 role: {
                   in: ['ADMIN', 'COACH', 'ATHLETE'],
                 },
-                teamRole: {
-                  teamId: team.id,
+                schoolRole: {
+                  schoolId: school.id,
                 },
               },
             },

@@ -10,17 +10,17 @@ import {
 import { PrismaClient } from '@prisma/client'
 import { Seed } from '.'
 
-export class TeamsSeed implements Seed {
+export class SchoolsSeed implements Seed {
   constructor(public name: string, private prisma: PrismaClient) {}
 
   async canExecute() {
-    return (await this.prisma.team.count()) <= 1
+    return (await this.prisma.school.count()) <= 1
   }
 
   async execute() {
     await this.prisma.$transaction(async (prisma) => {
       for (let i = 0; i < 5; i++) {
-        const team = await prisma.team.create({
+        const school = await prisma.school.create({
           data: {
             name: randAmericanFootballTeam(),
             address: {
@@ -45,9 +45,9 @@ export class TeamsSeed implements Seed {
                 create: {
                   role: i === 0 ? 'ADMIN' : i === 1 ? 'COACH' : 'ATHLETE',
                   status: 'ACCEPTED',
-                  teamRole: {
+                  schoolRole: {
                     create: {
-                      teamId: team.id,
+                      schoolId: school.id,
                     },
                   },
                 },

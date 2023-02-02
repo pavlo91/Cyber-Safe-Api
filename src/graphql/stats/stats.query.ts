@@ -42,13 +42,13 @@ export default createGraphQLModule({
 
     extend type Query {
       statsOfCreatedUsers(days: Int = 15): StatsByDay!
-      statsOfCreatedTeams(days: Int = 15): StatsByDay!
+      statsOfCreatedSchools(days: Int = 15): StatsByDay!
       statsOfCreatedMembers(days: Int = 15): StatsByDay!
       statsOfCreatedParents(days: Int = 15): StatsByDay!
       # Admin + Coach
-      statsOfCreatedMembersInTeam(days: Int = 15): StatsByDay!
-      statsOfInvitedMembersInTeam(days: Int = 15): StatsByDay!
-      statsOfAcceptedMembersInTeam(days: Int = 15): StatsByDay!
+      statsOfCreatedMembersInSchool(days: Int = 15): StatsByDay!
+      statsOfInvitedMembersInSchool(days: Int = 15): StatsByDay!
+      statsOfAcceptedMembersInSchool(days: Int = 15): StatsByDay!
     }
   `,
   resolvers: {
@@ -71,19 +71,19 @@ export default createGraphQLModule({
           ])
         )
       }),
-      statsOfCreatedTeams: withAuth('staff', (obj, { days }, { prisma }, info) => {
+      statsOfCreatedSchools: withAuth('staff', (obj, { days }, { prisma }, info) => {
         return getStatsByDay(days, (startDate) =>
           prisma.$transaction([
             prisma.$queryRaw`
               SELECT
                 TO_CHAR("createdAt", 'YYYY-MM-DD') AS day,
                 CAST(COUNT(*) AS INTEGER) AS value
-              FROM "Team"
+              FROM "School"
               WHERE "createdAt" >= ${startDate}
               GROUP BY day
               ORDER BY day DESC
             `,
-            prisma.team.count(),
+            prisma.school.count(),
           ])
         )
       }),
@@ -92,15 +92,15 @@ export default createGraphQLModule({
           prisma.$transaction([
             prisma.$queryRaw`
               SELECT
-                TO_CHAR("TeamUserRole"."createdAt", 'YYYY-MM-DD') AS day,
+                TO_CHAR("SchoolUserRole"."createdAt", 'YYYY-MM-DD') AS day,
                 CAST(COUNT(*) AS INTEGER) AS value
-              FROM "TeamUserRole"
-              LEFT JOIN "UserRole" ON "TeamUserRole"."userRoleId" = "UserRole"."id"
-              WHERE "UserRole"."status" = 'ACCEPTED' AND "TeamUserRole"."createdAt" >= ${startDate}
+              FROM "SchoolUserRole"
+              LEFT JOIN "UserRole" ON "SchoolUserRole"."userRoleId" = "UserRole"."id"
+              WHERE "UserRole"."status" = 'ACCEPTED' AND "SchoolUserRole"."createdAt" >= ${startDate}
               GROUP BY day
               ORDER BY day DESC
             `,
-            prisma.teamUserRole.count({
+            prisma.schoolUserRole.count({
               where: { userRole: { status: 'ACCEPTED' } },
             }),
           ])
@@ -125,58 +125,58 @@ export default createGraphQLModule({
           ])
         )
       }),
-      statsOfCreatedMembersInTeam: withAuth('coach', (obj, { days }, { prisma, team }, info) => {
+      statsOfCreatedMembersInSchool: withAuth('coach', (obj, { days }, { prisma, school }, info) => {
         return getStatsByDay(days, (startDate) =>
           prisma.$transaction([
             prisma.$queryRaw`
               SELECT
                 TO_CHAR("createdAt", 'YYYY-MM-DD') AS day,
                 CAST(COUNT(*) AS INTEGER) AS value
-              FROM "TeamUserRole"
-              WHERE "teamId" = ${team.id} AND "createdAt" >= ${startDate}
+              FROM "SchoolUserRole"
+              WHERE "schoolId" = ${school.id} AND "createdAt" >= ${startDate}
               GROUP BY day
               ORDER BY day DESC
             `,
-            prisma.teamUserRole.count({
-              where: { teamId: team.id },
+            prisma.schoolUserRole.count({
+              where: { schoolId: school.id },
             }),
           ])
         )
       }),
-      statsOfInvitedMembersInTeam: withAuth('coach', (obj, { days }, { prisma, team }, info) => {
+      statsOfInvitedMembersInSchool: withAuth('coach', (obj, { days }, { prisma, school }, info) => {
         return getStatsByDay(days, (startDate) =>
           prisma.$transaction([
             prisma.$queryRaw`
               SELECT
-                TO_CHAR("TeamUserRole"."createdAt", 'YYYY-MM-DD') AS day,
+                TO_CHAR("SchoolUserRole"."createdAt", 'YYYY-MM-DD') AS day,
                 CAST(COUNT(*) AS INTEGER) AS value
-              FROM "TeamUserRole"
-              LEFT JOIN "UserRole" ON "TeamUserRole"."userRoleId" = "UserRole"."id"
-              WHERE "TeamUserRole"."teamId" = ${team.id} AND "UserRole"."status" = 'PENDING' AND "TeamUserRole"."createdAt" >= ${startDate}
+              FROM "SchoolUserRole"
+              LEFT JOIN "UserRole" ON "SchoolUserRole"."userRoleId" = "UserRole"."id"
+              WHERE "SchoolUserRole"."schoolId" = ${school.id} AND "UserRole"."status" = 'PENDING' AND "SchoolUserRole"."createdAt" >= ${startDate}
               GROUP BY day
               ORDER BY day DESC
             `,
-            prisma.teamUserRole.count({
-              where: { teamId: team.id, userRole: { status: 'PENDING' } },
+            prisma.schoolUserRole.count({
+              where: { schoolId: school.id, userRole: { status: 'PENDING' } },
             }),
           ])
         )
       }),
-      statsOfAcceptedMembersInTeam: withAuth('coach', (obj, { days }, { prisma, team }, info) => {
+      statsOfAcceptedMembersInSchool: withAuth('coach', (obj, { days }, { prisma, school }, info) => {
         return getStatsByDay(days, (startDate) =>
           prisma.$transaction([
             prisma.$queryRaw`
               SELECT
-                TO_CHAR("TeamUserRole"."createdAt", 'YYYY-MM-DD') AS day,
+                TO_CHAR("SchoolUserRole"."createdAt", 'YYYY-MM-DD') AS day,
                 CAST(COUNT(*) AS INTEGER) AS value
-              FROM "TeamUserRole"
-              LEFT JOIN "UserRole" ON "TeamUserRole"."userRoleId" = "UserRole"."id"
-              WHERE "TeamUserRole"."teamId" = ${team.id} AND "UserRole"."status" = 'ACCEPTED' AND "TeamUserRole"."createdAt" >= ${startDate}
+              FROM "SchoolUserRole"
+              LEFT JOIN "UserRole" ON "SchoolUserRole"."userRoleId" = "UserRole"."id"
+              WHERE "SchoolUserRole"."schoolId" = ${school.id} AND "UserRole"."status" = 'ACCEPTED' AND "SchoolUserRole"."createdAt" >= ${startDate}
               GROUP BY day
               ORDER BY day DESC
             `,
-            prisma.teamUserRole.count({
-              where: { teamId: team.id, userRole: { status: 'ACCEPTED' } },
+            prisma.schoolUserRole.count({
+              where: { schoolId: school.id, userRole: { status: 'ACCEPTED' } },
             }),
           ])
         )

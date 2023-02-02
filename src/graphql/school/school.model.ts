@@ -1,7 +1,7 @@
 import { Address, Prisma } from '@prisma/client'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
-import { TeamInclude } from './team.include'
+import { SchoolInclude } from './school.include'
 
 export default createGraphQLModule({
   typeDefs: gql`
@@ -13,7 +13,7 @@ export default createGraphQLModule({
       formatted: String!
     }
 
-    type Team {
+    type School {
       id: ID!
       createdAt: DateTime!
       name: String!
@@ -22,18 +22,18 @@ export default createGraphQLModule({
       memberCount: Int!
     }
 
-    type PaginatedTeam {
+    type PaginatedSchool {
       page: PageInfo!
-      nodes: [Team!]!
+      nodes: [School!]!
     }
 
-    input TeamOrder {
+    input SchoolOrder {
       createdAt: OrderDirection
       name: OrderDirection
       memberCount: OrderDirection
     }
 
-    input TeamCreate {
+    input SchoolCreate {
       name: String!
     }
 
@@ -44,7 +44,7 @@ export default createGraphQLModule({
       zip: String!
     }
 
-    input TeamUpdate {
+    input SchoolUpdate {
       name: String
       address: AddressUpdate
     }
@@ -55,8 +55,8 @@ export default createGraphQLModule({
         return `${street}, ${city}, ${state} ${zip}`
       },
     },
-    Team: {
-      memberCount(obj: Prisma.TeamGetPayload<TeamInclude>) {
+    School: {
+      memberCount(obj: Prisma.SchoolGetPayload<SchoolInclude>) {
         return obj._count.roles
       },
     },

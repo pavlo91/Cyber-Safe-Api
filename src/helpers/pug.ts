@@ -12,7 +12,7 @@ type HtmlFileName = {
     declineUrl: string
   }
   'email/invite-member.pug': {
-    teamName: string
+    schoolName: string
     acceptUrl: string
     declineUrl: string
   }

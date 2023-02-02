@@ -28,13 +28,13 @@ model User {
   @@index([emailConfirmed])
 }
 
-model Team {
-  id            String         @id @default(cuid())
-  createdAt     DateTime       @default(now())
+model School {
+  id            String           @id @default(cuid())
+  createdAt     DateTime         @default(now())
   name          String
   address       Address?
   logo          Image?
-  roles         TeamUserRole[]
+  roles         SchoolUserRole[]
   notifications Notification[]
 }
 
@@ -60,22 +60,22 @@ model UserRole {
   role        Role
   status      RoleStatus      @default(PENDING)
   statusToken String?         @unique
-  teamRole    TeamUserRole?
+  schoolRole  SchoolUserRole?
   parentRole  ParentUserRole?
 
   @@index([userId])
   @@index([role])
 }
 
-model TeamUserRole {
-  teamId     String
-  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+model SchoolUserRole {
+  schoolId   String
+  school     School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   userRoleId String   @unique
   userRole   UserRole @relation(fields: [userRoleId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
 
-  @@id([teamId, userRoleId])
-  @@index([teamId])
+  @@id([schoolId, userRoleId])
+  @@index([schoolId])
   @@index([userRoleId])
 }
 
@@ -100,12 +100,12 @@ model Notification {
   url       String?
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId    String?
-  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  schoolId  String?
+  school    School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([unread])
   @@index([userId])
-  @@index([teamId])
+  @@index([schoolId])
 }
 
 model Address {
@@ -115,10 +115,10 @@ model Address {
   city      String
   state     String
   zip       String
-  teamId    String?  @unique
-  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  schoolId  String?  @unique
+  school    School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  @@index([teamId])
+  @@index([schoolId])
 }
 
 model Image {
@@ -127,9 +127,9 @@ model Image {
   url       String
   userId    String?  @unique
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId    String?  @unique
-  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  schoolId  String?  @unique
+  school    School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([teamId])
+  @@index([schoolId])
 }

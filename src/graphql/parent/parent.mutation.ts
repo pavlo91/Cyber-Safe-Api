@@ -84,7 +84,7 @@ export default createGraphQLModule({
         const declineUrl = Config.composeUrl('apiUrl', '/api/respond/:statusToken/decline', { statusToken })
         Postmark.shared.send(email, 'email/invite-parent.pug', { childName: child.name, acceptUrl, declineUrl })
       }),
-      removeParent: withAuth('coach', async (obj, { id, childId }, { prisma, team }, info) => {
+      removeParent: withAuth('coach', async (obj, { id, childId }, { prisma, school }, info) => {
         await prisma.userRole.deleteMany({
           where: {
             userId: id,
@@ -93,8 +93,8 @@ export default createGraphQLModule({
                 id: childId,
                 roles: {
                   some: {
-                    teamRole: {
-                      teamId: team.id,
+                    schoolRole: {
+                      schoolId: school.id,
                     },
                   },
                 },

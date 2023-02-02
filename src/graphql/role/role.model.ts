@@ -31,11 +31,11 @@ export default createGraphQLModule({
       status: RoleStatus!
     }
 
-    type TeamRole implements UserRole {
+    type SchoolRole implements UserRole {
       id: ID!
       role: Role!
       status: RoleStatus!
-      team: Team!
+      school: School!
     }
 
     type ParentRole implements UserRole {
@@ -57,15 +57,15 @@ export default createGraphQLModule({
           case 'ADMIN':
           case 'COACH':
           case 'ATHLETE':
-            return 'TeamRole'
+            return 'SchoolRole'
           case 'PARENT':
             return 'ParentRole'
         }
       },
     },
-    TeamRole: {
-      team(obj: Prisma.UserRoleGetPayload<UserRoleInclude>) {
-        return obj.teamRole!.team
+    SchoolRole: {
+      school(obj: Prisma.UserRoleGetPayload<UserRoleInclude>) {
+        return obj.schoolRole!.school
       },
     },
     ParentRole: {

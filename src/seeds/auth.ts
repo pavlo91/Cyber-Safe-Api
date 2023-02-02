@@ -28,7 +28,7 @@ export class AuthSeed implements Seed {
         update: {},
       })
 
-      const team = await prisma.team.create({
+      const school = await prisma.school.create({
         data: {
           name: randAmericanFootballTeam(),
           address: {
@@ -53,9 +53,9 @@ export class AuthSeed implements Seed {
             create: {
               role: 'ADMIN',
               status: 'ACCEPTED',
-              teamRole: {
+              schoolRole: {
                 create: {
-                  teamId: team.id,
+                  schoolId: school.id,
                 },
               },
             },
@@ -75,9 +75,9 @@ export class AuthSeed implements Seed {
             create: {
               role: 'COACH',
               status: 'ACCEPTED',
-              teamRole: {
+              schoolRole: {
                 create: {
-                  teamId: team.id,
+                  schoolId: school.id,
                 },
               },
             },
@@ -97,9 +97,9 @@ export class AuthSeed implements Seed {
             create: {
               role: 'ATHLETE',
               status: 'ACCEPTED',
-              teamRole: {
+              schoolRole: {
                 create: {
-                  teamId: team.id,
+                  schoolId: school.id,
                 },
               },
             },

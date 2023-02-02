@@ -6,20 +6,19 @@ import { withAuth } from '../../helpers/auth'
 export default createGraphQLModule({
   typeDefs: gql`
     extend type Mutation {
-      createTeam(input: TeamCreate!): ID
-      updateTeam(input: TeamUpdate!): ID
-      leaveTeam: ID
+      createSchool(input: SchoolCreate!): ID
+      updateSchool(input: SchoolUpdate!): ID
     }
   `,
   resolvers: {
     Mutation: {
-      createTeam: withAuth('staff', async (obj, { input }, { prisma }, info) => {
-        await prisma.team.create({
+      createSchool: withAuth('staff', async (obj, { input }, { prisma }, info) => {
+        await prisma.school.create({
           data: { ...input },
         })
       }),
-      updateTeam: withAuth('coach', async (obj, { input }, { prisma, team }, info) => {
-        let address: Prisma.AddressUpdateOneWithoutTeamNestedInput | undefined
+      updateSchool: withAuth('coach', async (obj, { input }, { prisma, school }, info) => {
+        let address: Prisma.AddressUpdateOneWithoutSchoolNestedInput | undefined
 
         if (input.address === null) {
           address = { delete: true }
@@ -32,19 +31,11 @@ export default createGraphQLModule({
           }
         }
 
-        await prisma.team.update({
-          where: { id: team.id },
+        await prisma.school.update({
+          where: { id: school.id },
           data: {
             name: input.name ?? undefined,
             address,
-          },
-        })
-      }),
-      leaveTeam: withAuth('member', async (obj, args, { prisma, user, team }, info) => {
-        await prisma.userRole.deleteMany({
-          where: {
-            userId: user.id,
-            teamRole: { teamId: team.id },
           },
         })
       }),

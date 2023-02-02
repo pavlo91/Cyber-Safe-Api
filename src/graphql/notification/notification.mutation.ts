@@ -10,12 +10,12 @@ export default createGraphQLModule({
   `,
   resolvers: {
     Mutation: {
-      readAllNotifications: withAuth('any', async (obj, args, { prisma, user, team }, info) => {
+      readAllNotifications: withAuth('any', async (obj, args, { prisma, user, school }, info) => {
         await prisma.notification.updateMany({
           where: {
             unread: true,
             userId: user.id,
-            teamId: team?.id ?? null,
+            schoolId: school?.id ?? null,
           },
           data: {
             unread: false,

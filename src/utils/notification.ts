@@ -4,7 +4,7 @@ import { Config } from '../config'
 export class NotificationManager {
   constructor(
     private userIds: string[] | Promise<string[]>,
-    private teamId: string | undefined,
+    private schoolId: string | undefined,
     private prisma: PrismaClient
   ) {}
 
@@ -27,7 +27,7 @@ export class NotificationManager {
     return new NotificationManager(userIds, undefined, prisma)
   }
 
-  static toAdmin(teamId: string, prisma: PrismaClient) {
+  static toAdmin(schoolId: string, prisma: PrismaClient) {
     const userIds = prisma.user
       .findMany({
         where: {
@@ -35,8 +35,8 @@ export class NotificationManager {
             some: {
               role: 'ADMIN',
               status: 'ACCEPTED',
-              teamRole: {
-                teamId,
+              schoolRole: {
+                schoolId,
               },
             },
           },
@@ -46,7 +46,7 @@ export class NotificationManager {
         return users.map((user) => user.id)
       })
 
-    return new NotificationManager(userIds, teamId, prisma)
+    return new NotificationManager(userIds, schoolId, prisma)
   }
 
   static async notify<T>(template: NotificationTemplate<T>, args: T) {
@@ -58,7 +58,7 @@ export class NotificationManager {
     const userIds = await this.userIds
 
     await this.prisma.notification.createMany({
-      data: userIds.map((userId) => ({ url, message, userId, teamId: this.teamId })),
+      data: userIds.map((userId) => ({ url, message, userId, schoolId: this.schoolId })),
     })
   }
 }
@@ -84,18 +84,18 @@ export const Notification = {
       manager: NotificationManager.toStaff(args.prisma),
     }
   },
-  acceptedMemberRole: (args: { email: string; teamId: string; prisma: PrismaClient }) => {
+  acceptedMemberRole: (args: { email: string; schoolId: string; prisma: PrismaClient }) => {
     return {
       message: `The user with e-mail ${args.email} has accepted their member role`,
       url: Config.composeUrl('webUrl', '/dashboard/coach/members', { search: args.email }),
-      manager: NotificationManager.toAdmin(args.teamId, args.prisma),
+      manager: NotificationManager.toAdmin(args.schoolId, args.prisma),
     }
   },
-  declinedMemberRole: (args: { email: string; teamId: string; prisma: PrismaClient }) => {
+  declinedMemberRole: (args: { email: string; schoolId: string; prisma: PrismaClient }) => {
     return {
       message: `The user with e-mail ${args.email} has declined their member role`,
       url: Config.composeUrl('webUrl', '/dashboard/coach/members', { search: args.email }),
-      manager: NotificationManager.toAdmin(args.teamId, args.prisma),
+      manager: NotificationManager.toAdmin(args.schoolId, args.prisma),
     }
   },
 } satisfies Record<string, NotificationTemplate<any>>

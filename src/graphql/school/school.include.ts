@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
 
-export const TeamInclude = {
+export const SchoolInclude = {
   address: true,
   logo: true,
   _count: {
@@ -8,6 +8,6 @@ export const TeamInclude = {
       roles: true,
     },
   },
-} satisfies Prisma.TeamInclude
+} satisfies Prisma.SchoolInclude
 
-export type TeamInclude = { include: typeof TeamInclude }
+export type SchoolInclude = { include: typeof SchoolInclude }

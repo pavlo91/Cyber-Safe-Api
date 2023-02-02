@@ -20,7 +20,7 @@ export default createGraphQLModule({
   `,
   resolvers: {
     Mutation: {
-      inviteMember: withAuth('coach', async (obj, { email, role }, { prisma, user, team }, info) => {
+      inviteMember: withAuth('coach', async (obj, { email, role }, { prisma, user, school }, info) => {
         if (role === 'ADMIN' && !user.roles.find((e) => e.role === 'ADMIN')) {
           throw new Error("You don't have the permission to invite admins")
         }
@@ -30,7 +30,7 @@ export default createGraphQLModule({
           include: {
             roles: {
               include: {
-                teamRole: true,
+                schoolRole: true,
               },
             },
           },
@@ -45,7 +45,7 @@ export default createGraphQLModule({
             include: {
               roles: {
                 include: {
-                  teamRole: true,
+                  schoolRole: true,
                 },
               },
             },
@@ -53,17 +53,19 @@ export default createGraphQLModule({
         }
 
         const statusToken = randomToken()
-        const teamRole = member.roles.find((e) => e.role === role && e.teamRole && e.teamRole.teamId === team.id)
+        const schoolRole = member.roles.find(
+          (e) => e.role === role && e.schoolRole && e.schoolRole.schoolId === school.id
+        )
 
-        if (!teamRole) {
+        if (!schoolRole) {
           await prisma.userRole.create({
             data: {
               role,
               statusToken,
               userId: member.id,
-              teamRole: {
+              schoolRole: {
                 create: {
-                  teamId: team.id,
+                  schoolId: school.id,
                 },
               },
             },
@@ -71,20 +73,20 @@ export default createGraphQLModule({
         } else {
           await prisma.userRole.update({
             data: { statusToken },
-            where: { id: teamRole.id },
+            where: { id: schoolRole.id },
           })
         }
 
         const acceptUrl = Config.composeUrl('apiUrl', '/api/respond/:statusToken/accept', { statusToken })
         const declineUrl = Config.composeUrl('apiUrl', '/api/respond/:statusToken/decline', { statusToken })
-        Postmark.shared.send(email, 'email/invite-member.pug', { teamName: team.name, acceptUrl, declineUrl })
+        Postmark.shared.send(email, 'email/invite-member.pug', { schoolName: school.name, acceptUrl, declineUrl })
       }),
-      removeMember: withAuth('admin', async (obj, { id }, { prisma, team }, info) => {
+      removeMember: withAuth('admin', async (obj, { id }, { prisma, school }, info) => {
         await prisma.userRole.deleteMany({
           where: {
             userId: id,
-            teamRole: {
-              teamId: team.id,
+            schoolRole: {
+              schoolId: school.id,
             },
           },
         })
