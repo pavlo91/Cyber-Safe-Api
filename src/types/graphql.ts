@@ -281,10 +281,13 @@ export type Query = {
   notificationsCount: Scalars['Int'];
   parents: PaginatedUser;
   profile: User;
+  statsOfAcceptedMembersInTeam: StatsByDay;
   statsOfCreatedMembers: StatsByDay;
+  statsOfCreatedMembersInTeam: StatsByDay;
   statsOfCreatedParents: StatsByDay;
   statsOfCreatedTeams: StatsByDay;
   statsOfCreatedUsers: StatsByDay;
+  statsOfInvitedMembersInTeam: StatsByDay;
   team: Team;
   teams: PaginatedTeam;
   user: User;
@@ -324,7 +327,17 @@ export type QueryParentsArgs = {
 };
 
 
+export type QueryStatsOfAcceptedMembersInTeamArgs = {
+  days?: InputMaybe<Scalars['Int']>;
+};
+
+
 export type QueryStatsOfCreatedMembersArgs = {
+  days?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QueryStatsOfCreatedMembersInTeamArgs = {
   days?: InputMaybe<Scalars['Int']>;
 };
 
@@ -340,6 +353,11 @@ export type QueryStatsOfCreatedTeamsArgs = {
 
 
 export type QueryStatsOfCreatedUsersArgs = {
+  days?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QueryStatsOfInvitedMembersInTeamArgs = {
   days?: InputMaybe<Scalars['Int']>;
 };
 
@@ -736,10 +754,13 @@ export type QueryResolvers<ContextType = ApolloContext, ParentType extends Resol
   notificationsCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   parents?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, RequireFields<QueryParentsArgs, 'childId'>>;
   profile?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  statsOfAcceptedMembersInTeam?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfAcceptedMembersInTeamArgs, 'days'>>;
   statsOfCreatedMembers?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedMembersArgs, 'days'>>;
+  statsOfCreatedMembersInTeam?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedMembersInTeamArgs, 'days'>>;
   statsOfCreatedParents?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedParentsArgs, 'days'>>;
   statsOfCreatedTeams?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedTeamsArgs, 'days'>>;
   statsOfCreatedUsers?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedUsersArgs, 'days'>>;
+  statsOfInvitedMembersInTeam?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfInvitedMembersInTeamArgs, 'days'>>;
   team?: Resolver<ResolversTypes['Team'], ParentType, ContextType, RequireFields<QueryTeamArgs, 'id'>>;
   teams?: Resolver<ResolversTypes['PaginatedTeam'], ParentType, ContextType, Partial<QueryTeamsArgs>>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
