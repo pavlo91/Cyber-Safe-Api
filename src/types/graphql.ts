@@ -115,6 +115,7 @@ export type Mutation = {
   inviteParent?: Maybe<Scalars['ID']>;
   inviteStaff?: Maybe<Scalars['ID']>;
   login: Jwt;
+  prepareForUpload: Upload;
   readAllNotifications?: Maybe<Scalars['ID']>;
   register?: Maybe<Scalars['ID']>;
   removeMember?: Maybe<Scalars['ID']>;
@@ -455,8 +456,23 @@ export type StringFilter = {
 export { StringFilterMode };
 
 export type UpdateProfileInput = {
+  avatar?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   newEmail?: InputMaybe<Scalars['String']>;
+};
+
+export type Upload = {
+  __typename?: 'Upload';
+  headers: Array<UploadHeader>;
+  id: Scalars['ID'];
+  method: Scalars['String'];
+  url: Scalars['String'];
+};
+
+export type UploadHeader = {
+  __typename?: 'UploadHeader';
+  key: Scalars['String'];
+  value: Scalars['String'];
 };
 
 export type User = {
@@ -592,6 +608,8 @@ export type ResolversTypes = {
   StringFilter: StringFilter;
   StringFilterMode: Prisma.QueryMode;
   UpdateProfileInput: UpdateProfileInput;
+  Upload: ResolverTypeWrapper<Upload>;
+  UploadHeader: ResolverTypeWrapper<UploadHeader>;
   User: ResolverTypeWrapper<User>;
   UserCreate: UserCreate;
   UserOrder: UserOrder;
@@ -636,6 +654,8 @@ export type ResolversParentTypes = {
   String: Scalars['String'];
   StringFilter: StringFilter;
   UpdateProfileInput: UpdateProfileInput;
+  Upload: Upload;
+  UploadHeader: UploadHeader;
   User: User;
   UserCreate: UserCreate;
   UserOrder: UserOrder;
@@ -681,6 +701,7 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   inviteParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteParentArgs, 'childId' | 'email'>>;
   inviteStaff?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationInviteStaffArgs, 'email'>>;
   login?: Resolver<ResolversTypes['JWT'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
+  prepareForUpload?: Resolver<ResolversTypes['Upload'], ParentType, ContextType>;
   readAllNotifications?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'password' | 'school' | 'user'>>;
   removeMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveMemberArgs, 'id'>>;
@@ -797,6 +818,20 @@ export type StatsByDayResolvers<ContextType = ApolloContext, ParentType extends 
 
 export type StringFilterModeResolvers = EnumResolverSignature<{ DEFAULT?: any, INSENSITIVE?: any }, ResolversTypes['StringFilterMode']>;
 
+export type UploadResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Upload'] = ResolversParentTypes['Upload']> = {
+  headers?: Resolver<Array<ResolversTypes['UploadHeader']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  method?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UploadHeaderResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['UploadHeader'] = ResolversParentTypes['UploadHeader']> = {
+  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  value?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type UserResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   avatar?: Resolver<Maybe<ResolversTypes['Image']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -838,6 +873,8 @@ export type Resolvers<ContextType = ApolloContext> = {
   StatByDay?: StatByDayResolvers<ContextType>;
   StatsByDay?: StatsByDayResolvers<ContextType>;
   StringFilterMode?: StringFilterModeResolvers;
+  Upload?: UploadResolvers<ContextType>;
+  UploadHeader?: UploadHeaderResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   UserRole?: UserRoleResolvers<ContextType>;
 };

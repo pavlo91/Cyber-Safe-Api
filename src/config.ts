@@ -38,6 +38,9 @@ export const Config = {
     token: process.env.POSTMARK_TOKEN,
     from: process.env.POSTMARK_FROM,
   },
+  storage: {
+    connectionString: process.env.STORAGE_CONNECTION_STRING,
+  },
   template: {
     appName: process.env.TEMPLATE_APP_NAME ?? 'CyberSafely.ai – Social Media Pivot',
     webUrl: process.env.WEB_URL ?? 'http://localhost:3000',

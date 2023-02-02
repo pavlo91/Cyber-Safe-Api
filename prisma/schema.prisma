@@ -24,6 +24,7 @@ model User {
   roles          UserRole[]
   parentRoles    ParentUserRole[]
   notifications  Notification[]
+  tempUploads    TempUpload[]
 
   @@index([emailConfirmed])
 }
@@ -76,7 +77,6 @@ model SchoolUserRole {
 
   @@id([schoolId, userRoleId])
   @@index([schoolId])
-  @@index([userRoleId])
 }
 
 model ParentUserRole {
@@ -89,7 +89,6 @@ model ParentUserRole {
 
   @@id([childUserId, userRoleId])
   @@index([childUserId])
-  @@index([userRoleId])
 }
 
 model Notification {
@@ -117,8 +116,6 @@ model Address {
   zip       String
   schoolId  String?  @unique
   school    School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-  @@index([schoolId])
 }
 
 model Image {
@@ -129,7 +126,14 @@ model Image {
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   schoolId  String?  @unique
   school    School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+model TempUpload {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  blobName  String   @unique
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([schoolId])
 }
