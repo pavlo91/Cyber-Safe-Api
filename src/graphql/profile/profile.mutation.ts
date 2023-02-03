@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { withAuth } from '../../helpers/auth'
-import { updateImage } from '../../helpers/upload'
+import { updateImage } from '../../helpers/update'
 import { comparePassword } from '../../utils/crypto'
 
 export default createGraphQLModule({
@@ -22,8 +22,8 @@ export default createGraphQLModule({
     Mutation: {
       updateProfile: withAuth('any', async (obj, { input }, { prisma, user }, info) => {
         const data: Prisma.UserUpdateInput = {
-          newEmail: input.newEmail ?? undefined,
           name: input.name ?? undefined,
+          newEmail: input.newEmail ?? undefined,
           avatar: await updateImage(input.avatar, prisma),
         }
 

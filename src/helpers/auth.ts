@@ -139,13 +139,12 @@ export function withAuth<K extends keyof Auth, P, A, C extends ApolloContext, I,
   callback: Callback<P, A, C & Context<K>, I, R>
 ) {
   const wrapper: Callback<P, A, C, I, R> = async (obj, args, ctx, info) => {
-    try {
-      const context = (await Auth[role](ctx)) as Context<K>
-      return await callback(obj, args, { ...ctx, ...context }, info)
-    } catch (error) {
+    const context = await Auth[role](ctx).catch((error) => {
       Logger.global.error('Error while authorizing route: %s', error)
       throw NotAuthorizedError
-    }
+    })
+
+    return await callback(obj, args, { ...ctx, ...(context as Context<K>) }, info)
   }
 
   return wrapper

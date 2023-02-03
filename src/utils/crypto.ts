@@ -36,6 +36,6 @@ export function parseJwt(token: string) {
   }
 }
 
-export function randomToken() {
-  return randAlphaNumeric({ length: 16 }).join('')
+export function randomToken(length: number = 16) {
+  return randAlphaNumeric({ length }).join('')
 }
