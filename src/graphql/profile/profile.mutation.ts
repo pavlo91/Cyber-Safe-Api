@@ -24,7 +24,7 @@ export default createGraphQLModule({
         const data: Prisma.UserUpdateInput = {
           name: input.name ?? undefined,
           newEmail: input.newEmail ?? undefined,
-          avatar: await updateImage(input.avatar, prisma),
+          avatar: await updateImage(input.avatar, { user: user.id }, prisma),
         }
 
         await prisma.user.update({

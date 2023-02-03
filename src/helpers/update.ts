@@ -4,6 +4,7 @@ import { AddressUpdate, InputMaybe } from '../types/graphql'
 
 export async function updateImage(
   id: string | undefined | null,
+  blob: { user: string } | { school: string },
   prisma: PrismaClient
 ): Promise<Prisma.ImageUpdateOneWithoutUserNestedInput | undefined> {
   if (id === null) {
@@ -18,7 +19,20 @@ export async function updateImage(
     where: { id },
   })
 
-  const { url } = await Storage.shared.saveUpload(tempUpload.blobName)
+  let dir: string
+  let dirId: string
+
+  if ('user' in blob) {
+    dir = 'users'
+    dirId = blob.user
+  } else if ('school' in blob) {
+    dir = 'schools'
+    dirId = blob.school
+  } else {
+    throw new Error('You must provide blob information')
+  }
+
+  const { url } = await Storage.shared.saveUpload(tempUpload.blobName, Storage.getBlobName(dir, dirId))
 
   await prisma.tempUpload.delete({
     where: { id },

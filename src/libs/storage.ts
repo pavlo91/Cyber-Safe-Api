@@ -3,6 +3,7 @@ import { fromBuffer } from 'file-type'
 
 import ms from 'ms'
 import { Config } from '../config'
+import { randomToken } from '../utils/crypto'
 import { Logger } from '../utils/logger'
 
 const STORAGE_TEMP = 'temp'
@@ -25,6 +26,14 @@ export class Storage {
 
   constructor(connectionString: string) {
     this.client = BlobServiceClient.fromConnectionString(connectionString)
+  }
+
+  static getTempBlobNameForUser(userId: string) {
+    return ['users', userId, randomToken()].join('/')
+  }
+
+  static getBlobName(dir: string, dirId: string) {
+    return [dir, dirId, randomToken()].join('/')
   }
 
   async prepareForUpload(blobName: string) {
@@ -50,7 +59,7 @@ export class Storage {
     }
   }
 
-  async saveUpload(blobName: string) {
+  async saveUpload(blobName: string, newBlobName: string) {
     try {
       const tempContainer = this.client.getContainerClient(STORAGE_TEMP)
       const tempBlob = tempContainer.getBlockBlobClient(blobName)
@@ -64,7 +73,7 @@ export class Storage {
       const container = this.client.getContainerClient(STORAGE_UPLOAD)
       await container.createIfNotExists({ access: 'blob' })
 
-      const blob = container.getBlockBlobClient(blobName + ext)
+      const blob = container.getBlockBlobClient(newBlobName + ext)
 
       await blob.syncCopyFromURL(tempBlob.url)
       await tempBlob.deleteIfExists()

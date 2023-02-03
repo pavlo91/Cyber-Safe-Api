@@ -2,7 +2,6 @@ import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { withAuth } from '../../helpers/auth'
 import { Storage } from '../../libs/storage'
-import { randomToken } from '../../utils/crypto'
 
 export default createGraphQLModule({
   typeDefs: gql`
@@ -28,7 +27,7 @@ export default createGraphQLModule({
         const tempImage = await prisma.tempUpload.create({
           data: {
             userId: user.id,
-            blobName: randomToken(),
+            blobName: Storage.getTempBlobNameForUser(user.id),
           },
         })
 
