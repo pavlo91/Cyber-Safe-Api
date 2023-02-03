@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { withAuth } from '../../helpers/auth'
+import { updateImage } from '../../helpers/upload'
 
 export default createGraphQLModule({
   typeDefs: gql`
@@ -34,8 +35,9 @@ export default createGraphQLModule({
         await prisma.school.update({
           where: { id: school.id },
           data: {
-            name: input.name ?? undefined,
             address,
+            name: input.name ?? undefined,
+            logo: await updateImage(input.logo, prisma),
           },
         })
       }),

@@ -47,6 +47,7 @@ export default createGraphQLModule({
     input SchoolUpdate {
       name: String
       address: AddressUpdate
+      logo: String
     }
   `,
   resolvers: {

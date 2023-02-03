@@ -431,6 +431,7 @@ export type SchoolRole = UserRole & {
 
 export type SchoolUpdate = {
   address?: InputMaybe<AddressUpdate>;
+  logo?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
 };
 
