@@ -12,6 +12,7 @@
     "codegen": "graphql-codegen --config codegen.yml",
     "reset": "prisma migrate reset --force",
     "migrate": "prisma migrate dev --name",
+    "azurite": "azurite-blob -l .azurite",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
     "build": "tsc",
