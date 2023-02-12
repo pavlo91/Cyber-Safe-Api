@@ -1,3 +1,4 @@
+import { randAlphaNumeric } from '@ngneat/falso'
 import { User } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
@@ -33,4 +34,8 @@ export function parseJwt(token: string) {
   return {
     uuid: payload.uuid,
   }
+}
+
+export function randomToken(length: number = 16) {
+  return randAlphaNumeric({ length }).join('')
 }

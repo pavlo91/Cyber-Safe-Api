@@ -1,9 +1,12 @@
 import { Prisma } from '@prisma/client'
+import { SchoolInclude } from '../school/school.include'
 
 export const UserRoleInclude = {
-  teamRole: {
+  schoolRole: {
     include: {
-      team: true,
+      school: {
+        include: SchoolInclude,
+      },
     },
   },
   parentRole: {

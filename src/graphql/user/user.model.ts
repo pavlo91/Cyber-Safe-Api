@@ -12,6 +12,7 @@ export default createGraphQLModule({
       email: String!
       emailConfirmed: Boolean!
       name: String!
+      avatar: Image
       roles: [UserRole!]!
       parentRole: ParentRole
       parentCount: Int!

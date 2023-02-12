@@ -26,6 +26,7 @@ export default createGraphQLModule({
             prisma.user.findMany({
               ...args,
               where,
+              orderBy: parseUserOrder(order),
               include: {
                 ...UserInclude,
                 roles: {

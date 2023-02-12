@@ -1,49 +1,71 @@
-import { randAlphaNumeric } from '@ngneat/falso'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { Config } from '../../config'
 import { withAuth } from '../../helpers/auth'
 import { Postmark } from '../../libs/postmark'
+import { randomToken } from '../../utils/crypto'
 
 export default createGraphQLModule({
   typeDefs: gql`
+    enum InviteMemberRole {
+      ADMIN
+      COACH
+      ATHLETE
+    }
+
     extend type Mutation {
-      inviteCoach(email: String!): ID
-      inviteAthlete(email: String!): ID
+      inviteMember(email: String!, role: InviteMemberRole!): ID
       removeMember(id: ID!): ID
     }
   `,
   resolvers: {
     Mutation: {
-      inviteCoach: withAuth('coach', async (obj, { email }, { prisma, team }, info) => {
-        const user = await prisma.user.upsert({
+      inviteMember: withAuth('coach', async (obj, { email, role }, { prisma, user, school }, info) => {
+        if (role === 'ADMIN' && !user.roles.find((e) => e.role === 'ADMIN')) {
+          throw new Error("You don't have the permission to invite admins")
+        }
+
+        let member = await prisma.user.findUnique({
           where: { email },
-          update: {},
-          create: {
-            email,
-            name: '',
-          },
           include: {
             roles: {
               include: {
-                teamRole: true,
+                schoolRole: true,
               },
             },
           },
         })
 
-        const statusToken = randAlphaNumeric({ length: 16 }).join('')
-        const coachRole = user.roles.find((e) => e.role === 'COACH' && e.teamRole && e.teamRole.teamId === team.id)
+        if (!member) {
+          member = await prisma.user.create({
+            data: {
+              email,
+              name: '',
+            },
+            include: {
+              roles: {
+                include: {
+                  schoolRole: true,
+                },
+              },
+            },
+          })
+        }
 
-        if (!coachRole) {
+        const statusToken = randomToken()
+        const schoolRole = member.roles.find(
+          (e) => e.role === role && e.schoolRole && e.schoolRole.schoolId === school.id
+        )
+
+        if (!schoolRole) {
           await prisma.userRole.create({
             data: {
+              role,
               statusToken,
-              role: 'COACH',
-              userId: user.id,
-              teamRole: {
+              userId: member.id,
+              schoolRole: {
                 create: {
-                  teamId: team.id,
+                  schoolId: school.id,
                 },
               },
             },
@@ -51,67 +73,20 @@ export default createGraphQLModule({
         } else {
           await prisma.userRole.update({
             data: { statusToken },
-            where: { id: coachRole.id },
+            where: { id: schoolRole.id },
           })
         }
 
         const acceptUrl = Config.composeUrl('apiUrl', '/api/respond/:statusToken/accept', { statusToken })
         const declineUrl = Config.composeUrl('apiUrl', '/api/respond/:statusToken/decline', { statusToken })
-        Postmark.shared.send(email, 'email/invite-coach.pug', { teamName: team.name, acceptUrl, declineUrl })
+        Postmark.shared.send(email, 'email/invite-member.pug', { schoolName: school.name, acceptUrl, declineUrl })
       }),
-      inviteAthlete: withAuth('coach', async (obj, { email }, { prisma, team }, info) => {
-        const user = await prisma.user.upsert({
-          where: { email },
-          update: {},
-          create: {
-            email,
-            name: '',
-          },
-          include: {
-            roles: {
-              include: {
-                teamRole: true,
-              },
-            },
-          },
-        })
-
-        const statusToken = randAlphaNumeric({ length: 16 }).join('')
-        const coachRole = user.roles.find((e) => e.role === 'ATHLETE' && e.teamRole && e.teamRole.teamId === team.id)
-
-        if (!coachRole) {
-          await prisma.userRole.create({
-            data: {
-              statusToken,
-              role: 'ATHLETE',
-              userId: user.id,
-              teamRole: {
-                create: {
-                  teamId: team.id,
-                },
-              },
-            },
-          })
-        } else {
-          await prisma.userRole.update({
-            where: { id: coachRole.id },
-            data: {
-              statusToken,
-              status: 'PENDING',
-            },
-          })
-        }
-
-        const acceptUrl = Config.composeUrl('apiUrl', '/api/respond/:statusToken/accept', { statusToken })
-        const declineUrl = Config.composeUrl('apiUrl', '/api/respond/:statusToken/decline', { statusToken })
-        Postmark.shared.send(email, 'email/invite-athlete.pug', { teamName: team.name, acceptUrl, declineUrl })
-      }),
-      removeMember: withAuth('coach', async (obj, { id }, { prisma, team }, info) => {
+      removeMember: withAuth('admin', async (obj, { id }, { prisma, school }, info) => {
         await prisma.userRole.deleteMany({
           where: {
             userId: id,
-            teamRole: {
-              teamId: team.id,
+            schoolRole: {
+              schoolId: school.id,
             },
           },
         })

@@ -1,9 +1,9 @@
-import { randAlphaNumeric } from '@ngneat/falso'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { Config } from '../../config'
 import { withAuth } from '../../helpers/auth'
 import { Postmark } from '../../libs/postmark'
+import { randomToken } from '../../utils/crypto'
 
 export default createGraphQLModule({
   typeDefs: gql`
@@ -14,17 +14,22 @@ export default createGraphQLModule({
   resolvers: {
     Mutation: {
       inviteStaff: withAuth('staff', async (obj, { email }, { prisma }, info) => {
-        const user = await prisma.user.upsert({
-          include: { roles: true },
+        let user = await prisma.user.findUnique({
           where: { email },
-          update: {},
-          create: {
-            email,
-            name: '',
-          },
+          include: { roles: true },
         })
 
-        const statusToken = randAlphaNumeric({ length: 16 }).join('')
+        if (!user) {
+          user = await prisma.user.create({
+            include: { roles: true },
+            data: {
+              email,
+              name: '',
+            },
+          })
+        }
+
+        const statusToken = randomToken()
         const staffRole = user.roles.find((e) => e.role === 'STAFF')
 
         if (!staffRole) {

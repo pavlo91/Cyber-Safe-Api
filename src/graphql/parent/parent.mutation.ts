@@ -1,9 +1,9 @@
-import { randAlphaNumeric } from '@ngneat/falso'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { Config } from '../../config'
 import { withAuth } from '../../helpers/auth'
 import { Postmark } from '../../libs/postmark'
+import { randomToken } from '../../utils/crypto'
 
 export default createGraphQLModule({
   typeDefs: gql`
@@ -19,13 +19,8 @@ export default createGraphQLModule({
           where: { id: childId },
         })
 
-        const user = await prisma.user.upsert({
+        let user = await prisma.user.findUnique({
           where: { email },
-          update: {},
-          create: {
-            email,
-            name: '',
-          },
           include: {
             roles: {
               include: {
@@ -35,7 +30,23 @@ export default createGraphQLModule({
           },
         })
 
-        const statusToken = randAlphaNumeric({ length: 16 }).join('')
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email,
+              name: '',
+            },
+            include: {
+              roles: {
+                include: {
+                  parentRole: true,
+                },
+              },
+            },
+          })
+        }
+
+        const statusToken = randomToken()
         const parentRole = user.roles.find(
           (e) => e.role === 'PARENT' && e.parentRole && e.parentRole.childUserId === childId
         )
@@ -73,7 +84,7 @@ export default createGraphQLModule({
         const declineUrl = Config.composeUrl('apiUrl', '/api/respond/:statusToken/decline', { statusToken })
         Postmark.shared.send(email, 'email/invite-parent.pug', { childName: child.name, acceptUrl, declineUrl })
       }),
-      removeParent: withAuth('coach', async (obj, { id, childId }, { prisma, team }, info) => {
+      removeParent: withAuth('coach', async (obj, { id, childId }, { prisma, school }, info) => {
         await prisma.userRole.deleteMany({
           where: {
             userId: id,
@@ -82,8 +93,8 @@ export default createGraphQLModule({
                 id: childId,
                 roles: {
                   some: {
-                    teamRole: {
-                      teamId: team.id,
+                    schoolRole: {
+                      schoolId: school.id,
                     },
                   },
                 },

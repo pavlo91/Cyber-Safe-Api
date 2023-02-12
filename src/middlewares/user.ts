@@ -3,22 +3,35 @@ import { Middleware } from '.'
 import { Config } from '../config'
 import { use } from '../helpers/seed'
 import { Postmark } from '../libs/postmark'
-import { hashPassword } from '../utils/crypto'
+import { hashPassword, randomToken } from '../utils/crypto'
+
+type EmailTokenData = {
+  email: string
+  token: string
+}
 
 export class UserMiddleware implements Middleware {
-  private emails: string[] = []
+  private data: EmailTokenData[] = []
 
   constructor(private prisma: PrismaClient) {}
 
   beforeMiddleware(params: Prisma.MiddlewareParams) {
     if (params.model !== 'User') return
 
-    this.emails = []
+    this.data = []
 
     switch (params.action) {
       case 'create':
         use(params.args as Prisma.UserCreateArgs, ({ data }) => {
-          this.emails = [data.email]
+          if (!data.emailConfirmed) {
+            data.newEmailToken = randomToken()
+
+            this.data.push({
+              email: data.email,
+              token: data.newEmailToken!,
+            })
+          }
+
           data.password = hashPassword(data.password)
         })
 
@@ -27,12 +40,28 @@ export class UserMiddleware implements Middleware {
       case 'createMany':
         use(params.args as Prisma.UserCreateManyArgs, ({ data }) => {
           if (Array.isArray(data)) {
-            this.emails = data.map((e) => e.email)
             data.forEach((data) => {
+              if (!data.emailConfirmed) {
+                data.newEmailToken = randomToken()
+
+                this.data.push({
+                  email: data.email,
+                  token: data.newEmailToken!,
+                })
+              }
+
               data.password = hashPassword(data.password)
             })
           } else {
-            this.emails = [data.email]
+            if (!data.emailConfirmed) {
+              data.newEmailToken = randomToken()
+
+              this.data.push({
+                email: data.email,
+                token: data.newEmailToken!,
+              })
+            }
+
             data.password = hashPassword(data.password)
           }
         })
@@ -41,9 +70,22 @@ export class UserMiddleware implements Middleware {
 
       case 'update':
         use(params.args as Prisma.UserUpdateArgs, ({ data }) => {
-          if (typeof data.email === 'string') {
-            this.emails = [data.email]
+          if (typeof data.newEmail === 'string') {
+            data.newEmailToken = randomToken()
+
+            this.data.push({
+              email: data.newEmail,
+              token: data.newEmailToken!,
+            })
+          } else if (typeof data.email === 'string' && !data.emailConfirmed) {
+            data.newEmailToken = randomToken()
+
+            this.data.push({
+              email: data.email,
+              token: data.newEmailToken!,
+            })
           }
+
           if (typeof data.password === 'string') {
             data.password = hashPassword(data.password)
           }
@@ -53,9 +95,22 @@ export class UserMiddleware implements Middleware {
 
       case 'updateMany':
         use(params.args as Prisma.UserUpdateManyArgs, ({ data }) => {
-          if (typeof data.email === 'string') {
-            this.emails = [data.email]
+          if (typeof data.newEmail === 'string') {
+            data.newEmailToken = randomToken()
+
+            this.data.push({
+              email: data.newEmail,
+              token: data.newEmailToken!,
+            })
+          } else if (typeof data.email === 'string' && !data.emailConfirmed) {
+            data.newEmailToken = randomToken()
+
+            this.data.push({
+              email: data.email,
+              token: data.newEmailToken!,
+            })
           }
+
           if (typeof data.password === 'string') {
             data.password = hashPassword(data.password)
           }
@@ -63,12 +118,10 @@ export class UserMiddleware implements Middleware {
 
         break
 
+      // We can skip sending confirmation email when upserting users
+      // because it's being used only internally.
       case 'upsert':
         use(params.args as Prisma.UserUpsertArgs, ({ create, update }) => {
-          this.emails = [create.email]
-          if (typeof update.email === 'string') {
-            this.emails.push(update.email)
-          }
           create.password = hashPassword(create.password)
           if (typeof update.password === 'string') {
             update.password = hashPassword(update.password)
@@ -84,18 +137,13 @@ export class UserMiddleware implements Middleware {
 
   async afterMiddleware(params: Prisma.MiddlewareParams) {
     if (params.model !== 'User') return
-    if (this.emails.length === 0) return
+    if (this.data.length === 0) return
 
-    const users = await this.prisma.user.findMany({
-      where: {
-        emailConfirmed: false,
-        email: { in: this.emails },
-      },
-    })
-
-    for (const user of users) {
-      const url = Config.composeUrl('apiUrl', '/api/confirm/:uuid', { uuid: user.uuid })
-      Postmark.shared.send(user.email, 'email/confirm.pug', { url })
+    for (const data of this.data) {
+      const url = Config.composeUrl('apiUrl', '/api/confirm/:token', { token: data.token })
+      Postmark.shared.send(data.email, 'email/confirm.pug', { url })
     }
+
+    this.data = []
   }
 }

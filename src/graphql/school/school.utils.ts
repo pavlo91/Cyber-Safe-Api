@@ -1,10 +1,10 @@
 import { Prisma } from '@prisma/client'
-import { TeamOrder } from '../../types/graphql'
+import { SchoolOrder } from '../../types/graphql'
 
-export function parseTeamOrder(order: TeamOrder | undefined | null) {
+export function parseSchoolOrder(order: SchoolOrder | undefined | null) {
   if (!order) return
 
-  const orderBy: Prisma.TeamOrderByWithRelationInput = {}
+  const orderBy: Prisma.SchoolOrderByWithRelationInput = {}
 
   if (order.createdAt) orderBy.createdAt = order.createdAt
   if (order.name) orderBy.name = order.name
@@ -13,10 +13,10 @@ export function parseTeamOrder(order: TeamOrder | undefined | null) {
   return orderBy
 }
 
-export function parseTeamSearch(contains: string | undefined | null) {
+export function parseSchoolSearch(contains: string | undefined | null) {
   if (!contains) return
 
-  const where: Prisma.TeamWhereInput = {
+  const where: Prisma.SchoolWhereInput = {
     OR: [{ name: { contains, mode: 'insensitive' } }],
   }
 

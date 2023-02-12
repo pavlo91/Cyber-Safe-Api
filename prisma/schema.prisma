@@ -15,26 +15,33 @@ model User {
   createdAt      DateTime         @default(now())
   email          String           @unique @db.Citext
   emailConfirmed Boolean          @default(false)
+  newEmail       String?
+  newEmailToken  String?          @unique
   password       String?
   passwordToken  String?          @unique
   name           String
+  avatar         Image?
   roles          UserRole[]
   parentRoles    ParentUserRole[]
   notifications  Notification[]
+  tempUploads    TempUpload[]
 
   @@index([emailConfirmed])
 }
 
-model Team {
-  id            String         @id @default(cuid())
-  createdAt     DateTime       @default(now())
+model School {
+  id            String           @id @default(cuid())
+  createdAt     DateTime         @default(now())
   name          String
-  roles         TeamUserRole[]
+  address       Address?
+  logo          Image?
+  roles         SchoolUserRole[]
   notifications Notification[]
 }
 
 enum Role {
   STAFF
+  ADMIN
   COACH
   ATHLETE
   PARENT
@@ -54,23 +61,22 @@ model UserRole {
   role        Role
   status      RoleStatus      @default(PENDING)
   statusToken String?         @unique
-  teamRole    TeamUserRole?
+  schoolRole  SchoolUserRole?
   parentRole  ParentUserRole?
 
   @@index([userId])
   @@index([role])
 }
 
-model TeamUserRole {
-  teamId     String
-  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+model SchoolUserRole {
+  schoolId   String
+  school     School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   userRoleId String   @unique
   userRole   UserRole @relation(fields: [userRoleId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
 
-  @@id([teamId, userRoleId])
-  @@index([teamId])
-  @@index([userRoleId])
+  @@id([schoolId, userRoleId])
+  @@index([schoolId])
 }
 
 model ParentUserRole {
@@ -83,7 +89,6 @@ model ParentUserRole {
 
   @@id([childUserId, userRoleId])
   @@index([childUserId])
-  @@index([userRoleId])
 }
 
 model Notification {
@@ -94,10 +99,41 @@ model Notification {
   url       String?
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId    String?
-  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  schoolId  String?
+  school    School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([unread])
   @@index([userId])
-  @@index([teamId])
+  @@index([schoolId])
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  street    String
+  city      String
+  state     String
+  zip       String
+  schoolId  String?  @unique
+  school    School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  url       String
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schoolId  String?  @unique
+  school    School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+model TempUpload {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  blobName  String   @unique
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

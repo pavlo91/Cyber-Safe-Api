@@ -1,4 +1,4 @@
-import { rand, randAmericanFootballTeam } from '@ngneat/falso'
+import { rand, randAmericanFootballTeam, randCity, randState, randStreetAddress, randZipCode } from '@ngneat/falso'
 import { PrismaClient } from '@prisma/client'
 import { Seed } from '.'
 
@@ -28,10 +28,40 @@ export class AuthSeed implements Seed {
         update: {},
       })
 
-      const team = await prisma.team.create({
+      const school = await prisma.school.create({
         data: {
           name: randAmericanFootballTeam(),
+          address: {
+            create: {
+              street: randStreetAddress(),
+              city: randCity(),
+              state: randState(),
+              zip: randZipCode(),
+            },
+          },
         },
+      })
+
+      await prisma.user.upsert({
+        where: { email: 'admin@wonderkiln.com' },
+        create: {
+          email: 'admin@wonderkiln.com',
+          emailConfirmed: true,
+          password: 'password',
+          name: 'Admin User',
+          roles: {
+            create: {
+              role: 'ADMIN',
+              status: 'ACCEPTED',
+              schoolRole: {
+                create: {
+                  schoolId: school.id,
+                },
+              },
+            },
+          },
+        },
+        update: {},
       })
 
       await prisma.user.upsert({
@@ -45,9 +75,9 @@ export class AuthSeed implements Seed {
             create: {
               role: 'COACH',
               status: 'ACCEPTED',
-              teamRole: {
+              schoolRole: {
                 create: {
-                  teamId: team.id,
+                  schoolId: school.id,
                 },
               },
             },
@@ -67,9 +97,9 @@ export class AuthSeed implements Seed {
             create: {
               role: 'ATHLETE',
               status: 'ACCEPTED',
-              teamRole: {
+              schoolRole: {
                 create: {
-                  teamId: team.id,
+                  schoolId: school.id,
                 },
               },
             },

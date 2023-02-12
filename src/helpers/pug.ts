@@ -11,13 +11,8 @@ type HtmlFileName = {
     acceptUrl: string
     declineUrl: string
   }
-  'email/invite-coach.pug': {
-    teamName: string
-    acceptUrl: string
-    declineUrl: string
-  }
-  'email/invite-athlete.pug': {
-    teamName: string
+  'email/invite-member.pug': {
+    schoolName: string
     acceptUrl: string
     declineUrl: string
   }

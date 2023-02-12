@@ -23,7 +23,7 @@ export class RespondRoute implements Route {
       },
       include: {
         user: true,
-        teamRole: true,
+        schoolRole: true,
       },
     })
 
@@ -46,12 +46,13 @@ export class RespondRoute implements Route {
 
         break
 
+      case 'ADMIN':
       case 'COACH':
       case 'ATHLETE':
         NotificationManager.notify(hasAccepted ? Notification.acceptedMemberRole : Notification.declinedMemberRole, {
           prisma: this.prisma,
           email: role.user.email,
-          teamId: role.teamRole!.teamId,
+          schoolId: role.schoolRole!.schoolId,
         })
 
         break

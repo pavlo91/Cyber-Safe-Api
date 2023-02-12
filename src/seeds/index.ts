@@ -3,7 +3,7 @@ import { Config } from '../config'
 import { Logger } from '../utils/logger'
 import { AuthSeed } from './auth'
 import { ParentsSeed } from './parents'
-import { TeamsSeed } from './teams'
+import { SchoolsSeed } from './schools'
 
 export interface Seed {
   name: string
@@ -19,7 +19,7 @@ export class SeedManager {
     if (Config.dev) {
       this.seeds.push(
         new AuthSeed('AuthSeed', prisma),
-        new TeamsSeed('TeamsSeed', prisma),
+        new SchoolsSeed('SchoolsSeed', prisma),
         new ParentsSeed('ParentsSeed', prisma)
       )
     }

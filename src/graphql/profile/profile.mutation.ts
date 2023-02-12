@@ -1,12 +1,16 @@
+import { Prisma } from '@prisma/client'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { withAuth } from '../../helpers/auth'
+import { updateImage } from '../../helpers/update'
 import { comparePassword } from '../../utils/crypto'
 
 export default createGraphQLModule({
   typeDefs: gql`
     input UpdateProfileInput {
+      newEmail: String
       name: String
+      avatar: String
     }
 
     extend type Mutation {
@@ -17,11 +21,15 @@ export default createGraphQLModule({
   resolvers: {
     Mutation: {
       updateProfile: withAuth('any', async (obj, { input }, { prisma, user }, info) => {
+        const data: Prisma.UserUpdateInput = {
+          name: input.name ?? undefined,
+          newEmail: input.newEmail ?? undefined,
+          avatar: await updateImage(input.avatar, { user: user.id }, prisma),
+        }
+
         await prisma.user.update({
           where: { id: user.id },
-          data: {
-            name: input.name ?? undefined,
-          },
+          data,
         })
       }),
       updatePassword: withAuth('any', async (obj, { oldPassword, newPassword }, { prisma, user }, info) => {

@@ -1,10 +1,9 @@
-import { randAlphaNumeric } from '@ngneat/falso'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { Config } from '../../config'
 import { UserNotFoundError } from '../../helpers/errors'
 import { Postmark } from '../../libs/postmark'
-import { comparePassword, createJwt } from '../../utils/crypto'
+import { comparePassword, createJwt, randomToken } from '../../utils/crypto'
 import { UserInclude } from '../user/user.include'
 
 export default createGraphQLModule({
@@ -16,7 +15,7 @@ export default createGraphQLModule({
 
     type Mutation {
       login(email: String!, password: String!): JWT!
-      register(email: String!, password: String!, user: UserCreate!, team: TeamCreate!): ID
+      register(email: String!, password: String!, user: UserCreate!, school: SchoolCreate!): ID
       activate(password: String!, passwordToken: String!, user: UserCreate!): ID
       requestResetPassword(email: String!): ID
       resetPassword(password: String!, passwordToken: String!): ID
@@ -42,7 +41,7 @@ export default createGraphQLModule({
 
         return { token, user }
       },
-      async register(obj, { email, password, user, team }, { prisma }, info) {
+      async register(obj, { email, password, user, school }, { prisma }, info) {
         await prisma.user.create({
           data: {
             ...user,
@@ -50,12 +49,12 @@ export default createGraphQLModule({
             password,
             roles: {
               create: {
-                role: 'COACH',
-                teamRole: {
+                role: 'ADMIN',
+                schoolRole: {
                   create: {
-                    team: {
+                    school: {
                       create: {
-                        ...team,
+                        ...school,
                       },
                     },
                   },
@@ -80,7 +79,7 @@ export default createGraphQLModule({
         })
       },
       async requestResetPassword(obj, { email }, { prisma }, info) {
-        const passwordToken = randAlphaNumeric({ length: 16 }).join('')
+        const passwordToken = randomToken()
 
         await prisma.user.update({
           where: { email },
