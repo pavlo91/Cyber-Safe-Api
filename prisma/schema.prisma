@@ -35,7 +35,8 @@ model School {
   name          String
   phone         String?
   address       Address?
-  logo          Image?
+  logo          Image?           @relation(name: "Logo")
+  cover         Image?           @relation(name: "Cover")
   roles         SchoolUserRole[]
   notifications Notification[]
 }
@@ -120,13 +121,15 @@ model Address {
 }
 
 model Image {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  url       String
-  userId    String?  @unique
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  schoolId  String?  @unique
-  school    School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  url           String
+  userId        String?  @unique
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schoolId      String?  @unique
+  school        School?  @relation(name: "Logo", fields: [schoolId], references: [id], onDelete: Cascade)
+  schoolCoverId String?  @unique
+  schoolCover   School?  @relation(name: "Cover", fields: [schoolCoverId], references: [id], onDelete: Cascade)
 }
 
 model TempUpload {

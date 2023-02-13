@@ -428,6 +428,7 @@ export type RoleStatus = typeof RoleStatus[keyof typeof RoleStatus];
 export type School = {
   __typename?: 'School';
   address?: Maybe<Address>;
+  cover?: Maybe<Image>;
   createdAt: Scalars['DateTime'];
   id: Scalars['ID'];
   logo?: Maybe<Image>;
@@ -459,6 +460,7 @@ export type SchoolRole = UserRole & {
 
 export type SchoolUpdate = {
   address?: InputMaybe<AddressUpdate>;
+  cover?: InputMaybe<Scalars['String']>;
   logo?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   phone?: InputMaybe<Scalars['String']>;
@@ -832,6 +834,7 @@ export type QueryResolvers<ContextType = ApolloContext, ParentType extends Resol
 
 export type SchoolResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['School'] = ResolversParentTypes['School']> = {
   address?: Resolver<Maybe<ResolversTypes['Address']>, ParentType, ContextType>;
+  cover?: Resolver<Maybe<ResolversTypes['Image']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   logo?: Resolver<Maybe<ResolversTypes['Image']>, ParentType, ContextType>;

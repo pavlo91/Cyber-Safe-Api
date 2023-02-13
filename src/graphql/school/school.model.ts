@@ -20,6 +20,7 @@ export default createGraphQLModule({
       phone: String
       address: Address
       logo: Image
+      cover: Image
       memberCount: Int!
     }
 
@@ -60,6 +61,7 @@ export default createGraphQLModule({
       phone: String
       address: AddressUpdate
       logo: String
+      cover: String
     }
   `,
   resolvers: {

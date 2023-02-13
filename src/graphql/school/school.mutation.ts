@@ -29,6 +29,7 @@ export default createGraphQLModule({
             phone: input.phone,
             address: updateAddress(input.address),
             logo: await updateImage(input.logo, { school: school.id }, prisma),
+            cover: await updateImage(input.cover, { school: school.id }, prisma),
           },
         })
       }),
