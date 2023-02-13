@@ -3,6 +3,7 @@ import {
   randCity,
   randEmail,
   randFullName,
+  randPhoneNumber,
   randState,
   randStreetAddress,
   randZipCode,
@@ -23,6 +24,7 @@ export class SchoolsSeed implements Seed {
         const school = await prisma.school.create({
           data: {
             name: randAmericanFootballTeam(),
+            phone: randPhoneNumber(),
             address: {
               create: {
                 street: randStreetAddress(),

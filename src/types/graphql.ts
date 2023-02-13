@@ -31,6 +31,13 @@ export type Address = {
   zip: Scalars['String'];
 };
 
+export type AddressCreate = {
+  city: Scalars['String'];
+  state: Scalars['String'];
+  street: Scalars['String'];
+  zip: Scalars['String'];
+};
+
 export type AddressUpdate = {
   city: Scalars['String'];
   state: Scalars['String'];
@@ -426,16 +433,20 @@ export type School = {
   logo?: Maybe<Image>;
   memberCount: Scalars['Int'];
   name: Scalars['String'];
+  phone?: Maybe<Scalars['String']>;
 };
 
 export type SchoolCreate = {
+  address?: InputMaybe<AddressCreate>;
   name: Scalars['String'];
+  phone?: InputMaybe<Scalars['String']>;
 };
 
 export type SchoolOrder = {
   createdAt?: InputMaybe<OrderDirection>;
   memberCount?: InputMaybe<OrderDirection>;
   name?: InputMaybe<OrderDirection>;
+  phone?: InputMaybe<OrderDirection>;
 };
 
 export type SchoolRole = UserRole & {
@@ -450,6 +461,7 @@ export type SchoolUpdate = {
   address?: InputMaybe<AddressUpdate>;
   logo?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
+  phone?: InputMaybe<Scalars['String']>;
 };
 
 export type StatByDay = {
@@ -586,6 +598,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   Address: ResolverTypeWrapper<Address>;
+  AddressCreate: AddressCreate;
   AddressUpdate: AddressUpdate;
   AnyRole: ResolverTypeWrapper<AnyRole>;
   ArrayOrder: ArrayOrder;
@@ -639,6 +652,7 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Address: Address;
+  AddressCreate: AddressCreate;
   AddressUpdate: AddressUpdate;
   AnyRole: AnyRole;
   ArrayOrder: ArrayOrder;
@@ -823,6 +837,7 @@ export type SchoolResolvers<ContextType = ApolloContext, ParentType extends Reso
   logo?: Resolver<Maybe<ResolversTypes['Image']>, ParentType, ContextType>;
   memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

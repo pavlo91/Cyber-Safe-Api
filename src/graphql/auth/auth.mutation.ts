@@ -1,8 +1,10 @@
+import { Prisma } from '@prisma/client'
 import gql from 'graphql-tag'
 import { createGraphQLModule } from '..'
 import { Config } from '../../config'
 import { UserNotFoundError } from '../../helpers/errors'
 import { Postmark } from '../../libs/postmark'
+import { Settings } from '../../seeds/settings'
 import { comparePassword, createJwt, randomToken } from '../../utils/crypto'
 import { UserInclude } from '../user/user.include'
 
@@ -42,27 +44,49 @@ export default createGraphQLModule({
         return { token, user }
       },
       async register(obj, { email, password, user, school }, { prisma }, info) {
-        await prisma.user.create({
-          data: {
-            ...user,
-            email,
-            password,
-            roles: {
-              create: {
-                role: 'ADMIN',
-                schoolRole: {
-                  create: {
-                    school: {
-                      create: {
-                        ...school,
+        const setting = await prisma.globalSetting.findUnique({
+          where: { id: Settings.enableSignUps },
+        })
+
+        if (setting?.boolean !== true) {
+          throw new Error('The organization sign ups are not enabled')
+        }
+
+        await prisma.user
+          .create({
+            data: {
+              ...user,
+              email,
+              password,
+              roles: {
+                create: {
+                  role: 'ADMIN',
+                  schoolRole: {
+                    create: {
+                      school: {
+                        create: {
+                          name: school.name,
+                          phone: school.phone ?? undefined,
+                          address: school.address ? { create: school.address } : undefined,
+                        },
                       },
                     },
                   },
                 },
               },
             },
-          },
-        })
+          })
+          .catch((error) => {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+              // P2022: Unique constraint failed
+              // Prisma error codes: https://www.prisma.io/docs/reference/api-reference/error-reference#error-codes
+              if (error.code === 'P2002') {
+                throw new Error('There is already an user with the same e-mail')
+              }
+            }
+
+            throw error
+          })
       },
       async activate(obj, { password, passwordToken, user }, { prisma }, info) {
         const foundUser = await prisma.user.findUniqueOrThrow({

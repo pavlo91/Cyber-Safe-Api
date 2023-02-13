@@ -17,6 +17,7 @@ export default createGraphQLModule({
       id: ID!
       createdAt: DateTime!
       name: String!
+      phone: String
       address: Address
       logo: Image
       memberCount: Int!
@@ -30,11 +31,21 @@ export default createGraphQLModule({
     input SchoolOrder {
       createdAt: OrderDirection
       name: OrderDirection
+      phone: OrderDirection
       memberCount: OrderDirection
+    }
+
+    input AddressCreate {
+      street: String!
+      city: String!
+      state: String!
+      zip: String!
     }
 
     input SchoolCreate {
       name: String!
+      phone: String
+      address: AddressCreate
     }
 
     input AddressUpdate {
@@ -46,6 +57,7 @@ export default createGraphQLModule({
 
     input SchoolUpdate {
       name: String
+      phone: String
       address: AddressUpdate
       logo: String
     }

@@ -8,6 +8,7 @@ export function parseSchoolOrder(order: SchoolOrder | undefined | null) {
 
   if (order.createdAt) orderBy.createdAt = order.createdAt
   if (order.name) orderBy.name = order.name
+  if (order.phone) orderBy.phone = order.phone
   if (order.memberCount) orderBy.roles = { _count: order.memberCount }
 
   return orderBy
@@ -17,7 +18,7 @@ export function parseSchoolSearch(contains: string | undefined | null) {
   if (!contains) return
 
   const where: Prisma.SchoolWhereInput = {
-    OR: [{ name: { contains, mode: 'insensitive' } }],
+    OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains, mode: 'insensitive' } }],
   }
 
   return where
