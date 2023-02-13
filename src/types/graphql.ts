@@ -133,7 +133,7 @@ export type Mutation = {
   login: Jwt;
   prepareForUpload: Upload;
   readAllNotifications?: Maybe<Scalars['ID']>;
-  register?: Maybe<Scalars['ID']>;
+  register: Jwt;
   removeMember?: Maybe<Scalars['ID']>;
   removeParent?: Maybe<Scalars['ID']>;
   removeRole?: Maybe<Scalars['ID']>;
@@ -744,7 +744,7 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   login?: Resolver<ResolversTypes['JWT'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
   prepareForUpload?: Resolver<ResolversTypes['Upload'], ParentType, ContextType>;
   readAllNotifications?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
-  register?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'password' | 'school' | 'user'>>;
+  register?: Resolver<ResolversTypes['JWT'], ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'password' | 'school' | 'user'>>;
   removeMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveMemberArgs, 'id'>>;
   removeParent?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveParentArgs, 'childId' | 'id'>>;
   removeRole?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveRoleArgs, 'id'>>;

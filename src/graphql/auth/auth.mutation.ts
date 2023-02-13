@@ -17,7 +17,7 @@ export default createGraphQLModule({
 
     type Mutation {
       login(email: String!, password: String!): JWT!
-      register(email: String!, password: String!, user: UserCreate!, school: SchoolCreate!): ID
+      register(email: String!, password: String!, user: UserCreate!, school: SchoolCreate!): JWT!
       activate(password: String!, passwordToken: String!, user: UserCreate!): ID
       requestResetPassword(email: String!): ID
       resetPassword(password: String!, passwordToken: String!): ID
@@ -52,8 +52,9 @@ export default createGraphQLModule({
           throw new Error('The organization sign ups are not enabled')
         }
 
-        await prisma.user
+        const createdUser = await prisma.user
           .create({
+            include: UserInclude,
             data: {
               ...user,
               email,
@@ -61,6 +62,7 @@ export default createGraphQLModule({
               roles: {
                 create: {
                   role: 'ADMIN',
+                  status: 'ACCEPTED',
                   schoolRole: {
                     create: {
                       school: {
@@ -87,6 +89,10 @@ export default createGraphQLModule({
 
             throw error
           })
+
+        const token = createJwt(createdUser)
+
+        return { token, user: createdUser }
       },
       async activate(obj, { password, passwordToken, user }, { prisma }, info) {
         const foundUser = await prisma.user.findUniqueOrThrow({
