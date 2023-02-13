@@ -137,3 +137,18 @@ model TempUpload {
 
   @@index([userId])
 }
+
+enum GlobalSettingType {
+  BOOLEAN
+  INTEGER
+  STRING
+}
+
+model GlobalSetting {
+  id      String            @id
+  name    String
+  type    GlobalSettingType
+  boolean Boolean?
+  integer Int?
+  string  String?
+}

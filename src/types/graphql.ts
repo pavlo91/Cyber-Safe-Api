@@ -81,6 +81,15 @@ export type FloatFilter = {
   not?: InputMaybe<Scalars['Float']>;
 };
 
+export type GlobalSettings = {
+  __typename?: 'GlobalSettings';
+  enableSignUps?: Maybe<Scalars['Boolean']>;
+};
+
+export type GlobalSettingsUpdate = {
+  enableSignUps?: InputMaybe<Scalars['Boolean']>;
+};
+
 export type Image = {
   __typename?: 'Image';
   url: Scalars['String'];
@@ -123,6 +132,7 @@ export type Mutation = {
   removeRole?: Maybe<Scalars['ID']>;
   requestResetPassword?: Maybe<Scalars['ID']>;
   resetPassword?: Maybe<Scalars['ID']>;
+  updateGlobalSettings?: Maybe<Scalars['ID']>;
   updatePassword?: Maybe<Scalars['ID']>;
   updateProfile?: Maybe<Scalars['ID']>;
   updateSchool?: Maybe<Scalars['ID']>;
@@ -205,6 +215,11 @@ export type MutationResetPasswordArgs = {
 };
 
 
+export type MutationUpdateGlobalSettingsArgs = {
+  input: GlobalSettingsUpdate;
+};
+
+
 export type MutationUpdatePasswordArgs = {
   newPassword: Scalars['String'];
   oldPassword: Scalars['String'];
@@ -275,6 +290,8 @@ export type ParentRole = UserRole & {
 export type Query = {
   __typename?: 'Query';
   children: PaginatedUser;
+  globalSettings: GlobalSettings;
+  globalSettingsCanSignUp: Scalars['Boolean'];
   member: User;
   members: PaginatedUser;
   notifications: PaginatedNotification;
@@ -579,6 +596,8 @@ export type ResolversTypes = {
   DateTimeFilter: DateTimeFilter;
   Float: ResolverTypeWrapper<Scalars['Float']>;
   FloatFilter: FloatFilter;
+  GlobalSettings: ResolverTypeWrapper<GlobalSettings>;
+  GlobalSettingsUpdate: GlobalSettingsUpdate;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   Image: ResolverTypeWrapper<Image>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
@@ -630,6 +649,8 @@ export type ResolversParentTypes = {
   DateTimeFilter: DateTimeFilter;
   Float: Scalars['Float'];
   FloatFilter: FloatFilter;
+  GlobalSettings: GlobalSettings;
+  GlobalSettingsUpdate: GlobalSettingsUpdate;
   ID: Scalars['ID'];
   Image: Image;
   Int: Scalars['Int'];
@@ -683,6 +704,11 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
   name: 'DateTime';
 }
 
+export type GlobalSettingsResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['GlobalSettings'] = ResolversParentTypes['GlobalSettings']> = {
+  enableSignUps?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type ImageResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Image'] = ResolversParentTypes['Image']> = {
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -710,6 +736,7 @@ export type MutationResolvers<ContextType = ApolloContext, ParentType extends Re
   removeRole?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRemoveRoleArgs, 'id'>>;
   requestResetPassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationRequestResetPasswordArgs, 'email'>>;
   resetPassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'passwordToken'>>;
+  updateGlobalSettings?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateGlobalSettingsArgs, 'input'>>;
   updatePassword?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdatePasswordArgs, 'newPassword' | 'oldPassword'>>;
   updateProfile?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
   updateSchool?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType, RequireFields<MutationUpdateSchoolArgs, 'input'>>;
@@ -768,6 +795,8 @@ export type ParentRoleResolvers<ContextType = ApolloContext, ParentType extends 
 
 export type QueryResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   children?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryChildrenArgs>>;
+  globalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType>;
+  globalSettingsCanSignUp?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   member?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryMemberArgs, 'id'>>;
   members?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryMembersArgs>>;
   notifications?: Resolver<ResolversTypes['PaginatedNotification'], ParentType, ContextType, Partial<QueryNotificationsArgs>>;
@@ -857,6 +886,7 @@ export type Resolvers<ContextType = ApolloContext> = {
   Address?: AddressResolvers<ContextType>;
   AnyRole?: AnyRoleResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
+  GlobalSettings?: GlobalSettingsResolvers<ContextType>;
   Image?: ImageResolvers<ContextType>;
   JWT?: JwtResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;

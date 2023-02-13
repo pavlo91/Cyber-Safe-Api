@@ -4,6 +4,7 @@ import { Logger } from '../utils/logger'
 import { AuthSeed } from './auth'
 import { ParentsSeed } from './parents'
 import { SchoolsSeed } from './schools'
+import { SettingsSeed } from './settings'
 
 export interface Seed {
   name: string
@@ -12,10 +13,12 @@ export interface Seed {
 }
 
 export class SeedManager {
-  private seeds: Seed[] = []
+  private seeds: Seed[]
   private logger = Logger.label('seed')
 
   constructor(prisma: PrismaClient) {
+    this.seeds = [new SettingsSeed('SettingsSeed', prisma)]
+
     if (Config.dev) {
       this.seeds.push(
         new AuthSeed('AuthSeed', prisma),
