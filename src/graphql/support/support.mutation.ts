@@ -12,7 +12,8 @@ export default createGraphQLModule({
   resolvers: {
     Mutation: {
       contact(obj, { input }, ctx, info) {
-        Postmark.shared.send(Config.email.contact, 'email/contact.pug', input)
+        const to = Config.email.contact.split(',')
+        Postmark.shared.sendMany(to, 'email/contact.pug', input)
       },
     },
   },

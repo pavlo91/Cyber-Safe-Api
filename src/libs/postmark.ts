@@ -35,4 +35,27 @@ export class Postmark {
         this.logger.error('Error while sending email via Postmark: %s', error)
       })
   }
+
+  async sendMany<K extends HtmlFileNames>(to: string[], fileName: K, model?: HtmlModel<K>) {
+    if (!this.client) {
+      this.logger.debug('Sending email "%s" to "%s" with model %o', fileName, to, model)
+      return
+    }
+
+    const html = loadHtml(fileName, model)
+    const title = loadHtmlTitle(html)
+
+    await this.client
+      .sendEmailBatch(
+        to.map((to) => ({
+          To: to,
+          Subject: title,
+          HtmlBody: html,
+          From: this.from!,
+        }))
+      )
+      .catch((error) => {
+        this.logger.error('Error while sending email via Postmark: %s', error)
+      })
+  }
 }
