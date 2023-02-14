@@ -116,12 +116,28 @@ export const InviteMemberRole = {
 } as const;
 
 export type InviteMemberRole = typeof InviteMemberRole[keyof typeof InviteMemberRole];
+export type Item = {
+  __typename?: 'Item';
+  id: Scalars['ID'];
+};
+
 export type Jwt = {
   __typename?: 'JWT';
   token: Scalars['String'];
   user: User;
 };
 
+export type MemberFilter = {
+  role?: InputMaybe<MemberRole>;
+};
+
+export const MemberRole = {
+  Admin: 'ADMIN',
+  Athlete: 'ATHLETE',
+  Coach: 'COACH'
+} as const;
+
+export type MemberRole = typeof MemberRole[keyof typeof MemberRole];
 export type Mutation = {
   __typename?: 'Mutation';
   activate?: Maybe<Scalars['ID']>;
@@ -267,6 +283,12 @@ export type PageInfo = {
   total: Scalars['Int'];
 };
 
+export type PaginatedItem = {
+  __typename?: 'PaginatedItem';
+  nodes: Array<Item>;
+  page: PageInfo;
+};
+
 export type PaginatedNotification = {
   __typename?: 'PaginatedNotification';
   nodes: Array<Notification>;
@@ -314,6 +336,7 @@ export type Query = {
   statsOfCreatedSchools: StatsByDay;
   statsOfCreatedUsers: StatsByDay;
   statsOfInvitedMembersInSchool: StatsByDay;
+  tempPaginatedItem: PaginatedItem;
   user: User;
   users: PaginatedUser;
 };
@@ -332,6 +355,7 @@ export type QueryMemberArgs = {
 
 
 export type QueryMembersArgs = {
+  filter?: InputMaybe<MemberFilter>;
   order?: InputMaybe<UserOrder>;
   page?: InputMaybe<Page>;
   search?: InputMaybe<Scalars['String']>;
@@ -395,6 +419,11 @@ export type QueryStatsOfCreatedUsersArgs = {
 
 export type QueryStatsOfInvitedMembersInSchoolArgs = {
   days?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QueryTempPaginatedItemArgs = {
+  page?: InputMaybe<Page>;
 };
 
 
@@ -618,13 +647,17 @@ export type ResolversTypes = {
   Int: ResolverTypeWrapper<Scalars['Int']>;
   IntFilter: IntFilter;
   InviteMemberRole: InviteMemberRole;
+  Item: ResolverTypeWrapper<Item>;
   JWT: ResolverTypeWrapper<Jwt>;
+  MemberFilter: MemberFilter;
+  MemberRole: MemberRole;
   Mutation: ResolverTypeWrapper<{}>;
   Notification: ResolverTypeWrapper<Notification>;
   NullObject: ResolverTypeWrapper<Scalars['NullObject']>;
   OrderDirection: Prisma.SortOrder;
   Page: Page;
   PageInfo: ResolverTypeWrapper<PageInfo>;
+  PaginatedItem: ResolverTypeWrapper<PaginatedItem>;
   PaginatedNotification: ResolverTypeWrapper<PaginatedNotification>;
   PaginatedSchool: ResolverTypeWrapper<PaginatedSchool>;
   PaginatedUser: ResolverTypeWrapper<PaginatedUser>;
@@ -671,12 +704,15 @@ export type ResolversParentTypes = {
   Image: Image;
   Int: Scalars['Int'];
   IntFilter: IntFilter;
+  Item: Item;
   JWT: Jwt;
+  MemberFilter: MemberFilter;
   Mutation: {};
   Notification: Notification;
   NullObject: Scalars['NullObject'];
   Page: Page;
   PageInfo: PageInfo;
+  PaginatedItem: PaginatedItem;
   PaginatedNotification: PaginatedNotification;
   PaginatedSchool: PaginatedSchool;
   PaginatedUser: PaginatedUser;
@@ -727,6 +763,11 @@ export type GlobalSettingsResolvers<ContextType = ApolloContext, ParentType exte
 
 export type ImageResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Image'] = ResolversParentTypes['Image']> = {
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ItemResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['Item'] = ResolversParentTypes['Item']> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -782,6 +823,12 @@ export type PageInfoResolvers<ContextType = ApolloContext, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PaginatedItemResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['PaginatedItem'] = ResolversParentTypes['PaginatedItem']> = {
+  nodes?: Resolver<Array<ResolversTypes['Item']>, ParentType, ContextType>;
+  page?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type PaginatedNotificationResolvers<ContextType = ApolloContext, ParentType extends ResolversParentTypes['PaginatedNotification'] = ResolversParentTypes['PaginatedNotification']> = {
   nodes?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
   page?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
@@ -828,6 +875,7 @@ export type QueryResolvers<ContextType = ApolloContext, ParentType extends Resol
   statsOfCreatedSchools?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedSchoolsArgs, 'days'>>;
   statsOfCreatedUsers?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfCreatedUsersArgs, 'days'>>;
   statsOfInvitedMembersInSchool?: Resolver<ResolversTypes['StatsByDay'], ParentType, ContextType, RequireFields<QueryStatsOfInvitedMembersInSchoolArgs, 'days'>>;
+  tempPaginatedItem?: Resolver<ResolversTypes['PaginatedItem'], ParentType, ContextType, Partial<QueryTempPaginatedItemArgs>>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<ResolversTypes['PaginatedUser'], ParentType, ContextType, Partial<QueryUsersArgs>>;
 };
@@ -906,12 +954,14 @@ export type Resolvers<ContextType = ApolloContext> = {
   DateTime?: GraphQLScalarType;
   GlobalSettings?: GlobalSettingsResolvers<ContextType>;
   Image?: ImageResolvers<ContextType>;
+  Item?: ItemResolvers<ContextType>;
   JWT?: JwtResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Notification?: NotificationResolvers<ContextType>;
   NullObject?: GraphQLScalarType;
   OrderDirection?: OrderDirectionResolvers;
   PageInfo?: PageInfoResolvers<ContextType>;
+  PaginatedItem?: PaginatedItemResolvers<ContextType>;
   PaginatedNotification?: PaginatedNotificationResolvers<ContextType>;
   PaginatedSchool?: PaginatedSchoolResolvers<ContextType>;
   PaginatedUser?: PaginatedUserResolvers<ContextType>;

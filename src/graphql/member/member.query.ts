@@ -9,16 +9,21 @@ import { parseUserOrder, parseUserSearch } from '../user/user.utils'
 export default createGraphQLModule({
   typeDefs: gql`
     extend type Query {
-      members(page: Page, order: UserOrder, search: String): PaginatedUser!
+      members(page: Page, order: UserOrder, search: String, filter: MemberFilter): PaginatedUser!
       member(id: ID!): User!
     }
   `,
   resolvers: {
     Query: {
-      members: withAuth('member', (obj, { page, order, search }, { prisma, school }, info) => {
+      members: withAuth('member', (obj, { page, order, search, filter }, { prisma, school }, info) => {
         const where: Prisma.UserWhereInput = {
           ...parseUserSearch(search),
-          roles: { some: { schoolRole: { schoolId: school.id } } },
+          roles: {
+            some: {
+              role: filter?.role ?? undefined,
+              schoolRole: { schoolId: school.id },
+            },
+          },
         }
 
         return paginated(page, (args) =>
