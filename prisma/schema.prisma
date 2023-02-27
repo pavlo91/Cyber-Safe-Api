@@ -10,38 +10,41 @@ datasource db {
 }
 
 model User {
-  id             String           @id @default(cuid())
-  uuid           String           @unique @default(uuid())
-  createdAt      DateTime         @default(now())
-  email          String           @unique @db.Citext
-  emailConfirmed Boolean          @default(false)
+  id             String         @id @default(cuid())
+  uuid           String         @unique @default(uuid())
+  createdAt      DateTime       @default(now())
+  email          String         @unique @db.Citext
+  emailConfirmed Boolean        @default(false)
   newEmail       String?
-  newEmailToken  String?          @unique
+  newEmailToken  String?        @unique
   password       String?
-  passwordToken  String?          @unique
+  passwordToken  String?        @unique
   name           String
-  avatar         Image?
+  avatarId       String?        @unique
+  avatar         Image?         @relation(fields: [avatarId], references: [id], onDelete: SetNull)
   roles          UserRole[]
-  parentRoles    ParentUserRole[]
+  parentRoles    ParentRole[]
   notifications  Notification[]
-  tempUploads    TempUpload[]
+  uploads        Upload[]
 
   @@index([emailConfirmed])
 }
 
 model School {
-  id            String           @id @default(cuid())
-  createdAt     DateTime         @default(now())
-  name          String
-  phone         String?
-  address       Address?
-  logo          Image?           @relation(name: "Logo")
-  cover         Image?           @relation(name: "Cover")
-  roles         SchoolUserRole[]
-  notifications Notification[]
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  name      String
+  phone     String?
+  addressId String?      @unique
+  address   Address?     @relation(fields: [addressId], references: [id], onDelete: SetNull)
+  logoId    String?      @unique
+  logo      Image?       @relation(name: "SchoolLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  coverId   String?      @unique
+  cover     Image?       @relation(name: "SchoolCover", fields: [coverId], references: [id], onDelete: SetNull)
+  roles     SchoolRole[]
 }
 
-enum Role {
+enum UserRoleType {
   STAFF
   ADMIN
   COACH
@@ -49,28 +52,29 @@ enum Role {
   PARENT
 }
 
-enum RoleStatus {
+enum UserRoleStatus {
   PENDING
   ACCEPTED
   DECLINED
 }
 
 model UserRole {
-  id          String          @id @default(cuid())
-  createdAt   DateTime        @default(now())
+  id          String         @id @default(cuid())
+  createdAt   DateTime       @default(now())
   userId      String
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role        Role
-  status      RoleStatus      @default(PENDING)
-  statusToken String?         @unique
-  schoolRole  SchoolUserRole?
-  parentRole  ParentUserRole?
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        UserRoleType
+  status      UserRoleStatus @default(PENDING)
+  statusToken String?        @unique
+  schoolRole  SchoolRole?
+  parentRole  ParentRole?
 
   @@index([userId])
-  @@index([role])
+  @@index([type])
+  @@index([status])
 }
 
-model SchoolUserRole {
+model SchoolRole {
   schoolId   String
   school     School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   userRoleId String   @unique
@@ -81,13 +85,12 @@ model SchoolUserRole {
   @@index([schoolId])
 }
 
-model ParentUserRole {
+model ParentRole {
   childUserId String
   childUser   User     @relation(fields: [childUserId], references: [id], onDelete: Cascade)
   userRoleId  String   @unique
   userRole    UserRole @relation(fields: [userRoleId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
-  relation    String?
 
   @@id([childUserId, userRoleId])
   @@index([childUserId])
@@ -97,16 +100,13 @@ model Notification {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   unread    Boolean  @default(true)
-  message   String
+  body      String
   url       String?
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  schoolId  String?
-  school    School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([unread])
   @@index([userId])
-  @@index([schoolId])
 }
 
 model Address {
@@ -116,23 +116,19 @@ model Address {
   city      String
   state     String
   zip       String
-  schoolId  String?  @unique
-  school    School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school    School?
 }
 
 model Image {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  url           String
-  userId        String?  @unique
-  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  schoolId      String?  @unique
-  school        School?  @relation(name: "Logo", fields: [schoolId], references: [id], onDelete: Cascade)
-  schoolCoverId String?  @unique
-  schoolCover   School?  @relation(name: "Cover", fields: [schoolCoverId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  url         String
+  userAvatar  User?
+  schoolLogo  School?  @relation(name: "SchoolLogo")
+  schoolCover School?  @relation(name: "SchoolCover")
 }
 
-model TempUpload {
+model Upload {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   blobName  String   @unique
@@ -142,17 +138,12 @@ model TempUpload {
   @@index([userId])
 }
 
-enum GlobalSettingType {
+enum SettingType {
   BOOLEAN
-  INTEGER
-  STRING
 }
 
-model GlobalSetting {
-  id      String            @id
-  name    String
-  type    GlobalSettingType
+model Setting {
+  id      String      @id
+  type    SettingType
   boolean Boolean?
-  integer Int?
-  string  String?
 }

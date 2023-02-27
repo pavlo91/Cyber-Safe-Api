@@ -1,11 +1,9 @@
-import { HTTPMethods } from 'fastify'
-import { loadHtml } from '../helpers/pug'
-import { Route } from './index'
+import { loadHTML } from '../libs/pug'
+import { fastify } from './fastify'
 
-export class LandingRoute implements Route {
-  constructor(public path: string, public method: HTTPMethods) {}
+fastify.get('/', (req, reply) => {
+  reply.type('text/html')
+  reply.send(loadHTML('html/landing.pug'))
 
-  handle() {
-    return loadHtml('html/landing.pug')
-  }
-}
+  return reply
+})

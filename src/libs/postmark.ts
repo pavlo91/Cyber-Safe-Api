@@ -1,61 +1,29 @@
 import { ServerClient } from 'postmark'
-import { Config } from '../config'
-import { HtmlFileNames, HtmlModel, loadHtml, loadHtmlTitle } from '../helpers/pug'
-import { Logger } from '../utils/logger'
+import { config } from '../config'
+import { HTMLFileNames, HTMLModel, loadHTML, loadHTMLTitle } from './pug'
 
-export class Postmark {
-  static shared = new Postmark(Config.postmark.token, Config.postmark.from)
+const client = config.postmark.token ? new ServerClient(config.postmark.token) : undefined
 
-  private logger = Logger.label('postmark')
-  private client: ServerClient | undefined
-
-  constructor(token?: string, private from?: string) {
-    if (token && from) {
-      this.client = new ServerClient(token)
-    }
+export async function sendEmail<K extends HTMLFileNames>(to: string | string[], fileName: K, model?: HTMLModel<K>) {
+  if (!client || !config.postmark.from) {
+    return
   }
 
-  async send<K extends HtmlFileNames>(to: string, fileName: K, model?: HtmlModel<K>) {
-    if (!this.client) {
-      this.logger.debug('Sending email "%s" to "%s" with model %o', fileName, to, model)
-      return
-    }
+  const emails = Array.isArray(to) ? to : [to]
 
-    const html = loadHtml(fileName, model)
-    const title = loadHtmlTitle(html)
+  const html = loadHTML(fileName, model)
+  const title = loadHTMLTitle(html)
 
-    await this.client
-      .sendEmail({
-        To: to,
+  await client
+    .sendEmailBatch(
+      emails.map((email) => ({
+        To: email,
         Subject: title,
-        HtmlBody: html,
-        From: this.from!,
-      })
-      .catch((error) => {
-        this.logger.error('Error while sending email via Postmark: %s', error)
-      })
-  }
-
-  async sendMany<K extends HtmlFileNames>(to: string[], fileName: K, model?: HtmlModel<K>) {
-    if (!this.client) {
-      this.logger.debug('Sending email "%s" to "%s" with model %o', fileName, to, model)
-      return
-    }
-
-    const html = loadHtml(fileName, model)
-    const title = loadHtmlTitle(html)
-
-    await this.client
-      .sendEmailBatch(
-        to.map((to) => ({
-          To: to,
-          Subject: title,
-          HtmlBody: html,
-          From: this.from!,
-        }))
-      )
-      .catch((error) => {
-        this.logger.error('Error while sending email via Postmark: %s', error)
-      })
-  }
+        HTMLBody: html,
+        From: config.postmark.from!,
+      }))
+    )
+    .catch((error) => {
+      console.error(`Error while sending email: ${error}`)
+    })
 }

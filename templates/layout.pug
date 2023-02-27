@@ -85,11 +85,11 @@ html(lang="en")
   body
     div.container
       header
-        a(href=webUrl)
-          img.logo(src=webUrl + "/images/logo-black.png")
+        a(href=webURL)
+          img.logo(src=webURL + "/images/logo-black.png")
         h1.title #{appName}
       main
         block body
       footer
         | &copy; 2022 - #{new Date().getFullYear()} 
-        a(href=webUrl) #{appName}
+        a(href=webURL) #{appName}
