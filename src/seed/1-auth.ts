@@ -7,15 +7,15 @@ import {
   randStreetAddress,
   randZipCode,
 } from '@ngneat/falso'
-import { config } from '../config'
 import { prisma } from '../prisma'
 
-prisma.user.count().then((count) => {
-  if (count > 0 || !config.dev) return
+export async function seedAuth() {
+  const count = await prisma.user.count()
+  if (count > 0) return
 
   console.debug('Seeding auth users...')
 
-  prisma.$transaction(async (prisma) => {
+  await prisma.$transaction(async (prisma) => {
     await prisma.user.upsert({
       where: { email: 'staff@wonderkiln.com' },
       create: {
@@ -171,4 +171,4 @@ prisma.user.count().then((count) => {
       update: {},
     })
   })
-})
+}

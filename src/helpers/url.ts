@@ -29,7 +29,6 @@ type ComposeWebURL = {
   '/auth/login': {}
   '/auth/activate/:token': { token: string }
   '/auth/reset/:token': { token: string }
-  '/dashboard/staff/users': {}
 }
 
 export function composeWebURL<K extends keyof ComposeWebURL>(

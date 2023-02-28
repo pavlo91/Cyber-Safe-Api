@@ -3,7 +3,12 @@ import { config } from './config'
 import './middleware'
 import './routes'
 import { fastify } from './routes/fastify'
-import './seed'
+
+if (config.dev) {
+  import('./seed')
+} else {
+  import('./crons')
+}
 
 fastify
   .register(cors)

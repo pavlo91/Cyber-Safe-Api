@@ -40,7 +40,7 @@ builder.mutationFields((t) => ({
       return prisma
         .$transaction(async (prisma) => {
           if (typeof input.enableSignUps === 'boolean') {
-            prisma.setting.upsert({
+            await prisma.setting.upsert({
               where: { id: KEYS.enableSignUps },
               create: { id: KEYS.enableSignUps, type: 'BOOLEAN', boolean: input.enableSignUps },
               update: { boolean: input.enableSignUps },

@@ -1,13 +1,13 @@
 import { randEmail, randFullName } from '@ngneat/falso'
-import { config } from '../config'
 import { prisma } from '../prisma'
 
-prisma.parentRole.count().then((count) => {
-  if (count > 1 || !config.dev) return
+export async function seedParents() {
+  const count = await prisma.parentRole.count()
+  if (count > 1) return
 
   console.debug('Seeding athlete parents...')
 
-  prisma.$transaction(async (prisma) => {
+  await prisma.$transaction(async (prisma) => {
     const athletes = await prisma.userRole.findMany({
       where: { type: 'ATHLETE' },
     })
@@ -34,4 +34,4 @@ prisma.parentRole.count().then((count) => {
       })
     }
   })
-})
+}

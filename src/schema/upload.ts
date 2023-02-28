@@ -7,7 +7,7 @@ type Header = {
   value: string
 }
 
-type Upload = Awaited<ReturnType<typeof storagePrepareForUpload>>
+type Upload = { id: string } & Awaited<ReturnType<typeof storagePrepareForUpload>>
 
 export const Header = builder.objectRef<Header>('Header')
 export const Upload = builder.objectRef<Upload>('Upload')
@@ -21,6 +21,7 @@ Header.implement({
 
 Upload.implement({
   fields: (t) => ({
+    id: t.exposeID('id'),
     url: t.exposeString('url'),
     method: t.exposeString('method'),
     headers: t.field({
@@ -39,14 +40,17 @@ builder.mutationFields((t) => ({
     },
     type: Upload,
     resolve: async (obj, args, { user }) => {
-      const tempImage = await prisma.upload.create({
+      const upload = await prisma.upload.create({
         data: {
           userId: user!.id,
           blobName: getStorageTempBlobName(user!.id),
         },
       })
 
-      return await storagePrepareForUpload(tempImage.blobName)
+      return {
+        id: upload.id,
+        ...(await storagePrepareForUpload(upload.blobName)),
+      }
     },
   }),
 }))

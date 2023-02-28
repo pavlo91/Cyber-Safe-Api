@@ -105,7 +105,7 @@ builder.mutationFields((t) => ({
       })
     },
   }),
-  changePassword: t.fieldWithInput({
+  updatePassword: t.fieldWithInput({
     authScopes: {
       user: true,
     },

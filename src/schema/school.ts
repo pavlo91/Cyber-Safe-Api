@@ -4,15 +4,29 @@ import { prisma } from '../prisma'
 import { Address } from './address'
 import { builder } from './builder'
 import { Image } from './image'
+import { orderDirection, OrderDirectionEnum } from './order'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
+import { UserRoleStatusEnum } from './user-role'
 
 export const School = builder.objectRef<Prisma.School>('School')
 export const SchoolPage = createPageObjectRef(School)
+
+export const SchoolOrder = builder.inputRef<{
+  createdAt?: OrderDirectionEnum
+}>('SchoolOrder')
+
+SchoolOrder.implement({
+  fields: (t) => ({
+    createdAt: t.field({ type: OrderDirectionEnum, required: false }),
+  }),
+})
 
 School.implement({
   fields: (t) => ({
     id: t.exposeID('id'),
     name: t.exposeString('name'),
+    phone: t.exposeString('phone', { nullable: true }),
+    createdAt: t.expose('createdAt', { type: 'DateTime' }),
     address: t.field({
       type: Address,
       nullable: true,
@@ -28,6 +42,20 @@ School.implement({
       nullable: true,
       resolve: (school) => school.coverId,
     }),
+    memberCount: t.int({
+      args: {
+        status: t.arg({ type: UserRoleStatusEnum, required: false }),
+      },
+      resolve: async (school, { status }) => {
+        return prisma.userRole.count({
+          where: {
+            status: status ?? undefined,
+            schoolRole: { schoolId: school.id },
+            type: { in: ['ADMIN', 'COACH', 'ATHLETE'] },
+          },
+        })
+      },
+    }),
   }),
 })
 
@@ -39,10 +67,15 @@ builder.queryFields((t) => ({
     type: SchoolPage,
     args: {
       ...createPageArgs(t.arg),
+      order: t.arg({ type: SchoolOrder, required: false }),
     },
-    resolve: (obj, { page }) => {
+    resolve: (obj, { page, order }) => {
+      const orderBy: Prisma.Prisma.SchoolOrderByWithRelationInput = {
+        createdAt: orderDirection(order?.createdAt),
+      }
+
       return createPage(page, (args) =>
-        prisma.$transaction([prisma.school.findMany({ ...args }), prisma.school.count()])
+        prisma.$transaction([prisma.school.findMany({ ...args, orderBy }), prisma.school.count()])
       )
     },
   }),

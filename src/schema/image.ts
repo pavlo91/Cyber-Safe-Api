@@ -17,6 +17,7 @@ export const Image = builder.loadableObjectRef<Prisma.Image, string>('Image', {
 
 Image.implement({
   fields: (t) => ({
+    id: t.exposeID('id'),
     url: t.exposeString('url'),
   }),
 })

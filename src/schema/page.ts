@@ -46,6 +46,7 @@ export function createPageObjectRef<T>(ref: ObjectRef<T>) {
 export const PageInput = builder.inputType('PageInput', {
   fields: (t) => ({
     index: t.int({ required: false }),
+    size: t.int({ required: false }),
   }),
 })
 

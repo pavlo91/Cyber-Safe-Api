@@ -71,9 +71,9 @@ prisma.$use(async (params, next) => {
     }
   }
 
-  const result: any = await next(params)
+  const data: any = await next(params)
 
-  callbacks.forEach((callback) => callback(result))
+  callbacks.forEach((callback) => callback(data))
 
-  return result
+  return data
 })

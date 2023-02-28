@@ -4,6 +4,7 @@ import { hasRoleInSchoolId, hasRoleToUserId, isParentToUserId, isSameUserId } fr
 import { prisma } from '../prisma'
 import { builder, DefaultSchemaType } from './builder'
 import { Image } from './image'
+import { orderDirection, OrderDirectionEnum } from './order'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
 import { UserRole, UserRoleStatusEnum } from './user-role'
 
@@ -13,6 +14,10 @@ export const UsersFromEnum = builder.enumType('UsersFromEnum', {
 
 export const User = builder.objectRef<Prisma.User>('User')
 export const UserPage = createPageObjectRef(User)
+
+export const UserOrder = builder.inputRef<{
+  createdAt?: OrderDirectionEnum
+}>('UserOrder')
 
 function createRolesArgs(arg: ArgBuilder<DefaultSchemaType>) {
   return {
@@ -25,7 +30,9 @@ type RolesArgs = InputShapeFromFields<ReturnType<typeof createRolesArgs>>
 User.implement({
   fields: (t) => ({
     id: t.exposeID('id'),
+    createdAt: t.expose('createdAt', { type: 'DateTime' }),
     email: t.exposeString('email'),
+    emailConfirmed: t.exposeBoolean('emailConfirmed'),
     name: t.exposeString('name'),
     avatar: t.field({
       type: Image,
@@ -52,6 +59,12 @@ User.implement({
         )
       },
     }),
+  }),
+})
+
+UserOrder.implement({
+  fields: (t) => ({
+    createdAt: t.field({ type: OrderDirectionEnum, required: false }),
   }),
 })
 
@@ -87,9 +100,14 @@ builder.queryFields((t) => ({
       ...createPageArgs(t.arg),
       from: t.arg({ type: UsersFromEnum, required: false }),
       fromId: t.arg.id({ required: false }),
+      order: t.arg({ type: UserOrder, required: false }),
     },
-    resolve: (obj, { page, from, fromId }) => {
+    resolve: (obj, { page, from, fromId, order }) => {
       const where: Prisma.Prisma.UserWhereInput = {}
+
+      const orderBy: Prisma.Prisma.UserOrderByWithRelationInput = {
+        createdAt: orderDirection(order?.createdAt),
+      }
 
       if (from && fromId) {
         switch (from) {
@@ -108,7 +126,7 @@ builder.queryFields((t) => ({
       }
 
       return createPage(page, (args) =>
-        prisma.$transaction([prisma.user.findMany({ ...args, where }), prisma.user.count({ where })])
+        prisma.$transaction([prisma.user.findMany({ ...args, where, orderBy }), prisma.user.count({ where })])
       )
     },
   }),

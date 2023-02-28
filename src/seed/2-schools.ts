@@ -9,15 +9,15 @@ import {
   randStreetAddress,
   randZipCode,
 } from '@ngneat/falso'
-import { config } from '../config'
 import { prisma } from '../prisma'
 
-prisma.school.count().then((count) => {
-  if (count > 1 || !config.dev) return
+export async function seedSchools() {
+  const count = await prisma.school.count()
+  if (count > 1) return
 
   console.debug('Seeding schools and users...')
 
-  prisma.$transaction(async (prisma) => {
+  await prisma.$transaction(async (prisma) => {
     for (let i = 0; i < 5; i++) {
       const school = await prisma.school.create({
         data: {
@@ -72,4 +72,4 @@ prisma.school.count().then((count) => {
       }
     }
   })
-})
+}

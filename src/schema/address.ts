@@ -17,6 +17,11 @@ Address.implement({
     city: t.exposeString('city'),
     state: t.exposeString('state'),
     zip: t.exposeString('zip'),
+    formatted: t.string({
+      resolve: (address) => {
+        return [address.street, address.city, address.state, address.zip].join(', ')
+      },
+    }),
   }),
 })
 

@@ -46,7 +46,7 @@ export async function getContextFromRequest(req: FastifyRequest) {
   }
 
   if (typeof token === 'string') {
-    context.user = await getUserFromToken(token)
+    context.user = await getUserFromToken(token).catch(() => null)
   }
 
   return context
