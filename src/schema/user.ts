@@ -4,7 +4,7 @@ import { hasRoleInSchoolId, hasRoleToUserId, isParentToUserId, isSameUserId } fr
 import { prisma } from '../prisma'
 import { builder, DefaultSchemaType } from './builder'
 import { Image } from './image'
-import { orderDirection, OrderDirectionEnum } from './order'
+import { createOrderInput } from './order'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
 import { UserRole, UserRoleStatusEnum } from './user-role'
 
@@ -15,9 +15,12 @@ export const UsersFromEnum = builder.enumType('UsersFromEnum', {
 export const User = builder.objectRef<Prisma.User>('User')
 export const UserPage = createPageObjectRef(User)
 
-export const UserOrder = builder.inputRef<{
-  createdAt?: OrderDirectionEnum
-}>('UserOrder')
+export const UserOrder = createOrderInput('User', {
+  createdAt: (createdAt) => ({ createdAt }),
+  name: (name) => ({ name }),
+  email: (email) => ({ email }),
+  roles: (_count) => ({ roles: { _count } }),
+})
 
 function createRolesArgs(arg: ArgBuilder<DefaultSchemaType>) {
   return {
@@ -52,19 +55,16 @@ User.implement({
         })
         const userRoles = await prisma.userRole.findMany({
           where: { userId: { in: results.map(([id]) => id) } },
-          include: { schoolRole: { include: { school: true } } },
+          include: {
+            schoolRole: { include: { school: true } },
+            parentRole: { include: { childUser: true } },
+          },
         })
         return results.map(([userId, { status }]) =>
           userRoles.filter((userRole) => userRole.userId === userId && (!status || userRole.status === status))
         )
       },
     }),
-  }),
-})
-
-UserOrder.implement({
-  fields: (t) => ({
-    createdAt: t.field({ type: OrderDirectionEnum, required: false }),
   }),
 })
 
@@ -101,12 +101,17 @@ builder.queryFields((t) => ({
       from: t.arg({ type: UsersFromEnum, required: false }),
       fromId: t.arg.id({ required: false }),
       order: t.arg({ type: UserOrder, required: false }),
+      search: t.arg.string({ required: false }),
     },
-    resolve: (obj, { page, from, fromId, order }) => {
+    resolve: (obj, { page, from, fromId, order, search }) => {
       const where: Prisma.Prisma.UserWhereInput = {}
+      const orderBy = UserOrder.toOrder(order)
 
-      const orderBy: Prisma.Prisma.UserOrderByWithRelationInput = {
-        createdAt: orderDirection(order?.createdAt),
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ]
       }
 
       if (from && fromId) {

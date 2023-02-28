@@ -4,21 +4,24 @@ import { prisma } from '../prisma'
 import { Address } from './address'
 import { builder } from './builder'
 import { Image } from './image'
-import { orderDirection, OrderDirectionEnum } from './order'
+import { createOrderInput } from './order'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
 import { UserRoleStatusEnum } from './user-role'
 
 export const School = builder.objectRef<Prisma.School>('School')
 export const SchoolPage = createPageObjectRef(School)
 
-export const SchoolOrder = builder.inputRef<{
-  createdAt?: OrderDirectionEnum
-}>('SchoolOrder')
-
-SchoolOrder.implement({
-  fields: (t) => ({
-    createdAt: t.field({ type: OrderDirectionEnum, required: false }),
-  }),
+export const SchoolOrder = createOrderInput('School', {
+  createdAt: (createdAt) => ({ createdAt }),
+  name: (name) => ({ name }),
+  phone: (phone) => ({ phone }),
+  memberCount: (_count) => ({ roles: { _count } }),
+  address: (dir) => [
+    { address: { street: dir } },
+    { address: { city: dir } },
+    { address: { state: dir } },
+    { address: { zip: dir } },
+  ],
 })
 
 School.implement({
@@ -68,10 +71,17 @@ builder.queryFields((t) => ({
     args: {
       ...createPageArgs(t.arg),
       order: t.arg({ type: SchoolOrder, required: false }),
+      search: t.arg.string({ required: false }),
     },
-    resolve: (obj, { page, order }) => {
-      const orderBy: Prisma.Prisma.SchoolOrderByWithRelationInput = {
-        createdAt: orderDirection(order?.createdAt),
+    resolve: (obj, { page, order, search }) => {
+      const where: Prisma.Prisma.SchoolWhereInput = {}
+      const orderBy = SchoolOrder.toOrder(order)
+
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { phone: { contains: search, mode: 'insensitive' } },
+        ]
       }
 
       return createPage(page, (args) =>

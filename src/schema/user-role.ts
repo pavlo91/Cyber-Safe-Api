@@ -55,6 +55,10 @@ export const SchoolRole =
   builder.objectRef<Prisma.Prisma.UserRoleGetPayload<{ include: { schoolRole: { include: { school: true } } } }>>(
     'SchoolRole'
   )
+export const ParentRole =
+  builder.objectRef<Prisma.Prisma.UserRoleGetPayload<{ include: { parentRole: { include: { childUser: true } } } }>>(
+    'ParentRole'
+  )
 
 AnyUserRole.implement({
   fields: (t) => ({
@@ -76,14 +80,28 @@ SchoolRole.implement({
   }),
 })
 
+ParentRole.implement({
+  fields: (t) => ({
+    id: t.exposeID('id'),
+    type: t.expose('type', { type: UserRoleTypeEnum }),
+    status: t.expose('status', { type: UserRoleStatusEnum }),
+    childUser: t.field({
+      type: User,
+      resolve: ({ parentRole }) => parentRole!.childUser,
+    }),
+  }),
+})
+
 export const UserRole = builder.unionType('UserRole', {
-  types: [AnyUserRole, SchoolRole],
+  types: [AnyUserRole, SchoolRole, ParentRole],
   resolveType: (userRole) => {
     switch (userRole.type) {
       case 'ADMIN':
       case 'COACH':
       case 'ATHLETE':
         return SchoolRole
+      case 'PARENT':
+        return ParentRole
       default:
         return AnyUserRole
     }
