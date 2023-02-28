@@ -111,26 +111,26 @@ export const UserRole = builder.unionType('UserRole', {
 builder.mutationFields((t) => ({
   createUserRole: t.fieldWithInput({
     authScopes: (obj, { input }, { user }) => {
-      if (input.type !== 'STAFF' && !input.typeId) {
+      if (input.type !== 'STAFF' && !input.relationId) {
         throw new Error('Input is not valid')
       }
 
       switch (input.type) {
         case 'ADMIN':
-          if (hasRoleInSchoolId(input.typeId!, user, ['ADMIN'])) {
+          if (hasRoleInSchoolId(input.relationId!, user, ['ADMIN'])) {
             return true
           }
           break
 
         case 'COACH':
         case 'ATHLETE':
-          if (hasRoleInSchoolId(input.typeId!, user, ['ADMIN', 'COACH'])) {
+          if (hasRoleInSchoolId(input.relationId!, user, ['ADMIN', 'COACH'])) {
             return true
           }
           break
 
         case 'PARENT':
-          if (hasRoleToUserId(input.typeId!, user, ['ADMIN', 'COACH'])) {
+          if (hasRoleToUserId(input.relationId!, user, ['ADMIN', 'COACH'])) {
             return true
           }
           break
@@ -145,7 +145,7 @@ builder.mutationFields((t) => ({
     input: {
       email: t.input.string(),
       type: t.input.field({ type: UserRoleTypeEnum }),
-      typeId: t.input.id({ required: false }),
+      relationId: t.input.id({ required: false }),
     },
     resolve: async (obj, { input }) => {
       let user = await prisma.user.findUnique({
@@ -175,7 +175,7 @@ builder.mutationFields((t) => ({
           await createUserRoleIfNone({
             userId: user.id,
             type: input.type,
-            schoolRole: { schoolId: input.typeId! },
+            schoolRole: { schoolId: input.relationId! },
           })
           break
 
@@ -183,7 +183,7 @@ builder.mutationFields((t) => ({
           await createUserRoleIfNone({
             userId: user.id,
             type: input.type,
-            parentRole: { childUserId: input.typeId! },
+            parentRole: { childUserId: input.relationId! },
           })
           break
       }
