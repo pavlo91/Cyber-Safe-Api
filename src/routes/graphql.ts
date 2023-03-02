@@ -11,8 +11,13 @@ type ServerContext = {
 
 const yoga = createYoga<ServerContext>({
   schema,
-  maskedErrors: false,
   context: ({ req }) => getContextFromRequest(req),
+  maskedErrors: {
+    maskError: (error: any) => {
+      console.error(error)
+      return error
+    },
+  },
 })
 
 fastify.route({
