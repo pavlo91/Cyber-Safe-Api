@@ -46,6 +46,10 @@ export const UserRoleTypeEnum = builder.enumType('UserRoleTypeEnum', {
   values: ['STAFF', 'ADMIN', 'COACH', 'ATHLETE', 'PARENT'] as const,
 })
 
+export const SchoolRoleTypeEnum = builder.enumType('SchoolRoleTypeEnum', {
+  values: ['ADMIN', 'COACH', 'ATHLETE'] as const,
+})
+
 export const UserRoleStatusEnum = builder.enumType('UserRoleStatusEnum', {
   values: ['PENDING', 'ACCEPTED', 'DECLINED'] as const,
 })

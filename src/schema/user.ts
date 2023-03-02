@@ -6,7 +6,7 @@ import { builder, DefaultSchemaType } from './builder'
 import { Image } from './image'
 import { createOrderInput } from './order'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
-import { UserRole, UserRoleStatusEnum } from './user-role'
+import { SchoolRoleTypeEnum, UserRole, UserRoleStatusEnum } from './user-role'
 
 export const UsersFromEnum = builder.enumType('UsersFromEnum', {
   values: ['SCHOOL', 'PARENT', 'CHILD'] as const,
@@ -102,8 +102,9 @@ builder.queryFields((t) => ({
       fromId: t.arg.id({ required: false }),
       order: t.arg({ type: UserOrder, required: false }),
       search: t.arg.string({ required: false }),
+      schoolRole: t.arg({ type: SchoolRoleTypeEnum, required: false }),
     },
-    resolve: (obj, { page, from, fromId, order, search }) => {
+    resolve: (obj, { page, from, fromId, order, search, schoolRole }) => {
       const where: Prisma.Prisma.UserWhereInput = {}
       const orderBy = UserOrder.toOrder(order)
 
@@ -117,7 +118,12 @@ builder.queryFields((t) => ({
       if (from && fromId) {
         switch (from) {
           case 'SCHOOL':
-            where.roles = { some: { schoolRole: { schoolId: fromId } } }
+            where.roles = {
+              some: {
+                type: schoolRole ?? undefined,
+                schoolRole: { schoolId: fromId },
+              },
+            }
             break
 
           case 'PARENT':
