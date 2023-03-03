@@ -1,0 +1,12 @@
+extends layout.pug
+
+block head
+  title Notification
+
+block body
+  p #{body}
+  if url
+    p
+      | Click 
+      a(href=url) here
+      |  to view.

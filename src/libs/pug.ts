@@ -7,6 +7,9 @@ const HTMLFileMap = {
   confirm: (url: string) => {
     return { url }
   },
+  'reset-password': (url: string) => {
+    return { url }
+  },
   'invite-staff': (token: string) => {
     const acceptURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'accept' })
     const declineURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'decline' })
@@ -22,8 +25,8 @@ const HTMLFileMap = {
     const declineURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'decline' })
     return { acceptURL, declineURL, childName }
   },
-  'reset-password': (url: string) => {
-    return { url }
+  notification: (body: string, url?: string) => {
+    return { body, url }
   },
   contact: (
     firstName: string,
