@@ -3,6 +3,7 @@ import Prisma from '@prisma/client'
 import { hasRoleInSchoolId, hasRoleToUserId, isParentToUserId, isSameUserId } from '../helpers/auth'
 import { prisma } from '../prisma'
 import { builder, DefaultSchemaType } from './builder'
+import { createFilterInput } from './filter'
 import { Image } from './image'
 import { createOrderInput } from './order'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
@@ -15,12 +16,68 @@ export const UsersFromEnum = builder.enumType('UsersFromEnum', {
 export const User = builder.objectRef<Prisma.User>('User')
 export const UserPage = createPageObjectRef(User)
 
-export const UserOrder = createOrderInput('User', {
-  createdAt: (createdAt) => ({ createdAt }),
-  name: (name) => ({ name }),
-  email: (email) => ({ email }),
-  roles: (_count) => ({ roles: { _count } }),
-})
+export const UserOrder = createOrderInput(
+  User,
+  (t) => ({
+    createdAt: t.order(),
+    name: t.order(),
+    email: t.order(),
+    roles: t.order(),
+  }),
+  ({ createdAt, name, email, roles }) => {
+    const orderBy: Prisma.Prisma.UserOrderByWithRelationInput[] = []
+
+    if (createdAt) orderBy.push({ createdAt })
+    if (name) orderBy.push({ name })
+    if (email) orderBy.push({ email })
+    if (roles) orderBy.push({ roles: { _count: roles } })
+
+    return orderBy
+  }
+)
+
+export const UserFilter = createFilterInput(
+  User,
+  (t) => ({
+    from: t.field({ type: UsersFromEnum, required: false }),
+    fromId: t.id({ required: false }),
+    search: t.string({ required: false }),
+    schoolRole: t.field({ type: SchoolRoleTypeEnum, required: false }),
+  }),
+  ({ from, fromId, search, schoolRole }) => {
+    const where: Prisma.Prisma.UserWhereInput = {}
+
+    if (from && fromId) {
+      switch (from) {
+        case 'SCHOOL':
+          where.roles = {
+            some: {
+              type: schoolRole ?? undefined,
+              schoolRole: { schoolId: fromId },
+            },
+          }
+          break
+
+        case 'PARENT':
+          where.parentRoles = { some: { userRole: { userId: fromId } } }
+          break
+
+        case 'CHILD':
+          where.roles = { some: { parentRole: { childUserId: fromId } } }
+          break
+      }
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+      ]
+    }
+
+    return where
+  }
+)
 
 function createRolesArgs(arg: ArgBuilder<DefaultSchemaType>) {
   return {
@@ -70,23 +127,23 @@ User.implement({
 
 builder.queryFields((t) => ({
   users: t.field({
-    authScopes: (obj, { from, fromId }, { user }) => {
-      if (from && fromId) {
-        switch (from) {
+    authScopes: (obj, { filter }, { user }) => {
+      if (filter?.from && filter?.fromId) {
+        switch (filter.from) {
           case 'SCHOOL':
-            if (hasRoleInSchoolId(fromId, user)) {
+            if (hasRoleInSchoolId(filter.fromId, user)) {
               return true
             }
             break
 
           case 'PARENT':
-            if (isSameUserId(fromId, user)) {
+            if (isSameUserId(filter.fromId, user)) {
               return true
             }
             break
 
           case 'CHILD':
-            if (isSameUserId(fromId, user) || hasRoleToUserId(fromId, user, ['ADMIN', 'COACH'])) {
+            if (isSameUserId(filter.fromId, user) || hasRoleToUserId(filter.fromId, user, ['ADMIN', 'COACH'])) {
               return true
             }
             break
@@ -98,43 +155,12 @@ builder.queryFields((t) => ({
     type: UserPage,
     args: {
       ...createPageArgs(t.arg),
-      from: t.arg({ type: UsersFromEnum, required: false }),
-      fromId: t.arg.id({ required: false }),
       order: t.arg({ type: UserOrder, required: false }),
-      search: t.arg.string({ required: false }),
-      schoolRole: t.arg({ type: SchoolRoleTypeEnum, required: false }),
+      filter: t.arg({ type: UserFilter, required: false }),
     },
-    resolve: (obj, { page, from, fromId, order, search, schoolRole }) => {
-      const where: Prisma.Prisma.UserWhereInput = {}
+    resolve: (obj, { page, order, filter }) => {
+      const where = UserFilter.toFilter(filter)
       const orderBy = UserOrder.toOrder(order)
-
-      if (search) {
-        where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-        ]
-      }
-
-      if (from && fromId) {
-        switch (from) {
-          case 'SCHOOL':
-            where.roles = {
-              some: {
-                type: schoolRole ?? undefined,
-                schoolRole: { schoolId: fromId },
-              },
-            }
-            break
-
-          case 'PARENT':
-            where.parentRoles = { some: { userRole: { userId: fromId } } }
-            break
-
-          case 'CHILD':
-            where.roles = { some: { parentRole: { childUserId: fromId } } }
-            break
-        }
-      }
 
       return createPage(page, (args) =>
         prisma.$transaction([prisma.user.findMany({ ...args, where, orderBy }), prisma.user.count({ where })])

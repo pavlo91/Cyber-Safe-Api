@@ -1,4 +1,5 @@
-import { builder } from './builder'
+import { InputFieldBuilder, InputFieldMap, InputShapeFromFields, ObjectRef } from '@pothos/core'
+import { builder, DefaultSchemaType } from './builder'
 
 export const OrderDirectionEnum = builder.enumType('OrderDirectionEnum', {
   values: ['ASC', 'DESC'] as const,
@@ -6,30 +7,44 @@ export const OrderDirectionEnum = builder.enumType('OrderDirectionEnum', {
 
 export type OrderDirectionEnum = 'ASC' | 'DESC'
 
-function orderDirection(direction: OrderDirectionEnum) {
+function orderDirection(direction: OrderDirectionEnum | undefined | null) {
+  if (direction === undefined || direction === null) return undefined
   return direction === 'ASC' ? 'asc' : 'desc'
 }
 
-export function createOrderInput<T extends Record<string, (dir: 'asc' | 'desc') => object>>(name: string, args: T) {
-  const ObjectOrder = builder.inputRef<{ [K in keyof T]: OrderDirectionEnum }>(name + 'Order')
+type OrderDirection = ReturnType<typeof orderDirection>
+
+function createBuilder(t: InputFieldBuilder<DefaultSchemaType, 'InputObject'>) {
+  return {
+    order: () => t.field({ type: OrderDirectionEnum, required: false }),
+  }
+}
+
+type CreateBuilder = ReturnType<typeof createBuilder>
+
+export function createOrderInput<TFields extends InputFieldMap, TFilter>(
+  ref: ObjectRef<any>,
+  fields: (t: CreateBuilder) => TFields,
+  filter: (values: { [K in keyof TFields]: OrderDirection }) => TFilter
+) {
+  const ObjectOrder = builder.inputRef<InputShapeFromFields<TFields>>(ref.name + 'Order')
 
   ObjectOrder.implement({
-    fields: (t) =>
-      Object.keys(args).reduce((fields: any, key) => {
-        fields[key] = t.field({ type: OrderDirectionEnum, required: false })
-        return fields
-      }, {}),
+    // @ts-ignore
+    fields: (t) => fields(createBuilder(t)),
   })
 
   return Object.assign(ObjectOrder, {
-    toOrder: (input: { [K in keyof T]: OrderDirectionEnum } | undefined | null) => {
-      if (input) {
-        const keys = Object.keys(input)
-        const key = keys.find((key) => typeof input[key] === 'string')
-
-        if (key) {
-          return args[key](orderDirection(input[key])) as ReturnType<T[keyof T]>
-        }
+    toOrder: (values: InputShapeFromFields<TFields> | undefined | null) => {
+      if (values) {
+        return filter(
+          //@ts-ignore
+          Object.fromEntries(
+            Object.entries(values).map(
+              ([key, value]) => [key as keyof TFields, orderDirection(value as OrderDirectionEnum)] as const
+            )
+          )
+        )
       }
 
       return undefined

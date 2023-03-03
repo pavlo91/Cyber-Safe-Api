@@ -3,6 +3,7 @@ import { hasRoleInSchoolId, isSameUserId } from '../helpers/auth'
 import { prisma } from '../prisma'
 import { Address } from './address'
 import { builder } from './builder'
+import { createFilterInput } from './filter'
 import { Image } from './image'
 import { createOrderInput } from './order'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
@@ -11,18 +12,53 @@ import { UserRoleStatusEnum } from './user-role'
 export const School = builder.objectRef<Prisma.School>('School')
 export const SchoolPage = createPageObjectRef(School)
 
-export const SchoolOrder = createOrderInput('School', {
-  createdAt: (createdAt) => ({ createdAt }),
-  name: (name) => ({ name }),
-  phone: (phone) => ({ phone }),
-  memberCount: (_count) => ({ roles: { _count } }),
-  address: (dir) => [
-    { address: { street: dir } },
-    { address: { city: dir } },
-    { address: { state: dir } },
-    { address: { zip: dir } },
-  ],
-})
+export const SchoolOrder = createOrderInput(
+  School,
+  (t) => ({
+    createdAt: t.order(),
+    name: t.order(),
+    phone: t.order(),
+    memberCount: t.order(),
+    address: t.order(),
+  }),
+  ({ createdAt, name, phone, memberCount, address }) => {
+    const orderBy: Prisma.Prisma.SchoolOrderByWithRelationInput[] = []
+
+    if (createdAt) orderBy.push({ createdAt })
+    if (name) orderBy.push({ name })
+    if (phone) orderBy.push({ phone })
+    if (memberCount) orderBy.push({ roles: { _count: memberCount } })
+    if (address) {
+      orderBy.push(
+        { address: { street: address } },
+        { address: { city: address } },
+        { address: { state: address } },
+        { address: { zip: address } }
+      )
+    }
+
+    return orderBy
+  }
+)
+
+export const SchoolFilter = createFilterInput(
+  School,
+  (t) => ({
+    search: t.string({ required: false }),
+  }),
+  ({ search }) => {
+    const where: Prisma.Prisma.SchoolWhereInput = {}
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
+      ]
+    }
+
+    return where
+  }
+)
 
 School.implement({
   fields: (t) => ({
@@ -71,18 +107,11 @@ builder.queryFields((t) => ({
     args: {
       ...createPageArgs(t.arg),
       order: t.arg({ type: SchoolOrder, required: false }),
-      search: t.arg.string({ required: false }),
+      filter: t.arg({ type: SchoolFilter, required: false }),
     },
-    resolve: (obj, { page, order, search }) => {
-      const where: Prisma.Prisma.SchoolWhereInput = {}
+    resolve: (obj, { page, order, filter }) => {
+      const where = SchoolFilter.toFilter(filter)
       const orderBy = SchoolOrder.toOrder(order)
-
-      if (search) {
-        where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { phone: { contains: search, mode: 'insensitive' } },
-        ]
-      }
 
       return createPage(page, (args) =>
         prisma.$transaction([prisma.school.findMany({ ...args, orderBy }), prisma.school.count()])
