@@ -1,50 +1,52 @@
 import path from 'path'
 import pug from 'pug'
 import { config } from '../config'
+import { composeAPIURL } from '../helpers/url'
 
-type HTMLFileName = {
-  // Email
-  'email/confirm.pug': {
-    url: string
-  }
-  'email/invite-staff.pug': {
-    acceptURL: string
-    declineURL: string
-  }
-  'email/invite-member.pug': {
-    schoolName: string
-    acceptURL: string
-    declineURL: string
-  }
-  'email/invite-parent.pug': {
-    childName: string
-    acceptURL: string
-    declineURL: string
-  }
-  'email/reset-password.pug': {
-    url: string
-  }
-  'email/contact.pug': {
-    firstName: string
-    lastName: string
-    email: string
-    phone?: string | null
-    jobTitle?: string | null
-    schoolName: string
-    state: string
-    students: string
-    describe: string
-    comments?: string | null
-  }
-  // HTML
-  'html/landing.pug': {}
+const HTMLFileMap = {
+  confirm: (url: string) => {
+    return { url }
+  },
+  'invite-staff': (token: string) => {
+    const acceptURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'accept' })
+    const declineURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'decline' })
+    return { acceptURL, declineURL }
+  },
+  'invite-member': (token: string, schoolName: string) => {
+    const acceptURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'accept' })
+    const declineURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'decline' })
+    return { acceptURL, declineURL, schoolName }
+  },
+  'invite-parent': (token: string, childName: string) => {
+    const acceptURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'accept' })
+    const declineURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'decline' })
+    return { acceptURL, declineURL, childName }
+  },
+  'reset-password': (url: string) => {
+    return { url }
+  },
+  contact: (
+    firstName: string,
+    lastName: string,
+    email: string,
+    phone: string | undefined | null,
+    jobTitle: string | undefined | null,
+    schoolName: string,
+    state: string,
+    students: string,
+    describe: string,
+    comments: string | undefined | null
+  ) => {
+    return { firstName, lastName, email, phone, jobTitle, schoolName, state, students, describe, comments }
+  },
 }
 
-export type HTMLFileNames = keyof HTMLFileName
-export type HTMLModel<K extends HTMLFileNames> = HTMLFileName[K]
+export type HTMLFileMap = typeof HTMLFileMap
 
-export function loadHTML<K extends HTMLFileNames>(fileName: K, model?: HTMLModel<K>) {
-  const pugPath = path.join(__dirname, '../../templates', fileName)
+export function loadHTML<K extends keyof HTMLFileMap>(fileName: K, ...args: Parameters<HTMLFileMap[K]>) {
+  const pugPath = path.join(__dirname, '../../templates', fileName + '.pug')
+  // @ts-ignore
+  const model = HTMLFileMap[fileName](...args)
   return pug.renderFile(pugPath, { ...config.template, ...model, pretty: true })
 }
 

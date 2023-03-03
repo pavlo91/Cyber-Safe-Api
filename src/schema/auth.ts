@@ -84,7 +84,7 @@ builder.mutationFields((t) => ({
       })
 
       const url = composeWebURL('/auth/reset/:token', { token: user.passwordToken! })
-      sendEmail(email, 'email/reset-password.pug', { url })
+      sendEmail(email, 'reset-password', url)
 
       return true
     },

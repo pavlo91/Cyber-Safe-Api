@@ -5,7 +5,7 @@ import { composeAPIURL } from './url'
 export function sendUserConfirmationEmail(user: User) {
   if (user.newEmailToken) {
     const url = composeAPIURL('/api/confirm/:token', { token: user.newEmailToken! })
-    sendEmail(user.newEmail ?? user.email, 'email/confirm.pug', { url })
+    sendEmail(user.newEmail ?? user.email, 'confirm', url)
   }
 }
 
@@ -19,36 +19,19 @@ export function sendUserRoleConfirmationEmail(
   }>
 ) {
   if (userRole.status === 'PENDING' && userRole.statusToken) {
-    const acceptURL = composeAPIURL('/api/respond/:token/:response', {
-      token: userRole.statusToken,
-      response: 'accept',
-    })
-    const declineURL = composeAPIURL('/api/respond/:token/:response', {
-      token: userRole.statusToken,
-      response: 'decline',
-    })
-
     switch (userRole.type) {
       case 'STAFF':
-        sendEmail(userRole.user.email, 'email/invite-staff.pug', { acceptURL, declineURL })
+        sendEmail(userRole.user.email, 'invite-staff', userRole.statusToken)
         break
 
       case 'ADMIN':
       case 'COACH':
       case 'ATHLETE':
-        sendEmail(userRole.user.email, 'email/invite-member.pug', {
-          acceptURL,
-          declineURL,
-          schoolName: userRole.schoolRole?.school.name ?? '',
-        })
+        sendEmail(userRole.user.email, 'invite-member', userRole.statusToken, userRole.schoolRole?.school.name ?? '')
         break
 
       case 'PARENT':
-        sendEmail(userRole.user.email, 'email/invite-parent.pug', {
-          acceptURL,
-          declineURL,
-          childName: userRole.parentRole?.childUser.name ?? '',
-        })
+        sendEmail(userRole.user.email, 'invite-parent', userRole.statusToken, userRole.parentRole?.childUser.name ?? '')
         break
 
       default:

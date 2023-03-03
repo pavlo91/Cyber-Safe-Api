@@ -1,21 +1,32 @@
+import fs from 'fs'
+import path from 'path'
 import { ServerClient } from 'postmark'
 import { config } from '../config'
-import { HTMLFileNames, HTMLModel, loadHTML, loadHTMLTitle } from './pug'
+import { HTMLFileMap, loadHTML, loadHTMLTitle } from './pug'
 
 const client = config.postmark.token ? new ServerClient(config.postmark.token) : undefined
 
-export async function sendEmail<K extends HTMLFileNames>(to: string | string[], fileName: K, model?: HTMLModel<K>) {
+export async function sendEmail<K extends keyof HTMLFileMap>(
+  to: string | string[],
+  fileName: K,
+  ...args: Parameters<HTMLFileMap[K]>
+) {
   const emails = Array.isArray(to) ? to : [to]
+  const html = loadHTML(fileName, ...args)
+  const title = loadHTMLTitle(html)
 
   if (!client || !config.postmark.from) {
-    console.log(
-      `Sending e-mail to ${emails.join(', ')} with template "${fileName}" and model ${JSON.stringify(model ?? {})}`
-    )
+    let filePath = path.join(__dirname, '../../.temp')
+    fs.mkdirSync(filePath, { recursive: true })
+
+    const fileName = 'email-' + Date.now() + '.html'
+    filePath = path.join(filePath, fileName)
+
+    fs.writeFileSync(filePath, html)
+    console.log(`Saved e-mail to ${emails.join(', ')} at ${filePath}`)
+
     return
   }
-
-  const html = loadHTML(fileName, model)
-  const title = loadHTMLTitle(html)
 
   await client
     .sendEmailBatch(

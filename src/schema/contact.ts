@@ -19,7 +19,20 @@ builder.mutationFields((t) => ({
     },
     resolve: (obj, { input }) => {
       const to = config.email.contact.split(',')
-      sendEmail(to, 'email/contact.pug', input)
+      sendEmail(
+        to,
+        'contact',
+        input.firstName,
+        input.lastName,
+        input.email,
+        input.phone,
+        input.jobTitle,
+        input.schoolName,
+        input.state,
+        input.students,
+        input.describe,
+        input.comments
+      )
 
       return true
     },
