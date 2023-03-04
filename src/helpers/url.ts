@@ -3,13 +3,11 @@ import { config } from '../config'
 function composeURL(base: string, path: string, query: Record<string, string | number>) {
   const url = new URL(path, base)
 
-  Object.keys(query).forEach((key) => {
-    const value = String(query[key])
-
+  Object.entries(query).forEach(([key, value]) => {
     if (url.pathname.includes(':' + key)) {
-      url.pathname = url.pathname.replace(':' + key, value)
+      url.pathname = url.pathname.replace(':' + key, String(value))
     } else {
-      url.searchParams.set(key, value)
+      url.searchParams.set(key, String(value))
     }
   })
 

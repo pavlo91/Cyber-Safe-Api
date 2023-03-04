@@ -27,7 +27,7 @@ Upload.implement({
     headers: t.field({
       type: [Header],
       resolve: ({ headers }) => {
-        return Object.keys(headers).map((key) => ({ key, value: headers[key] }))
+        return Object.entries(headers).map(([key, value]) => ({ key, value }))
       },
     }),
   }),
