@@ -12,7 +12,7 @@ const schema = z.object({
 fastify.get('/api/respond/:token/:response', async (req, reply) => {
   const params = schema.parse(req.params)
 
-  const userRole = await prisma.userRole.findFirstOrThrow({
+  let userRole = await prisma.userRole.findFirstOrThrow({
     where: {
       status: 'PENDING',
       statusToken: params.token,
@@ -25,17 +25,21 @@ fastify.get('/api/respond/:token/:response', async (req, reply) => {
 
   const isAccepted = params.response === 'accept'
 
-  await prisma.userRole.update({
+  userRole = await prisma.userRole.update({
     where: { id: userRole.id },
     data: {
       statusToken: null,
       status: isAccepted ? 'ACCEPTED' : 'DECLINED',
     },
+    include: {
+      user: true,
+      schoolRole: true,
+    },
   })
 
   switch (userRole.type) {
     case 'STAFF':
-      sendNotification(await getStaffIds(), 'userRespondedToStaffUserRole', userRole.userId, params.response)
+      sendNotification(await getStaffIds(), 'userRespondedToStaffUserRole', userRole)
       break
 
     case 'ADMIN':
@@ -44,15 +48,13 @@ fastify.get('/api/respond/:token/:response', async (req, reply) => {
       sendNotification(
         await getSchoolMemberIds('ADMIN', userRole.schoolRole!.schoolId),
         'userRespondedToMemberUserRole',
-        userRole.userId,
-        params.response,
+        userRole,
         'ADMIN'
       )
       sendNotification(
         await getSchoolMemberIds('COACH', userRole.schoolRole!.schoolId),
         'userRespondedToMemberUserRole',
-        userRole.userId,
-        params.response,
+        userRole,
         'COACH'
       )
       break

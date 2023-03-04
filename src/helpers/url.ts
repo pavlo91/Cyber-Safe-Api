@@ -27,9 +27,9 @@ type ComposeWebURL = {
   '/auth/login': {}
   '/auth/activate/:token': { token: string }
   '/auth/reset/:token': { token: string }
-  '/dashboard/staff/users': {}
-  '/dashboard/admin/members': {}
-  '/dashboard/coach/members': {}
+  '/dashboard/staff/users': { search?: string }
+  '/dashboard/admin/members': { search?: string }
+  '/dashboard/coach/members': { search?: string }
 }
 
 export function composeWebURL<K extends keyof ComposeWebURL>(

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { composeWebURL } from '../helpers/url'
 import { sendEmail } from '../libs/postmark'
 import { prisma } from '../prisma'
@@ -8,31 +9,35 @@ type NotificationData = {
 }
 
 const NotificationMap = {
-  userRespondedToStaffUserRole: async (userId: string, response: 'accept' | 'decline') => {
-    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } })
+  userRespondedToStaffUserRole: (userRole: Prisma.UserRoleGetPayload<{ include: { user: true } }>) => {
+    const { user } = userRole
     const displayName = user.name || user.email
 
     return {
       body:
-        response === 'accept'
+        userRole.status === 'ACCEPTED'
           ? `${displayName} has accepted their staff role`
           : `${displayName} has declined their staff role`,
-      url: composeWebURL('/dashboard/staff/users', {}),
+      url: composeWebURL('/dashboard/staff/users', { search: user.email }),
     }
   },
-  userRespondedToMemberUserRole: async (userId: string, response: 'accept' | 'decline', toRole: 'ADMIN' | 'COACH') => {
-    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } })
+  userRespondedToMemberUserRole: (
+    userRole: Prisma.UserRoleGetPayload<{ include: { user: true } }>,
+    schoolRole: 'ADMIN' | 'COACH'
+  ) => {
+    const { user } = userRole
     const displayName = user.name || user.email
+    const displayRole = userRole.type === 'ADMIN' ? 'admin' : userRole.type === 'COACH' ? 'coach' : 'athlete'
 
     return {
       body:
-        response === 'accept'
-          ? `${displayName} has accepted their member role`
-          : `${displayName} has declined their member role`,
+        userRole.status === 'ACCEPTED'
+          ? `${displayName} has accepted their ${displayRole} role`
+          : `${displayName} has declined their ${displayRole} role`,
       url:
-        toRole === 'ADMIN'
-          ? composeWebURL('/dashboard/admin/members', {})
-          : composeWebURL('/dashboard/coach/members', {}),
+        schoolRole === 'ADMIN'
+          ? composeWebURL('/dashboard/admin/members', { search: user.email })
+          : composeWebURL('/dashboard/coach/members', { search: user.email }),
     }
   },
 } satisfies Record<string, (...args: any[]) => NotificationData | Promise<NotificationData>>
