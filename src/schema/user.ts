@@ -122,6 +122,13 @@ User.implement({
         )
       },
     }),
+    notificationCount: t.int({
+      resolve: async (user) => {
+        return prisma.notification.count({
+          where: { unread: true, userId: user.id },
+        })
+      },
+    }),
   }),
 })
 

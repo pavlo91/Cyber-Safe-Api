@@ -32,7 +32,9 @@ builder.mutationFields((t) => ({
         where: { email },
       })
 
-      if (!user.password || !comparePassword(password, user.password)) {
+      if (!user.password) {
+        throw new Error('Account is not activated')
+      } else if (!comparePassword(password, user.password)) {
         throw new Error("Password does't match")
       }
 
