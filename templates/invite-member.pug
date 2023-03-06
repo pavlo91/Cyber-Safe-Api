@@ -1,0 +1,12 @@
+extends layout.pug
+
+block head
+  title You have been invited to join the school #{schoolName}
+
+block body
+  p
+    | You have been invited to join the school #{schoolName}. You can either 
+    a(href=acceptURL) accept
+    |  or 
+    a(href=declineURL) decline
+    |  the invitation.
