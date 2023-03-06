@@ -26,6 +26,7 @@ model User {
   parentRoles    ParentRole[]
   notifications  Notification[]
   uploads        Upload[]
+  twitter        Twitter?
 
   @@index([emailConfirmed])
 }
@@ -146,4 +147,14 @@ model Setting {
   id      String      @id
   type    SettingType
   boolean Boolean?
+}
+
+model Twitter {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  indexedAt       DateTime @default(now())
+  twitterId       String   @unique
+  twitterUsername String
+  userId          String?  @unique
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

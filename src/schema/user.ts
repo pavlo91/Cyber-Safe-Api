@@ -7,6 +7,7 @@ import { createFilterInput } from './filter'
 import { Image } from './image'
 import { createOrderInput } from './order'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
+import { Twitter } from './twitter'
 import { SchoolRoleTypeEnum, UserRole, UserRoleStatusEnum } from './user-role'
 
 export const UsersFromEnum = builder.enumType('UsersFromEnum', {
@@ -126,6 +127,15 @@ User.implement({
       resolve: async (user) => {
         return prisma.notification.count({
           where: { unread: true, userId: user.id },
+        })
+      },
+    }),
+    twitter: t.field({
+      type: Twitter,
+      nullable: true,
+      resolve: (user) => {
+        return prisma.twitter.findUnique({
+          where: { userId: user.id },
         })
       },
     }),
