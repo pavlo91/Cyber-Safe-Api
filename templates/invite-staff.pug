@@ -1,0 +1,12 @@
+extends layout.pug
+
+block head
+  title You have been invited as a staff at #{appName}
+
+block body
+  p
+    | You have been invited as a staff at #{appName}. You can either 
+    a(href=acceptURL) accept
+    |  or 
+    a(href=declineURL) decline
+    |  the invitation.

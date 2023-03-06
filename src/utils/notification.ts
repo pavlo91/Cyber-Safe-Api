@@ -1,101 +1,106 @@
-import { PrismaClient } from '@prisma/client'
-import { Config } from '../config'
+import { Prisma } from '@prisma/client'
+import { composeWebURL } from '../helpers/url'
+import { sendEmail } from '../libs/postmark'
+import { prisma } from '../prisma'
 
-export class NotificationManager {
-  constructor(
-    private userIds: string[] | Promise<string[]>,
-    private schoolId: string | undefined,
-    private prisma: PrismaClient
-  ) {}
-
-  static toStaff(prisma: PrismaClient) {
-    const userIds = prisma.user
-      .findMany({
-        where: {
-          roles: {
-            some: {
-              role: 'STAFF',
-              status: 'ACCEPTED',
-            },
-          },
-        },
-      })
-      .then((users) => {
-        return users.map((user) => user.id)
-      })
-
-    return new NotificationManager(userIds, undefined, prisma)
-  }
-
-  static toAdmin(schoolId: string, prisma: PrismaClient) {
-    const userIds = prisma.user
-      .findMany({
-        where: {
-          roles: {
-            some: {
-              role: 'ADMIN',
-              status: 'ACCEPTED',
-              schoolRole: {
-                schoolId,
-              },
-            },
-          },
-        },
-      })
-      .then((users) => {
-        return users.map((user) => user.id)
-      })
-
-    return new NotificationManager(userIds, schoolId, prisma)
-  }
-
-  static async notify<T>(template: NotificationTemplate<T>, args: T) {
-    const { manager, message, url } = template(args)
-    await manager.notify(message, url)
-  }
-
-  async notify(message: string, url: string | undefined) {
-    const userIds = await this.userIds
-
-    await this.prisma.notification.createMany({
-      data: userIds.map((userId) => ({ url, message, userId, schoolId: this.schoolId })),
-    })
-  }
-}
-
-type NotificationTemplate<T> = (args: T) => {
-  manager: NotificationManager
-  message: string
+type NotificationData = {
+  body: string
   url?: string
 }
 
-export const Notification = {
-  acceptedStaffRole: (args: { email: string; prisma: PrismaClient }) => {
+const NotificationMap = {
+  userRespondedToStaffUserRole: (userRole: Prisma.UserRoleGetPayload<{ include: { user: true } }>) => {
+    const { user } = userRole
+    const displayName = user.name || user.email
+
     return {
-      message: `The user with e-mail ${args.email} has accepted their role of staff`,
-      url: Config.composeUrl('webUrl', '/dashboard/staff/users', { search: args.email }),
-      manager: NotificationManager.toStaff(args.prisma),
+      body:
+        userRole.status === 'ACCEPTED'
+          ? `${displayName} has accepted their staff role`
+          : `${displayName} has declined their staff role`,
+      url: composeWebURL('/dashboard/staff/users', { search: user.email }),
     }
   },
-  declinedStaffRole: (args: { email: string; prisma: PrismaClient }) => {
+  userRespondedToMemberUserRole: (
+    userRole: Prisma.UserRoleGetPayload<{ include: { user: true } }>,
+    schoolRole: 'ADMIN' | 'COACH'
+  ) => {
+    const { user } = userRole
+    const displayName = user.name || user.email
+    const displayRole = userRole.type === 'ADMIN' ? 'admin' : userRole.type === 'COACH' ? 'coach' : 'athlete'
+
     return {
-      message: `The user with e-mail ${args.email} has declined their role of staff`,
-      url: Config.composeUrl('webUrl', '/dashboard/staff/users', { search: args.email }),
-      manager: NotificationManager.toStaff(args.prisma),
+      body:
+        userRole.status === 'ACCEPTED'
+          ? `${displayName} has accepted their ${displayRole} role`
+          : `${displayName} has declined their ${displayRole} role`,
+      url:
+        schoolRole === 'ADMIN'
+          ? composeWebURL('/dashboard/admin/members', { search: user.email })
+          : composeWebURL('/dashboard/coach/members', { search: user.email }),
     }
   },
-  acceptedMemberRole: (args: { email: string; schoolId: string; prisma: PrismaClient }) => {
-    return {
-      message: `The user with e-mail ${args.email} has accepted their member role`,
-      url: Config.composeUrl('webUrl', '/dashboard/coach/members', { search: args.email }),
-      manager: NotificationManager.toAdmin(args.schoolId, args.prisma),
-    }
-  },
-  declinedMemberRole: (args: { email: string; schoolId: string; prisma: PrismaClient }) => {
-    return {
-      message: `The user with e-mail ${args.email} has declined their member role`,
-      url: Config.composeUrl('webUrl', '/dashboard/coach/members', { search: args.email }),
-      manager: NotificationManager.toAdmin(args.schoolId, args.prisma),
-    }
-  },
-} satisfies Record<string, NotificationTemplate<any>>
+} satisfies Record<string, (...args: any[]) => NotificationData | Promise<NotificationData>>
+
+type NotificationMap = typeof NotificationMap
+
+export async function sendNotification<K extends keyof NotificationMap>(
+  userId: string | string[],
+  type: K,
+  ...args: Parameters<NotificationMap[K]>
+) {
+  const userIds = Array.isArray(userId) ? userId : [userId]
+
+  // @ts-ignore
+  const data = await NotificationMap[type](...args)
+
+  await prisma.notification.createMany({
+    data: userIds.map((userId) => ({ ...data, userId })),
+  })
+
+  const users = await prisma.user.findMany({
+    where: { id: { in: userIds } },
+  })
+
+  sendEmail(
+    users.map((user) => user.id),
+    'notification',
+    data.body,
+    data.url
+  )
+}
+
+export async function getStaffIds() {
+  const users = await prisma.user.findMany({
+    where: {
+      roles: {
+        some: {
+          type: 'STAFF',
+          status: 'ACCEPTED',
+        },
+      },
+    },
+  })
+
+  return users.map((user) => user.id)
+}
+
+type SchoolRole = 'ADMIN' | 'COACH' | 'ATHLETE'
+
+export async function getSchoolMemberIds(type: SchoolRole | SchoolRole[], schoolId: string) {
+  const types = Array.isArray(type) ? type : [type]
+
+  const users = await prisma.user.findMany({
+    where: {
+      roles: {
+        some: {
+          status: 'ACCEPTED',
+          type: { in: types },
+          schoolRole: { schoolId },
+        },
+      },
+    },
+  })
+
+  return users.map((user) => user.id)
+}

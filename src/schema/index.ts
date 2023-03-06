@@ -1,0 +1,17 @@
+import './address'
+import './auth'
+import { builder } from './builder'
+import './contact'
+import './filter'
+import './image'
+import './notification'
+import './order'
+import './page'
+import './school'
+import './setting'
+import './stats'
+import './upload'
+import './user'
+import './user-role'
+
+export const schema = builder.toSchema()

@@ -1,61 +1,43 @@
+import fs from 'fs'
+import path from 'path'
 import { ServerClient } from 'postmark'
-import { Config } from '../config'
-import { HtmlFileNames, HtmlModel, loadHtml, loadHtmlTitle } from '../helpers/pug'
-import { Logger } from '../utils/logger'
+import { config } from '../config'
+import { HTMLFileMap, loadHTML, loadHTMLTitle } from './pug'
 
-export class Postmark {
-  static shared = new Postmark(Config.postmark.token, Config.postmark.from)
+const client = config.postmark.token ? new ServerClient(config.postmark.token) : undefined
 
-  private logger = Logger.label('postmark')
-  private client: ServerClient | undefined
+export async function sendEmail<K extends keyof HTMLFileMap>(
+  to: string | string[],
+  fileName: K,
+  ...args: Parameters<HTMLFileMap[K]>
+) {
+  const emails = Array.isArray(to) ? to : [to]
+  const html = loadHTML(fileName, ...args)
+  const title = loadHTMLTitle(html)
 
-  constructor(token?: string, private from?: string) {
-    if (token && from) {
-      this.client = new ServerClient(token)
-    }
+  if (!client || !config.postmark.from) {
+    let filePath = path.join(__dirname, '../../.temp')
+    fs.mkdirSync(filePath, { recursive: true })
+
+    const fileName = 'email-' + Date.now() + '.html'
+    filePath = path.join(filePath, fileName)
+
+    fs.writeFileSync(filePath, html)
+    console.log(`Saved e-mail to ${emails.join(', ')} at ${filePath}`)
+
+    return
   }
 
-  async send<K extends HtmlFileNames>(to: string, fileName: K, model?: HtmlModel<K>) {
-    if (!this.client) {
-      this.logger.debug('Sending email "%s" to "%s" with model %o', fileName, to, model)
-      return
-    }
-
-    const html = loadHtml(fileName, model)
-    const title = loadHtmlTitle(html)
-
-    await this.client
-      .sendEmail({
-        To: to,
+  await client
+    .sendEmailBatch(
+      emails.map((email) => ({
+        To: email,
         Subject: title,
-        HtmlBody: html,
-        From: this.from!,
-      })
-      .catch((error) => {
-        this.logger.error('Error while sending email via Postmark: %s', error)
-      })
-  }
-
-  async sendMany<K extends HtmlFileNames>(to: string[], fileName: K, model?: HtmlModel<K>) {
-    if (!this.client) {
-      this.logger.debug('Sending email "%s" to "%s" with model %o', fileName, to, model)
-      return
-    }
-
-    const html = loadHtml(fileName, model)
-    const title = loadHtmlTitle(html)
-
-    await this.client
-      .sendEmailBatch(
-        to.map((to) => ({
-          To: to,
-          Subject: title,
-          HtmlBody: html,
-          From: this.from!,
-        }))
-      )
-      .catch((error) => {
-        this.logger.error('Error while sending email via Postmark: %s', error)
-      })
-  }
+        HTMLBody: html,
+        From: config.postmark.from!,
+      }))
+    )
+    .catch((error) => {
+      console.error(`Error while sending email: ${error}`)
+    })
 }
