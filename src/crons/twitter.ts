@@ -52,9 +52,13 @@ cron.schedule('0 0 0 * * *', async () => {
       })
 
       for (const singleMedia of media) {
-        await storageSaveMedia(singleMedia).catch((error) => {
-          console.error(error)
-        })
+        await storageSaveMedia(singleMedia)
+          .then(({ data }) => {
+            // TODO: Upload to Google
+          })
+          .catch((error) => {
+            console.error(error)
+          })
       }
     } catch (error) {
       console.error(`Error while getting Twitter posts via cron job for ${twitter.id}`)

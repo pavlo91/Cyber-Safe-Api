@@ -1,6 +1,6 @@
 import { BlobSASPermissions, BlobServiceClient } from '@azure/storage-blob'
 import * as Prisma from '@prisma/client'
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 import { fromBuffer } from 'file-type'
 import ms from 'ms'
 import { config } from '../config'
@@ -98,7 +98,7 @@ export async function storageSaveMedia(media: Prisma.Media) {
     const container = client.getContainerClient(STORAGE_MEDIA)
     await container.createIfNotExists()
 
-    const { data } = await axios.get(media.url, { responseType: 'arraybuffer' })
+    const { data } = (await axios.get(media.url, { responseType: 'arraybuffer' })) as AxiosResponse<ArrayBuffer>
     const type = await fromBuffer(data)
 
     const ext = type?.ext ? '.' + type.ext : ''
@@ -116,7 +116,7 @@ export async function storageSaveMedia(media: Prisma.Media) {
       data: { blobName: blob.name },
     })
 
-    return blob
+    return { data, blob }
   } catch (error) {
     console.error(`Error while saving upload: ${error}`)
     throw StorageError
