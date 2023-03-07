@@ -1,11 +1,15 @@
 import { BlobSASPermissions, BlobServiceClient } from '@azure/storage-blob'
+import * as Prisma from '@prisma/client'
+import axios from 'axios'
 import { fromBuffer } from 'file-type'
 import ms from 'ms'
 import { config } from '../config'
+import { prisma } from '../prisma'
 import { randomToken } from '../utils/crypto'
 
 const STORAGE_TEMP = 'temp'
 const STORAGE_UPLOAD = 'uploads'
+const STORAGE_MEDIA = 'media'
 const STORAGE_METHOD = 'PUT'
 const STORAGE_HEADERS: Record<string, string> = {
   'x-ms-blob-type': 'BlockBlob',
@@ -79,6 +83,40 @@ export async function storageSaveUpload(blobName: string, newBlobName: string) {
       mime,
       url: blob.url,
     }
+  } catch (error) {
+    console.error(`Error while saving upload: ${error}`)
+    throw StorageError
+  }
+}
+
+export async function storageSaveMedia(media: Prisma.Media) {
+  try {
+    if (!client) {
+      throw new Error('Client was not initialized')
+    }
+
+    const container = client.getContainerClient(STORAGE_MEDIA)
+    await container.createIfNotExists()
+
+    const { data } = await axios.get(media.url, { responseType: 'arraybuffer' })
+    const type = await fromBuffer(data)
+
+    const ext = type?.ext ? '.' + type.ext : ''
+    const mime = type?.mime ?? 'application/octet-stream'
+
+    const blobName = getStorageBlobName(media.id)
+    const blob = container.getBlockBlobClient(blobName + ext)
+
+    await blob.uploadData(data, {
+      blobHTTPHeaders: { blobContentType: mime },
+    })
+
+    await prisma.media.update({
+      where: { id: media.id },
+      data: { blobName: blob.name },
+    })
+
+    return blob
   } catch (error) {
     console.error(`Error while saving upload: ${error}`)
     throw StorageError

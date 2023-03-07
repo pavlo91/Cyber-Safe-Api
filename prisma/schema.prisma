@@ -185,6 +185,7 @@ model Media {
   width      Int
   height     Int
   duration   Int
+  blobName   String?
   postId     String
   post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
 }

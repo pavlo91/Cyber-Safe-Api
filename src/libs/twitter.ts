@@ -88,7 +88,8 @@ async function getPaginatedTweets(twitter: Prisma.Twitter, nextToken?: string) {
     pagination_token: nextToken,
     exclude: ['replies', 'retweets'],
     expansions: ['attachments.media_keys'],
-    start_time: twitter.indexedAt.toISOString(),
+    // TODO:
+    // start_time: twitter.indexedAt.toISOString(),
     'tweet.fields': ['id', 'text', 'created_at', 'attachments'],
     'media.fields': ['media_key', 'url', 'type', 'width', 'height', 'duration_ms', 'variants'],
   })

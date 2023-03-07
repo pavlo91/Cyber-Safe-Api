@@ -35,6 +35,7 @@ CREATE TABLE "Media" (
     "width" INTEGER NOT NULL,
     "height" INTEGER NOT NULL,
     "duration" INTEGER NOT NULL,
+    "blobName" TEXT,
     "postId" TEXT NOT NULL,
 
     CONSTRAINT "Media_pkey" PRIMARY KEY ("id")
