@@ -6,7 +6,8 @@ import { fastify } from './routes/fastify'
 
 if (config.dev) {
   import('./seed')
-} else {
+}
+if (config.enableCronJobs) {
   import('./crons')
 }
 

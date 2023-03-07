@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "ts-node-dev --transpile-only --exit-child --quiet --cls -r dotenv/config src/index.ts",
-    "dev:crons": "ts-node src/crons/index-dev.ts",
+    "dev:cron": "ts-node -r dotenv/config src/crons/index-dev.ts",
     "dev:initial": "rm -rf prisma/migrations && yarn reset && yarn migrate initial",
     "azurite": "azurite-blob -l .azurite",
     "codegen": "graphql-codegen --config codegen.yml",

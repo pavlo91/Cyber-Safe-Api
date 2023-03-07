@@ -1,7 +1,9 @@
 import Prisma from '@prisma/client'
 import { auth, Client } from 'twitter-api-sdk'
+import { components } from 'twitter-api-sdk/dist/types'
 import { config } from '../config'
 import { composeAPIURL } from '../helpers/url'
+import { prisma } from '../prisma'
 
 function createTwitterAuthClient(token?: auth.OAuth2UserOptions['token']) {
   return new auth.OAuth2User({
@@ -32,7 +34,6 @@ export async function getUserFromCallback(code: string, state: string) {
   if (!authClient) throw new Error('Twitter auth client was not found')
 
   await authClient.requestAccessToken(code)
-  // TODO: save token, if expired then refresh + save new token
 
   const client = new Client(authClient)
   const { data, errors } = await client.users.findMyUser()
@@ -42,12 +43,111 @@ export async function getUserFromCallback(code: string, state: string) {
     throw new Error(errors[0].title)
   }
 
+  const user = await prisma.twitter.create({
+    data: {
+      userId: state,
+      twitterId: data!.id,
+      twitterUsername: data!.username,
+    },
+  })
+
   delete authClients[state]
 
-  return data!
+  return user
 }
 
-function getClientForTwitterUser(twitter: Pick<Prisma.Twitter, 'id'>) {
-  const authClient = createTwitterAuthClient()
+const client = (() => {
+  const authClient = new auth.OAuth2Bearer(config.twitter.bearerToken!)
   return new Client(authClient)
+})()
+
+const MAX_RESULTS = 50
+
+type TwitterMedia = components['schemas']['Photo'] &
+  components['schemas']['Video'] &
+  components['schemas']['AnimatedGif']
+
+type TwitterPost = {
+  id: string
+  text: string
+  createdAt: Date
+  media: {
+    id: string
+    type: Prisma.MediaType
+    mime: string
+    url: string
+    width: number
+    height: number
+    duration: number
+  }[]
+}
+
+async function getPaginatedTweets(twitter: Prisma.Twitter, nextToken?: string) {
+  const { data, includes, errors, meta } = await client.tweets.usersIdTweets(twitter.twitterId, {
+    max_results: MAX_RESULTS,
+    pagination_token: nextToken,
+    exclude: ['replies', 'retweets'],
+    expansions: ['attachments.media_keys'],
+    start_time: twitter.indexedAt.toISOString(),
+    'tweet.fields': ['id', 'text', 'created_at', 'attachments'],
+    'media.fields': ['media_key', 'url', 'type', 'width', 'height', 'duration_ms', 'variants'],
+  })
+
+  if (errors && errors.length > 0) {
+    console.error(`Error while getting Twitter page tweets: ${errors}`)
+    throw new Error(errors[0].title)
+  }
+
+  const results: TwitterPost[] = []
+
+  if (data) {
+    results.push(
+      ...data.map((data) => ({
+        id: data.id,
+        text: data.text,
+        createdAt: new Date(data.created_at!),
+        media:
+          data.attachments?.media_keys?.map((id) => {
+            const media = includes?.media?.find((e) => e.media_key === id) as TwitterMedia
+            const variant = media?.variants?.find((e) => e.content_type?.startsWith('video/'))
+
+            let type: Prisma.MediaType
+            let mime: string
+
+            switch (media.type) {
+              case 'animated_gif':
+              case 'video':
+                type = 'VIDEO'
+                mime = variant?.content_type ?? ''
+                break
+              default:
+                type = 'PHOTO'
+                mime = 'image/jpeg'
+                break
+            }
+
+            return {
+              id,
+              type,
+              mime,
+              width: media.width ?? 0,
+              height: media.height ?? 0,
+              duration: media.duration_ms ?? 0,
+              url: media.url ?? variant?.url ?? '',
+            }
+          }) ?? [],
+      }))
+    )
+  }
+
+  if (meta?.next_token) {
+    const newData = await getPaginatedTweets(twitter, meta.next_token)
+    results.push(...newData)
+  }
+
+  return results
+}
+
+export function getPostsFromTwitterUser(twitter: Prisma.Twitter) {
+  return getPaginatedTweets(twitter)
 }

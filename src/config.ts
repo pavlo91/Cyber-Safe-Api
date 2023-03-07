@@ -4,6 +4,7 @@ export const config = {
   secret: process.env.SECRET ?? 'secret',
   apiURL: process.env.API_URL ?? 'http://localhost:3001',
   webURL: process.env.WEB_URL ?? 'http://localhost:3000',
+  enableCronJobs: process.env.ENABLE_CRON_JOBS === 'true',
   postmark: {
     token: process.env.POSTMARK_TOKEN,
     from: process.env.POSTMARK_FROM,
@@ -21,5 +22,6 @@ export const config = {
   twitter: {
     clientId: process.env.TWITTER_CLIENT_ID,
     clientSecret: process.env.TWITTER_CLIENT_SECRET,
+    bearerToken: process.env.TWITTER_BEARER_TOKEN,
   },
 }

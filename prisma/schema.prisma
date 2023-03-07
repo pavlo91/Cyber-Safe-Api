@@ -157,4 +157,34 @@ model Twitter {
   twitterUsername String
   userId          String?  @unique
   user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts           Post[]
+}
+
+model Post {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  externalId String   @unique
+  text       String
+  twitterId  String
+  twitter    Twitter  @relation(fields: [twitterId], references: [id], onDelete: Cascade)
+  media      Media[]
+}
+
+enum MediaType {
+  PHOTO
+  VIDEO
+}
+
+model Media {
+  id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  externalId String    @unique
+  type       MediaType
+  mime       String
+  url        String
+  width      Int
+  height     Int
+  duration   Int
+  postId     String
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
