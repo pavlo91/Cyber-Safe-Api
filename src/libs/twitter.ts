@@ -39,7 +39,6 @@ export async function getUserFromCallback(code: string, state: string) {
   const { data, errors } = await client.users.findMyUser()
 
   if (errors && errors.length > 0) {
-    console.error(`Error while getting Twitter user from callback: ${errors}`)
     throw new Error(errors[0].title)
   }
 
@@ -56,10 +55,7 @@ export async function getUserFromCallback(code: string, state: string) {
   return user
 }
 
-const client = (() => {
-  const authClient = new auth.OAuth2Bearer(config.twitter.bearerToken!)
-  return new Client(authClient)
-})()
+const client = config.twitter.bearerToken ? new Client(new auth.OAuth2Bearer(config.twitter.bearerToken)) : undefined
 
 const MAX_RESULTS = 50
 
@@ -73,7 +69,7 @@ type TwitterPost = {
   createdAt: Date
   media: {
     id: string
-    type: Prisma.MediaType
+    type: 'PHOTO' | 'VIDEO'
     mime: string
     url: string
     width: number
@@ -83,7 +79,11 @@ type TwitterPost = {
 }
 
 async function getPaginatedTweets(twitter: Prisma.Twitter, nextToken?: string) {
-  const { data, includes, errors, meta } = await client.tweets.usersIdTweets(twitter.twitterId, {
+  if (!client) {
+    throw new Error('Twitter client not initialized')
+  }
+
+  const { data, includes, meta } = await client.tweets.usersIdTweets(twitter.twitterId, {
     max_results: MAX_RESULTS,
     pagination_token: nextToken,
     exclude: ['replies', 'retweets'],
@@ -92,11 +92,6 @@ async function getPaginatedTweets(twitter: Prisma.Twitter, nextToken?: string) {
     'tweet.fields': ['id', 'text', 'created_at', 'attachments'],
     'media.fields': ['media_key', 'url', 'type', 'width', 'height', 'duration_ms', 'variants'],
   })
-
-  if (errors && errors.length > 0) {
-    console.error(`Error while getting Twitter page tweets: ${errors}`)
-    throw new Error(errors[0].title)
-  }
 
   const results: TwitterPost[] = []
 
@@ -118,7 +113,7 @@ async function getPaginatedTweets(twitter: Prisma.Twitter, nextToken?: string) {
               case 'animated_gif':
               case 'video':
                 type = 'VIDEO'
-                mime = variant?.content_type ?? ''
+                mime = variant?.content_type ?? 'video/mp4'
                 break
               default:
                 type = 'PHOTO'

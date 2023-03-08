@@ -49,6 +49,7 @@ cron.schedule('0 0 0 * * *', async () => {
 
       for (const post of posts) {
         const postMedia = post.media.filter((e) => !e.blobName)
+
         for (const media of postMedia) {
           await storageSaveMedia(media, post).catch((error) => {
             console.error(error)
@@ -58,7 +59,6 @@ cron.schedule('0 0 0 * * *', async () => {
         analysePostWithGoogleAI(post)
       }
     } catch (error) {
-      console.error(`Error while getting Twitter posts via cron job for ${twitter.id}`)
       console.error(error)
     }
   }

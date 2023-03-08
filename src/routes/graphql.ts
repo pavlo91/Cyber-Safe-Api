@@ -1,4 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
+import { GraphQLError } from 'graphql'
 import { createYoga } from 'graphql-yoga'
 import { getContextFromRequest } from '../helpers/context'
 import { schema } from '../schema'
@@ -13,9 +14,17 @@ const yoga = createYoga<ServerContext>({
   schema,
   context: ({ req }) => getContextFromRequest(req),
   maskedErrors: {
-    maskError: (error: any) => {
-      console.error(error)
-      return error
+    errorMessage: 'Server error',
+    maskError: (error: unknown, message) => {
+      if (error instanceof Error) {
+        return new GraphQLError(message, {
+          extensions: {
+            originalError: error,
+          },
+        })
+      }
+
+      return new GraphQLError(message)
     },
   },
 })

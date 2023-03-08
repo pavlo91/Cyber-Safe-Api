@@ -161,13 +161,16 @@ model Twitter {
 }
 
 model Post {
-  id         String   @id @default(cuid())
-  createdAt  DateTime @default(now())
-  externalId String   @unique
+  id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  externalId String    @unique
   text       String
   twitterId  String
-  twitter    Twitter  @relation(fields: [twitterId], references: [id], onDelete: Cascade)
+  twitter    Twitter   @relation(fields: [twitterId], references: [id], onDelete: Cascade)
   media      Media[]
+  analysis   Analysis?
+
+  @@index([twitterId])
 }
 
 enum MediaType {
@@ -188,4 +191,32 @@ model Media {
   blobName   String?
   postId     String
   post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+model Analysis {
+  id        String          @id @default(cuid())
+  createdAt DateTime        @default(now())
+  postId    String          @unique
+  post      Post            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  models    AnalysisModel[]
+
+  @@index([postId])
+}
+
+enum AnalysisModelType {
+  TEXT
+  MEDIA
+}
+
+model AnalysisModel {
+  id         String            @id @default(cuid())
+  createdAt  DateTime          @default(now())
+  type       AnalysisModelType
+  source     String
+  analysisId String
+  analysis   Analysis          @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([analysisId])
 }

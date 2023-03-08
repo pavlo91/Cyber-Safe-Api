@@ -10,9 +10,9 @@ export const config = {
     from: process.env.POSTMARK_FROM,
   },
   storage: {
-    credentials: JSON.parse(process.env.STORAGE_CREDENTIALS!),
-    uploadBucket: process.env.STORAGE_UPLOAD_BUCKET!,
-    dataBucket: process.env.STORAGE_DATA_BUCKET!,
+    credentials: process.env.STORAGE_CREDENTIALS ? (JSON.parse(process.env.STORAGE_CREDENTIALS) as object) : undefined,
+    uploadBucket: process.env.STORAGE_UPLOAD_BUCKET,
+    dataBucket: process.env.STORAGE_DATA_BUCKET,
   },
   template: {
     appName: process.env.TEMPLATE_APP_NAME ?? 'CyberSafely.ai – Social Media Pivot',

@@ -9,14 +9,12 @@ import { randomToken } from '../utils/crypto'
 const STORAGE_METHOD = 'PUT'
 const STORAGE_HEADERS: Record<string, string> = {}
 
-const client = new Storage({
-  credentials: config.storage.credentials,
-})
+const client = config.storage.credentials ? new Storage({ credentials: config.storage.credentials }) : undefined
 
-const uploadBucket = client.bucket(config.storage.uploadBucket)
-const dataBucket = client.bucket(config.storage.dataBucket)
+const uploadBucket = config.storage.uploadBucket ? client?.bucket(config.storage.uploadBucket) : undefined
+const dataBucket = config.storage.dataBucket ? client?.bucket(config.storage.dataBucket) : undefined
 
-uploadBucket.setCorsConfiguration([
+uploadBucket?.setCorsConfiguration([
   {
     origin: ['*'],
     maxAgeSeconds: 3600,
@@ -34,6 +32,10 @@ export function getStorageBlobName(...paths: string[]) {
 }
 
 export async function storagePrepareForUpload(blobName: string) {
+  if (!client || !uploadBucket) {
+    throw new Error('Storage client not initialized')
+  }
+
   const blob = uploadBucket.file(blobName)
 
   const [url] = await blob.getSignedUrl({
@@ -50,6 +52,10 @@ export async function storagePrepareForUpload(blobName: string) {
 }
 
 export async function storageSaveUpload(blobName: string, newBlobName: string) {
+  if (!client || !uploadBucket) {
+    throw new Error('Storage client not initialized')
+  }
+
   const blob = uploadBucket.file(blobName)
 
   const [buffer] = await blob.download({ start: 0, end: 40 })
@@ -70,6 +76,10 @@ export async function storageSaveUpload(blobName: string, newBlobName: string) {
 }
 
 export async function storageSaveMedia(media: Prisma.Media, post: Prisma.Post) {
+  if (!client || !dataBucket) {
+    throw new Error('Storage client not initialized')
+  }
+
   const { data } = (await axios.get(media.url, { responseType: 'arraybuffer' })) as AxiosResponse<ArrayBuffer>
   const type = await fromBuffer(data)
 
@@ -85,7 +95,7 @@ export async function storageSaveMedia(media: Prisma.Media, post: Prisma.Post) {
 
   await prisma.media.update({
     where: { id: media.id },
-    data: { blobName: blob.name },
+    data: { blobName: blob.cloudStorageURI.toString() },
   })
 
   return { data, blob }
