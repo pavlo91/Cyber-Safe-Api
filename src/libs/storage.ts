@@ -16,17 +16,14 @@ const client = new Storage({
 const uploadBucket = client.bucket(config.storage.uploadBucket)
 const dataBucket = client.bucket(config.storage.dataBucket)
 
-const cors = [
+uploadBucket.setCorsConfiguration([
   {
     origin: ['*'],
     maxAgeSeconds: 3600,
     responseHeader: ['*'],
     method: ['GET', 'PUT'],
   },
-]
-
-uploadBucket.setCorsConfiguration(cors)
-dataBucket.setCorsConfiguration(cors)
+])
 
 export function getStorageTempBlobName(userId: string) {
   return ['temp', 'users', userId, randomToken()].join('/')
@@ -72,16 +69,17 @@ export async function storageSaveUpload(blobName: string, newBlobName: string) {
   }
 }
 
-export async function storageSaveMedia(media: Prisma.Media) {
+export async function storageSaveMedia(media: Prisma.Media, post: Prisma.Post) {
   const { data } = (await axios.get(media.url, { responseType: 'arraybuffer' })) as AxiosResponse<ArrayBuffer>
   const type = await fromBuffer(data)
 
   const ext = type?.ext ? '.' + type.ext : ''
   const mime = type?.mime ?? 'application/octet-stream'
 
-  const blobName = getStorageBlobName(media.id)
+  const blobName = ['posts', post.id, 'media', media.id].join('/')
+  const blob = dataBucket.file(blobName + ext)
 
-  const [blob] = await dataBucket.upload(blobName + ext, {
+  await blob.save(Buffer.from(data), {
     contentType: mime,
   })
 

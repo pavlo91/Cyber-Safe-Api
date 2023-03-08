@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@fastify/cors": "^8.2.0",
+    "@google-cloud/aiplatform": "^2.8.0",
     "@google-cloud/storage": "^6.9.4",
     "@ngneat/falso": "^6.4.0",
     "@pothos/core": "^3.27.1",
