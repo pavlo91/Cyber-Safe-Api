@@ -1,124 +1,94 @@
-import { BlobSASPermissions, BlobServiceClient } from '@azure/storage-blob'
+import { Storage } from '@google-cloud/storage'
 import * as Prisma from '@prisma/client'
 import axios, { AxiosResponse } from 'axios'
 import { fromBuffer } from 'file-type'
-import ms from 'ms'
 import { config } from '../config'
 import { prisma } from '../prisma'
 import { randomToken } from '../utils/crypto'
 
-const STORAGE_TEMP = 'temp'
-const STORAGE_UPLOAD = 'uploads'
-const STORAGE_MEDIA = 'media'
 const STORAGE_METHOD = 'PUT'
-const STORAGE_HEADERS: Record<string, string> = {
-  'x-ms-blob-type': 'BlockBlob',
-}
+const STORAGE_HEADERS: Record<string, string> = {}
 
-const StorageError = new Error('Error while uploading to storage')
+const client = new Storage({
+  credentials: config.storage.credentials,
+})
 
-const client = config.storage.connectionString
-  ? BlobServiceClient.fromConnectionString(config.storage.connectionString)
-  : undefined
+const uploadBucket = client.bucket(config.storage.uploadBucket)
+const dataBucket = client.bucket(config.storage.dataBucket)
+
+const cors = [
+  {
+    origin: ['*'],
+    maxAgeSeconds: 3600,
+    responseHeader: ['*'],
+    method: ['GET', 'PUT'],
+  },
+]
+
+uploadBucket.setCorsConfiguration(cors)
+dataBucket.setCorsConfiguration(cors)
 
 export function getStorageTempBlobName(userId: string) {
-  return ['users', userId, randomToken()].join('/')
+  return ['temp', 'users', userId, randomToken()].join('/')
 }
 
 export function getStorageBlobName(...paths: string[]) {
-  return [...paths, randomToken()].join('/')
+  return ['uploads', ...paths, randomToken()].join('/')
 }
 
 export async function storagePrepareForUpload(blobName: string) {
-  try {
-    if (!client) {
-      throw new Error('Client was not initialized')
-    }
+  const blob = uploadBucket.file(blobName)
 
-    const container = client.getContainerClient(STORAGE_TEMP)
-    await container.createIfNotExists()
+  const [url] = await blob.getSignedUrl({
+    version: 'v4',
+    action: 'write',
+    expires: Date.now() + 30 * 60 * 1000,
+  })
 
-    const blob = container.getBlockBlobClient(blobName)
-
-    const url = await blob.generateSasUrl({
-      permissions: BlobSASPermissions.parse('acrw'),
-      expiresOn: new Date(Date.now() + ms('15 minutes')),
-    })
-
-    return {
-      url,
-      method: STORAGE_METHOD,
-      headers: STORAGE_HEADERS,
-    }
-  } catch (error) {
-    console.error(`Error while preparing for upload: ${error}`)
-    throw StorageError
+  return {
+    url,
+    method: STORAGE_METHOD,
+    headers: STORAGE_HEADERS,
   }
 }
 
 export async function storageSaveUpload(blobName: string, newBlobName: string) {
-  try {
-    if (!client) {
-      throw new Error('Client was not initialized')
-    }
+  const blob = uploadBucket.file(blobName)
 
-    const tempContainer = client.getContainerClient(STORAGE_TEMP)
-    const tempBlob = tempContainer.getBlockBlobClient(blobName)
+  const [buffer] = await blob.download({ start: 0, end: 40 })
+  const type = await fromBuffer(buffer)
 
-    const buffer = await tempBlob.downloadToBuffer(0, 40)
-    const type = await fromBuffer(buffer)
+  const ext = type?.ext ? '.' + type.ext : ''
+  const mime = type?.mime ?? 'application/octet-stream'
 
-    const ext = type?.ext ? '.' + type.ext : ''
-    const mime = type?.mime ?? 'application/octet-stream'
+  const newBlob = uploadBucket.file(newBlobName + ext)
 
-    const container = client.getContainerClient(STORAGE_UPLOAD)
-    await container.createIfNotExists({ access: 'blob' })
+  await blob.move(newBlob)
+  await newBlob.makePublic()
 
-    const blob = container.getBlockBlobClient(newBlobName + ext)
-
-    await blob.syncCopyFromURL(tempBlob.url)
-    await tempBlob.deleteIfExists()
-
-    return {
-      mime,
-      url: blob.url,
-    }
-  } catch (error) {
-    console.error(`Error while saving upload: ${error}`)
-    throw StorageError
+  return {
+    mime,
+    url: newBlob.publicUrl(),
   }
 }
 
 export async function storageSaveMedia(media: Prisma.Media) {
-  try {
-    if (!client) {
-      throw new Error('Client was not initialized')
-    }
+  const { data } = (await axios.get(media.url, { responseType: 'arraybuffer' })) as AxiosResponse<ArrayBuffer>
+  const type = await fromBuffer(data)
 
-    const container = client.getContainerClient(STORAGE_MEDIA)
-    await container.createIfNotExists()
+  const ext = type?.ext ? '.' + type.ext : ''
+  const mime = type?.mime ?? 'application/octet-stream'
 
-    const { data } = (await axios.get(media.url, { responseType: 'arraybuffer' })) as AxiosResponse<ArrayBuffer>
-    const type = await fromBuffer(data)
+  const blobName = getStorageBlobName(media.id)
 
-    const ext = type?.ext ? '.' + type.ext : ''
-    const mime = type?.mime ?? 'application/octet-stream'
+  const [blob] = await dataBucket.upload(blobName + ext, {
+    contentType: mime,
+  })
 
-    const blobName = getStorageBlobName(media.id)
-    const blob = container.getBlockBlobClient(blobName + ext)
+  await prisma.media.update({
+    where: { id: media.id },
+    data: { blobName: blob.name },
+  })
 
-    await blob.uploadData(data, {
-      blobHTTPHeaders: { blobContentType: mime },
-    })
-
-    await prisma.media.update({
-      where: { id: media.id },
-      data: { blobName: blob.name },
-    })
-
-    return { data, blob }
-  } catch (error) {
-    console.error(`Error while saving upload: ${error}`)
-    throw StorageError
-  }
+  return { data, blob }
 }
