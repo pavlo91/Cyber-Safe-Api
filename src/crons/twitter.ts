@@ -22,10 +22,7 @@ cron.schedule('0 0 0 * * *', async () => {
           twitterPosts.map((post) =>
             prisma.post.upsert({
               where: { externalId: post.id },
-              include: {
-                media: true,
-                twitter: true,
-              },
+              include: { media: true },
               update: {},
               create: {
                 twitterId: twitter.id,
@@ -51,11 +48,13 @@ cron.schedule('0 0 0 * * *', async () => {
       })
 
       for (const post of posts) {
-        await storageSavePost(post)
+        await storageSavePost(post, twitter.userId)
 
-        await Promise.all(post.media.filter((e) => !e.blobName).map((media) => storageSaveMedia(media, post)))
+        await Promise.all(
+          post.media.filter((e) => !e.blobName).map((media) => storageSaveMedia(media, post, twitter.userId))
+        )
 
-        analyseTextFromPost(post)
+        analyseTextFromPost(post, twitter.userId)
       }
     } catch (error) {
       console.error(error)

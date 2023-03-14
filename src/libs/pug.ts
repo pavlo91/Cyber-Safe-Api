@@ -1,7 +1,7 @@
 import path from 'path'
 import pug from 'pug'
 import { config } from '../config'
-import { composeAPIURL } from '../helpers/url'
+import { composeAPIURL, composeWebURL } from '../helpers/url'
 
 const HTMLFileMap = {
   confirm: (url: string) => {
@@ -41,6 +41,10 @@ const HTMLFileMap = {
     comments: string | undefined | null
   ) => {
     return { firstName, lastName, email, phone, jobTitle, schoolName, state, students, describe, comments }
+  },
+  'post-flagged': (name: string, postId: string) => {
+    const url = composeWebURL('/dashboard/coach/posts/:postId', { postId })
+    return { name, url }
   },
 }
 

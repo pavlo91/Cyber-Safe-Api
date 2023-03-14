@@ -32,6 +32,7 @@ type ComposeWebURL = {
   '/dashboard/admin/members': { search?: string }
   '/dashboard/coach/members': { search?: string }
   '/dashboard/profile': {}
+  '/dashboard/coach/posts/:postId': { postId: string }
 }
 
 export function composeWebURL<K extends keyof ComposeWebURL>(

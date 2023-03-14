@@ -2,33 +2,83 @@ import Prisma from '@prisma/client'
 import fs from 'fs'
 import path from 'path'
 import { prisma } from '../prisma'
+import { sendEmail } from './postmark'
 
-const blocklistDir = path.join(__dirname, '../../blocklist')
-const fileNames = ['racial.txt', 'suicide.txt']
-const filePaths = fileNames.map((name) => path.join(blocklistDir, name))
+const files = ['racial.txt', 'suicide.txt']
+const paths = files.map((name) => path.join(__dirname, '../../blocklist', name))
+const lines = paths.flatMap((path) => fs.readFileSync(path, 'utf8').split('\n'))
 
-function checkText(text: string) {
-  for (const filePath of filePaths) {
-    const lines = fs.readFileSync(filePath, 'utf8').split('\n')
+function containsBlocklisted(text: string) {
+  const normalizedText = text.toLowerCase()
 
-    for (const line of lines) {
-      if (text.toLowerCase().includes(line)) {
-        return true
-      }
+  for (const line of lines) {
+    if (normalizedText.includes(line)) {
+      return true
     }
   }
 
   return false
 }
 
-async function flagAnalysisModel(model: Prisma.AnalysisModel) {
+async function flagAnalysisModel(
+  model: Prisma.Prisma.AnalysisModelGetPayload<{ include: { analysis: true } }>,
+  userId: string
+) {
   await prisma.analysisModel.update({
     where: { id: model.id },
     data: { flagged: true },
   })
+
+  const schoolRoles = await prisma.schoolRole.findMany({
+    where: {
+      userRole: {
+        userId,
+        status: 'ACCEPTED',
+      },
+    },
+    include: {
+      userRole: {
+        include: {
+          user: true,
+        },
+      },
+    },
+  })
+
+  if (schoolRoles.length === 0) {
+    return
+  }
+
+  const coachRoles = await prisma.schoolRole.findMany({
+    where: {
+      schoolId: { in: schoolRoles.map((e) => e.schoolId) },
+      userRole: {
+        type: 'COACH',
+        status: 'ACCEPTED',
+      },
+    },
+    include: {
+      userRole: {
+        include: {
+          user: true,
+        },
+      },
+    },
+  })
+
+  if (coachRoles.length === 0) {
+    return
+  }
+
+  sendEmail(
+    coachRoles.map((e) => e.userRole.user.email),
+    'post-flagged',
+    schoolRoles[0].userRole.user.name || schoolRoles[0].userRole.user.email,
+    model.analysis.postId
+  )
 }
 
-export async function analyseTextFromPost(post: Prisma.Post) {
+export async function analyseTextFromPost(post: Prisma.Post, userId: string) {
   const analysis = await prisma.analysis.upsert({
     update: {},
     where: { postId: post.id },
@@ -36,6 +86,7 @@ export async function analyseTextFromPost(post: Prisma.Post) {
   })
 
   const model = await prisma.analysisModel.create({
+    include: { analysis: true },
     data: {
       type: 'TEXT',
       source: post.blobName!,
@@ -44,9 +95,9 @@ export async function analyseTextFromPost(post: Prisma.Post) {
   })
 
   // Step 1 - check text with a set of words
-  if (checkText(post.text)) {
-    await flagAnalysisModel(model)
+  if (containsBlocklisted(post.text)) {
+    await flagAnalysisModel(model, userId)
   }
 
-  // TODO:
+  // TODO: Step 2
 }
