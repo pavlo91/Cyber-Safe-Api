@@ -9,8 +9,6 @@
     "dev": "ts-node-dev --transpile-only --exit-child --quiet --cls -r dotenv/config src/index.ts",
     "dev:cron": "ts-node -r dotenv/config src/crons/index-dev.ts",
     "dev:initial": "rm -rf prisma/migrations && yarn reset && yarn migrate initial",
-    "azurite": "azurite-blob -l .azurite",
-    "codegen": "graphql-codegen --config codegen.yml",
     "reset": "prisma migrate reset --force",
     "migrate": "prisma migrate dev --name",
     "typecheck": "tsc --noEmit",
@@ -32,9 +30,9 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.290.0",
+    "@aws-sdk/s3-request-presigner": "^3.290.0",
     "@fastify/cors": "^8.2.0",
-    "@google-cloud/aiplatform": "^2.8.0",
-    "@google-cloud/storage": "^6.9.4",
     "@ngneat/falso": "^6.4.0",
     "@pothos/core": "^3.27.1",
     "@pothos/plugin-dataloader": "^3.15.0",

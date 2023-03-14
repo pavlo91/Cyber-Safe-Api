@@ -1,4 +1,11 @@
-import { Storage } from '@google-cloud/storage'
+import {
+  CopyObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import * as Prisma from '@prisma/client'
 import axios, { AxiosResponse } from 'axios'
 import { fromBuffer } from 'file-type'
@@ -9,19 +16,13 @@ import { randomToken } from '../utils/crypto'
 const STORAGE_METHOD = 'PUT'
 const STORAGE_HEADERS: Record<string, string> = {}
 
-const client = config.storage.credentials ? new Storage({ credentials: config.storage.credentials }) : undefined
-
-const uploadBucket = config.storage.uploadBucket ? client?.bucket(config.storage.uploadBucket) : undefined
-const dataBucket = config.storage.dataBucket ? client?.bucket(config.storage.dataBucket) : undefined
-
-uploadBucket?.setCorsConfiguration([
-  {
-    origin: ['*'],
-    maxAgeSeconds: 3600,
-    responseHeader: ['*'],
-    method: ['GET', 'PUT'],
+const client = new S3Client({
+  region: config.storage.region,
+  credentials: {
+    accessKeyId: config.storage.accessKey!,
+    secretAccessKey: config.storage.secretKey!,
   },
-])
+})
 
 export function getStorageTempBlobName(userId: string) {
   return ['temp', 'users', userId, randomToken()].join('/')
@@ -32,17 +33,12 @@ export function getStorageBlobName(...paths: string[]) {
 }
 
 export async function storagePrepareForUpload(blobName: string) {
-  if (!client || !uploadBucket) {
-    throw new Error('Storage client not initialized')
-  }
-
-  const blob = uploadBucket.file(blobName)
-
-  const [url] = await blob.getSignedUrl({
-    version: 'v4',
-    action: 'write',
-    expires: Date.now() + 30 * 60 * 1000,
+  const command = new PutObjectCommand({
+    Key: blobName,
+    Bucket: config.storage.bucketUpload,
   })
+
+  const url = await getSignedUrl(client, command, { expiresIn: 3600 })
 
   return {
     url,
@@ -51,51 +47,67 @@ export async function storagePrepareForUpload(blobName: string) {
   }
 }
 
+function getObjectURL(bucket: string, key: string) {
+  return `http://s3.${config.storage.region}.amazonaws.com/${bucket}/${key}`
+}
+
 export async function storageSaveUpload(blobName: string, newBlobName: string) {
-  if (!client || !uploadBucket) {
-    throw new Error('Storage client not initialized')
-  }
+  const blob = await client.send(
+    new GetObjectCommand({
+      Key: blobName,
+      Range: '0-40',
+      Bucket: config.storage.bucketUpload,
+    })
+  )
 
-  const blob = uploadBucket.file(blobName)
-
-  const [buffer] = await blob.download({ start: 0, end: 40 })
-  const type = await fromBuffer(buffer)
+  const body = await blob.Body!.transformToByteArray()
+  const type = await fromBuffer(body)
 
   const ext = type?.ext ? '.' + type.ext : ''
   const mime = type?.mime ?? 'application/octet-stream'
 
-  const newBlob = uploadBucket.file(newBlobName + ext)
+  await client.send(
+    new CopyObjectCommand({
+      Key: newBlobName + ext,
+      Bucket: config.storage.bucketUpload,
+      CopySource: getObjectURL(config.storage.bucketUpload, blobName),
+    })
+  )
 
-  await blob.move(newBlob)
-  await newBlob.makePublic()
+  await client.send(
+    new DeleteObjectCommand({
+      Key: blobName,
+      Bucket: config.storage.bucketUpload,
+    })
+  )
 
   return {
     mime,
-    url: newBlob.publicUrl(),
+    url: getObjectURL(config.storage.bucketUpload, newBlobName + ext),
   }
 }
 
 export async function storageSaveMedia(media: Prisma.Media, post: Prisma.Post) {
-  if (!client || !dataBucket) {
-    throw new Error('Storage client not initialized')
-  }
-
-  const { data } = (await axios.get(media.url, { responseType: 'arraybuffer' })) as AxiosResponse<ArrayBuffer>
+  const { data } = (await axios.get(media.url, { responseType: 'arraybuffer' })) as AxiosResponse<Buffer>
   const type = await fromBuffer(data)
 
   const ext = type?.ext ? '.' + type.ext : ''
   const mime = type?.mime ?? 'application/octet-stream'
 
   const blobName = ['posts', post.id, 'media', media.id].join('/')
-  const blob = dataBucket.file(blobName + ext)
 
-  await blob.save(Buffer.from(data), {
-    contentType: mime,
-  })
+  const blob = await client.send(
+    new PutObjectCommand({
+      Body: data,
+      ContentType: mime,
+      Key: blobName + ext,
+      Bucket: config.storage.bucketMedia,
+    })
+  )
 
   await prisma.media.update({
     where: { id: media.id },
-    data: { blobName: blob.cloudStorageURI.toString() },
+    data: { blobName: getObjectURL(config.storage.bucketMedia, blobName + ext) },
   })
 
   return { data, blob }

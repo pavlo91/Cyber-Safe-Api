@@ -10,9 +10,11 @@ export const config = {
     from: process.env.POSTMARK_FROM,
   },
   storage: {
-    credentials: process.env.STORAGE_CREDENTIALS ? (JSON.parse(process.env.STORAGE_CREDENTIALS) as object) : undefined,
-    uploadBucket: process.env.STORAGE_UPLOAD_BUCKET,
-    dataBucket: process.env.STORAGE_DATA_BUCKET,
+    accessKey: process.env.STORAGE_ACCESS_KEY,
+    secretKey: process.env.STORAGE_SECRET_KEY,
+    region: process.env.STORAGE_REGION ?? 'us-east-1',
+    bucketUpload: process.env.STORAGE_BUCKET_UPLOAD ?? 'cybersafely-develop',
+    bucketMedia: process.env.STORAGE_BUCKET_MEDIA ?? 'cybersafely-develop-postdata',
   },
   template: {
     appName: process.env.TEMPLATE_APP_NAME ?? 'CyberSafely.ai – Social Media Pivot',
