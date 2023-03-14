@@ -87,14 +87,17 @@ export async function storageSaveUpload(blobName: string, newBlobName: string) {
   }
 }
 
-export async function storageSaveMedia(media: Prisma.Media, post: Prisma.Post) {
+export async function storageSaveMedia(
+  media: Prisma.Media,
+  post: Prisma.Prisma.PostGetPayload<{ include: { twitter: true } }>
+) {
   const { data } = (await axios.get(media.url, { responseType: 'arraybuffer' })) as AxiosResponse<Buffer>
   const type = await fromBuffer(data)
 
   const ext = type?.ext ? '.' + type.ext : ''
   const mime = type?.mime ?? 'application/octet-stream'
 
-  const blobName = ['posts', post.id, 'media', media.id].join('/')
+  const blobName = ['users', post.twitter.userId, 'posts', post.id, 'media', media.id].join('/')
 
   const blob = await client.send(
     new PutObjectCommand({
@@ -105,10 +108,34 @@ export async function storageSaveMedia(media: Prisma.Media, post: Prisma.Post) {
     })
   )
 
+  const url = getObjectURL(config.storage.bucketMedia, blobName + ext)
+
   await prisma.media.update({
     where: { id: media.id },
-    data: { blobName: getObjectURL(config.storage.bucketMedia, blobName + ext) },
+    data: { blobName: url },
   })
 
-  return { data, blob }
+  return { data, blob, url }
+}
+
+export async function storageSavePost(post: Prisma.Prisma.PostGetPayload<{ include: { twitter: true } }>) {
+  const blobName = ['users', post.twitter.userId, 'posts', post.id + '.txt'].join('/')
+
+  const blob = await client.send(
+    new PutObjectCommand({
+      Key: blobName,
+      Body: post.text,
+      ContentType: 'text/plain',
+      Bucket: config.storage.bucketMedia,
+    })
+  )
+
+  const url = getObjectURL(config.storage.bucketMedia, blobName)
+
+  await prisma.post.update({
+    where: { id: post.id },
+    data: { blobName: url },
+  })
+
+  return { blob, url }
 }

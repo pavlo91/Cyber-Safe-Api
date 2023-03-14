@@ -1,5 +1,5 @@
-import { analysePostWithGoogleAI } from '../libs/google'
-import { storageSaveMedia } from '../libs/storage'
+import { analyseTextFromPost } from '../libs/ai'
+import { storageSaveMedia, storageSavePost } from '../libs/storage'
 import * as Twitter from '../libs/twitter'
 import { prisma } from '../prisma'
 import { cron } from './cron'
@@ -22,7 +22,10 @@ cron.schedule('0 0 0 * * *', async () => {
           twitterPosts.map((post) =>
             prisma.post.upsert({
               where: { externalId: post.id },
-              include: { media: true },
+              include: {
+                media: true,
+                twitter: true,
+              },
               update: {},
               create: {
                 twitterId: twitter.id,
@@ -48,15 +51,11 @@ cron.schedule('0 0 0 * * *', async () => {
       })
 
       for (const post of posts) {
-        const postMedia = post.media.filter((e) => !e.blobName)
+        await storageSavePost(post)
 
-        for (const media of postMedia) {
-          await storageSaveMedia(media, post).catch((error) => {
-            console.error(error)
-          })
-        }
+        await Promise.all(post.media.filter((e) => !e.blobName).map((media) => storageSaveMedia(media, post)))
 
-        analysePostWithGoogleAI(post)
+        analyseTextFromPost(post)
       }
     } catch (error) {
       console.error(error)
