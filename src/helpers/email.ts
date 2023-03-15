@@ -1,5 +1,7 @@
-import { Prisma, User } from '@prisma/client'
+import { Post, Prisma, User } from '@prisma/client'
 import { sendEmail } from '../libs/postmark'
+import { prisma } from '../prisma'
+import { emailSettingValueFor } from './email-setting'
 import { composeAPIURL } from './url'
 
 export function sendUserConfirmationEmail(user: User) {
@@ -38,4 +40,62 @@ export function sendUserRoleConfirmationEmail(
         break
     }
   }
+}
+
+export async function sendPostFlaggedEmail(post: Post, userId: string) {
+  const schoolRoles = await prisma.schoolRole.findMany({
+    where: {
+      userRole: {
+        userId,
+        status: 'ACCEPTED',
+      },
+    },
+    include: {
+      userRole: {
+        include: {
+          user: true,
+        },
+      },
+    },
+  })
+
+  if (schoolRoles.length === 0) {
+    return
+  }
+
+  let coachRoles = await prisma.schoolRole.findMany({
+    where: {
+      schoolId: { in: schoolRoles.map((e) => e.schoolId) },
+      userRole: {
+        type: 'COACH',
+        status: 'ACCEPTED',
+      },
+    },
+    include: {
+      userRole: {
+        include: {
+          user: {
+            include: {
+              emailSettings: true,
+            },
+          },
+        },
+      },
+    },
+  })
+
+  coachRoles = coachRoles.filter((coachRole) =>
+    emailSettingValueFor('receivePostFlagged', coachRole.userRole.user.emailSettings)
+  )
+
+  if (coachRoles.length === 0) {
+    return
+  }
+
+  sendEmail(
+    coachRoles.map((e) => e.userRole.user.email),
+    'post-flagged',
+    schoolRoles[0].userRole.user.name || schoolRoles[0].userRole.user.email,
+    post.id
+  )
 }

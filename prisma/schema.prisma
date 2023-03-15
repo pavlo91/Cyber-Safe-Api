@@ -27,8 +27,24 @@ model User {
   notifications  Notification[]
   uploads        Upload[]
   twitter        Twitter?
+  emailSettings  EmailSetting[]
 
   @@index([emailConfirmed])
+}
+
+enum EmailSettingType {
+  BOOLEAN
+}
+
+model EmailSetting {
+  id      String
+  type    EmailSettingType
+  boolean Boolean?
+  userId  String
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([id, userId])
+  @@index([userId])
 }
 
 model School {

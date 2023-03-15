@@ -16,6 +16,8 @@ const yoga = createYoga<ServerContext>({
   maskedErrors: {
     errorMessage: 'Server error',
     maskError: (error: unknown, message) => {
+      return error as Error
+
       if (error instanceof Error) {
         return new GraphQLError(message, {
           extensions: {

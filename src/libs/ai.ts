@@ -1,8 +1,8 @@
 import Prisma from '@prisma/client'
 import fs from 'fs'
 import path from 'path'
+import { sendPostFlaggedEmail } from '../helpers/email'
 import { prisma } from '../prisma'
-import { sendEmail } from './postmark'
 
 const files = ['racial.txt', 'suicide.txt']
 const paths = files.map((name) => path.join(__dirname, '../../blocklist', name))
@@ -21,7 +21,7 @@ function containsBlocklisted(text: string) {
 }
 
 async function flagAnalysisModel(
-  model: Prisma.Prisma.AnalysisModelGetPayload<{ include: { analysis: true } }>,
+  model: Prisma.Prisma.AnalysisModelGetPayload<{ include: { analysis: { include: { post: true } } } }>,
   userId: string
 ) {
   await prisma.analysisModel.update({
@@ -29,53 +29,7 @@ async function flagAnalysisModel(
     data: { flagged: true },
   })
 
-  const schoolRoles = await prisma.schoolRole.findMany({
-    where: {
-      userRole: {
-        userId,
-        status: 'ACCEPTED',
-      },
-    },
-    include: {
-      userRole: {
-        include: {
-          user: true,
-        },
-      },
-    },
-  })
-
-  if (schoolRoles.length === 0) {
-    return
-  }
-
-  const coachRoles = await prisma.schoolRole.findMany({
-    where: {
-      schoolId: { in: schoolRoles.map((e) => e.schoolId) },
-      userRole: {
-        type: 'COACH',
-        status: 'ACCEPTED',
-      },
-    },
-    include: {
-      userRole: {
-        include: {
-          user: true,
-        },
-      },
-    },
-  })
-
-  if (coachRoles.length === 0) {
-    return
-  }
-
-  sendEmail(
-    coachRoles.map((e) => e.userRole.user.email),
-    'post-flagged',
-    schoolRoles[0].userRole.user.name || schoolRoles[0].userRole.user.email,
-    model.analysis.postId
-  )
+  sendPostFlaggedEmail(model.analysis.post, userId)
 }
 
 export async function analyseTextFromPost(post: Prisma.Post, userId: string) {
@@ -86,7 +40,13 @@ export async function analyseTextFromPost(post: Prisma.Post, userId: string) {
   })
 
   const model = await prisma.analysisModel.create({
-    include: { analysis: true },
+    include: {
+      analysis: {
+        include: {
+          post: true,
+        },
+      },
+    },
     data: {
       type: 'TEXT',
       source: post.blobName!,
