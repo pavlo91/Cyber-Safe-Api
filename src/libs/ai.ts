@@ -1,6 +1,7 @@
 import { ComprehendClient, DetectSentimentCommand } from '@aws-sdk/client-comprehend'
 import {
   DetectModerationLabelsCommand,
+  GetContentModerationCommand,
   RekognitionClient,
   StartContentModerationCommand,
 } from '@aws-sdk/client-rekognition'
@@ -27,15 +28,42 @@ function containsBlocklisted(text: string) {
   return false
 }
 
-async function flagAnalysisModel(
-  model: Prisma.Prisma.AnalysisModelGetPayload<{ include: { analysis: { include: { post: true } } } }>
-) {
-  await prisma.analysisModel.update({
-    where: { id: model.id },
-    data: { flagged: true },
-  })
+type AnalysisResult = { flagged?: boolean; jobId?: string }
 
-  sendPostFlaggedEmail(model.analysis.post)
+async function beginAnalysisItem(
+  analysis: Prisma.Prisma.AnalysisGetPayload<{ include: { post: true } }>,
+  type: Prisma.AnalysisItemType,
+  source: string,
+  callback: () => Promise<AnalysisResult | undefined>
+) {
+  try {
+    const result = await callback()
+
+    await prisma.analysisItem.create({
+      data: {
+        type,
+        source,
+        analysisId: analysis.id,
+        flagged: result?.flagged,
+        status: result?.jobId ? 'IN_PROGRESS' : 'SUCCEEDED',
+      },
+    })
+
+    if (result?.flagged) {
+      sendPostFlaggedEmail(analysis.post)
+    }
+  } catch (error) {
+    await prisma.analysisItem.create({
+      data: {
+        type,
+        source,
+        flagged: false,
+        status: 'FAILED',
+        error: String(error),
+        analysisId: analysis.id,
+      },
+    })
+  }
 }
 
 const comprehendClient = new ComprehendClient({
@@ -62,117 +90,118 @@ export async function analyseTextFromPost(postId: string) {
 
   const analysis = await prisma.analysis.upsert({
     update: {},
+    include: { post: true },
     where: { postId: post.id },
     create: { postId: post.id },
   })
 
-  const model = await prisma.analysisModel.create({
-    include: {
-      analysis: {
-        include: {
-          post: true,
-        },
-      },
-    },
-    data: {
-      type: 'TEXT',
-      source: post.text,
-      analysisId: analysis.id,
-    },
-  })
-
   // Step 1 - check text with a set of words
-  if (containsBlocklisted(post.text)) {
-    await flagAnalysisModel(model)
-    return // No need to continue
-  }
-
   // Step 2 - check text with Amazon Comprehend
-  const sentiment = await comprehendClient.send(
-    new DetectSentimentCommand({
-      Text: post.text,
-      LanguageCode: 'en',
-    })
-  )
+  await beginAnalysisItem(analysis, 'TEXT', post.text, async () => {
+    if (containsBlocklisted(post.text)) {
+      return { flagged: true }
+    }
 
-  if (
-    sentiment.SentimentScore?.Negative &&
-    sentiment.SentimentScore.Negative >= config.comprehend.minNegativeSentiment
-  ) {
-    await flagAnalysisModel(model)
-    return // No need to continue
-  }
+    const sentiment = await comprehendClient.send(
+      new DetectSentimentCommand({
+        Text: post.text,
+        LanguageCode: 'en',
+      })
+    )
+
+    if (
+      !!sentiment.SentimentScore?.Negative &&
+      sentiment.SentimentScore.Negative >= config.comprehend.minNegativeSentiment
+    ) {
+      return { flagged: true }
+    }
+  })
 
   // Step 3 - check images with Amazon Rekognition
   const images = post.media.filter((e) => e.type === 'IMAGE' && e.blobName)
 
   for (const image of images) {
-    const model = await prisma.analysisModel.create({
-      include: {
-        analysis: {
-          include: {
-            post: true,
+    await beginAnalysisItem(analysis, 'MEDIA', image.blobName!, async () => {
+      const moderation = await rekognitionClient.send(
+        new DetectModerationLabelsCommand({
+          Image: {
+            S3Object: {
+              Name: image.blobName!,
+              Bucket: config.storage.bucketMedia,
+            },
           },
-        },
-      },
-      data: {
-        type: 'MEDIA',
-        source: image.blobName!,
-        analysisId: analysis.id,
-      },
+        })
+      )
+
+      if (
+        !!moderation.ModerationLabels &&
+        moderation.ModerationLabels.length >= config.rekognition.minImageModerationLabels
+      ) {
+        return { flagged: true }
+      }
     })
-
-    const moderation = await rekognitionClient.send(
-      new DetectModerationLabelsCommand({
-        Image: {
-          S3Object: {
-            Name: image.blobName!,
-            Bucket: config.storage.bucketMedia,
-          },
-        },
-      })
-    )
-
-    if (
-      moderation.ModerationLabels &&
-      moderation.ModerationLabels.length >= config.rekognition.minImageModerationLabels
-    ) {
-      await flagAnalysisModel(model)
-      return // No need to continue
-    }
   }
 
   // Step 4 - check videos with Amazon Rekognition
   const videos = post.media.filter((e) => e.type === 'VIDEO' && e.blobName)
 
   for (const video of videos) {
-    const moderation = await rekognitionClient.send(
-      new StartContentModerationCommand({
-        Video: {
-          S3Object: {
-            Name: video.blobName!,
-            Bucket: config.storage.bucketMedia,
-          },
-        },
-      })
-    )
-
-    if (moderation.JobId) {
-      await prisma.analysisModel.create({
-        include: {
-          analysis: {
-            include: {
-              post: true,
+    await beginAnalysisItem(analysis, 'MEDIA', video.blobName!, async () => {
+      const moderation = await rekognitionClient.send(
+        new StartContentModerationCommand({
+          Video: {
+            S3Object: {
+              Name: video.blobName!,
+              Bucket: config.storage.bucketMedia,
             },
           },
-        },
+        })
+      )
+
+      if (moderation.JobId) {
+        return { jobId: moderation.JobId }
+      }
+    })
+  }
+}
+
+export async function finishAnalysisJob(
+  analysisItem: Prisma.Prisma.AnalysisItemGetPayload<{ include: { analysis: { include: { post: true } } } }>
+) {
+  if (!analysisItem.jobId) {
+    return
+  }
+
+  const moderation = await rekognitionClient.send(
+    new GetContentModerationCommand({
+      JobId: analysisItem.jobId!,
+    })
+  )
+
+  if (moderation.JobStatus === 'SUCCEEDED') {
+    if (
+      !!moderation.ModerationLabels &&
+      moderation.ModerationLabels.length >= config.rekognition.minVideoModerationLabels
+    ) {
+      await prisma.analysisItem.update({
+        where: { id: analysisItem.id },
         data: {
-          type: 'MEDIA',
-          source: video.blobName!,
-          analysisId: analysis.id,
-          jobId: moderation.JobId,
+          flagged: true,
+          status: 'SUCCEEDED',
         },
       })
+
+      sendPostFlaggedEmail(analysisItem.analysis.post)
     }
+  } else if (moderation.JobStatus === 'FAILED') {
+    console.error(`Get video moderation failed with status message: ${moderation.StatusMessage}`)
+
+    await prisma.analysisItem.update({
+      where: { id: analysisItem.id },
+      data: {
+        status: 'FAILED',
+        error: moderation.StatusMessage,
+      },
+    })
   }
 }

@@ -16,7 +16,10 @@ if (config.enableCronJobs) {
   import('./crons')
 }
 
-fastify
-  .register(cors)
-  .listen({ host: '0.0.0.0', port: config.port })
-  .then(() => console.info(`Server is ready at http://localhost:${config.port}/graphql`))
+async function main() {
+  await fastify.register(cors)
+  await fastify.listen({ host: '0.0.0.0', port: config.port })
+  console.info(`Server is ready at http://localhost:${config.port}/graphql`)
+}
+
+main()

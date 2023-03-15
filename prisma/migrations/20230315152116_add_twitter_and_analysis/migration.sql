@@ -5,7 +5,10 @@ CREATE TYPE "EmailSettingType" AS ENUM ('BOOLEAN');
 CREATE TYPE "MediaType" AS ENUM ('IMAGE', 'VIDEO');
 
 -- CreateEnum
-CREATE TYPE "AnalysisModelType" AS ENUM ('TEXT', 'MEDIA');
+CREATE TYPE "AnalysisItemType" AS ENUM ('TEXT', 'MEDIA');
+
+-- CreateEnum
+CREATE TYPE "AnalysisItemStatus" AS ENUM ('IN_PROGRESS', 'SUCCEEDED', 'FAILED');
 
 -- CreateTable
 CREATE TABLE "EmailSetting" (
@@ -69,16 +72,18 @@ CREATE TABLE "Analysis" (
 );
 
 -- CreateTable
-CREATE TABLE "AnalysisModel" (
+CREATE TABLE "AnalysisItem" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "type" "AnalysisModelType" NOT NULL,
+    "type" "AnalysisItemType" NOT NULL,
+    "status" "AnalysisItemStatus" NOT NULL,
+    "error" TEXT,
     "source" TEXT NOT NULL,
     "flagged" BOOLEAN NOT NULL DEFAULT false,
     "jobId" TEXT,
     "analysisId" TEXT NOT NULL,
 
-    CONSTRAINT "AnalysisModel_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "AnalysisItem_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -112,10 +117,10 @@ CREATE UNIQUE INDEX "Analysis_postId_key" ON "Analysis"("postId");
 CREATE INDEX "Analysis_postId_idx" ON "Analysis"("postId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AnalysisModel_jobId_key" ON "AnalysisModel"("jobId");
+CREATE UNIQUE INDEX "AnalysisItem_jobId_key" ON "AnalysisItem"("jobId");
 
 -- CreateIndex
-CREATE INDEX "AnalysisModel_analysisId_idx" ON "AnalysisModel"("analysisId");
+CREATE INDEX "AnalysisItem_analysisId_idx" ON "AnalysisItem"("analysisId");
 
 -- AddForeignKey
 ALTER TABLE "EmailSetting" ADD CONSTRAINT "EmailSetting_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -136,4 +141,4 @@ ALTER TABLE "Media" ADD CONSTRAINT "Media_postId_fkey" FOREIGN KEY ("postId") RE
 ALTER TABLE "Analysis" ADD CONSTRAINT "Analysis_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AnalysisModel" ADD CONSTRAINT "AnalysisModel_analysisId_fkey" FOREIGN KEY ("analysisId") REFERENCES "Analysis"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "AnalysisItem" ADD CONSTRAINT "AnalysisItem_analysisId_fkey" FOREIGN KEY ("analysisId") REFERENCES "Analysis"("id") ON DELETE CASCADE ON UPDATE CASCADE;

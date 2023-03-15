@@ -217,29 +217,37 @@ model Media {
 }
 
 model Analysis {
-  id        String          @id @default(cuid())
-  createdAt DateTime        @default(now())
-  postId    String          @unique
-  post      Post            @relation(fields: [postId], references: [id], onDelete: Cascade)
-  models    AnalysisModel[]
+  id        String         @id @default(cuid())
+  createdAt DateTime       @default(now())
+  postId    String         @unique
+  post      Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  items     AnalysisItem[]
 
   @@index([postId])
 }
 
-enum AnalysisModelType {
+enum AnalysisItemType {
   TEXT
   MEDIA
 }
 
-model AnalysisModel {
-  id         String            @id @default(cuid())
-  createdAt  DateTime          @default(now())
-  type       AnalysisModelType
+enum AnalysisItemStatus {
+  IN_PROGRESS
+  SUCCEEDED
+  FAILED
+}
+
+model AnalysisItem {
+  id         String             @id @default(cuid())
+  createdAt  DateTime           @default(now())
+  type       AnalysisItemType
+  status     AnalysisItemStatus
+  error      String?
   source     String
-  flagged    Boolean           @default(false)
-  jobId      String?           @unique
+  flagged    Boolean            @default(false)
+  jobId      String?            @unique
   analysisId String
-  analysis   Analysis          @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  analysis   Analysis           @relation(fields: [analysisId], references: [id], onDelete: Cascade)
 
   @@index([analysisId])
 }
