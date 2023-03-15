@@ -25,9 +25,10 @@ cron.schedule('0 0 0 * * *', async () => {
               include: { media: true },
               update: {},
               create: {
-                twitterId: twitter.id,
-                externalId: post.id,
                 text: post.text,
+                externalId: post.id,
+                twitterId: twitter.id,
+                userId: twitter.userId,
                 media: {
                   createMany: {
                     data: post.media.map((media) => ({
@@ -48,13 +49,11 @@ cron.schedule('0 0 0 * * *', async () => {
       })
 
       for (const post of posts) {
-        await storageSavePost(post, twitter.userId)
+        await storageSavePost(post)
 
-        await Promise.all(
-          post.media.filter((e) => !e.blobName).map((media) => storageSaveMedia(media, post, twitter.userId))
-        )
+        await Promise.all(post.media.filter((e) => !e.blobName).map((media) => storageSaveMedia(media, post)))
 
-        analyseTextFromPost(post, twitter.userId)
+        analyseTextFromPost(post.id)
       }
     } catch (error) {
       console.error(error)

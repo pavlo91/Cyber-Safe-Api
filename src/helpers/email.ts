@@ -42,12 +42,12 @@ export function sendUserRoleConfirmationEmail(
   }
 }
 
-export async function sendPostFlaggedEmail(post: Post, userId: string) {
+export async function sendPostFlaggedEmail(post: Post) {
   const schoolRoles = await prisma.schoolRole.findMany({
     where: {
       userRole: {
-        userId,
         status: 'ACCEPTED',
+        userId: post.userId,
       },
     },
     include: {

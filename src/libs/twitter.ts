@@ -69,7 +69,7 @@ type TwitterPost = {
   createdAt: Date
   media: {
     id: string
-    type: 'PHOTO' | 'VIDEO'
+    type: 'IMAGE' | 'VIDEO'
     mime: string
     url: string
     width: number
@@ -116,7 +116,7 @@ async function getPaginatedTweets(twitter: Prisma.Twitter, nextToken?: string) {
                 mime = variant?.content_type ?? 'video/mp4'
                 break
               default:
-                type = 'PHOTO'
+                type = 'IMAGE'
                 mime = 'image/jpeg'
                 break
             }

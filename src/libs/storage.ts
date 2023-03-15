@@ -87,14 +87,14 @@ export async function storageSaveUpload(blobName: string, newBlobName: string) {
   }
 }
 
-export async function storageSaveMedia(media: Prisma.Media, post: Prisma.Post, userId: string) {
+export async function storageSaveMedia(media: Prisma.Media, post: Prisma.Post) {
   const { data } = (await axios.get(media.url, { responseType: 'arraybuffer' })) as AxiosResponse<Buffer>
   const type = await fromBuffer(data)
 
   const ext = type?.ext ? '.' + type.ext : ''
   const mime = type?.mime ?? 'application/octet-stream'
 
-  const blobName = ['users', userId, 'posts', post.id, 'media', media.id].join('/')
+  const blobName = ['users', post.userId, 'posts', post.id, 'media', media.id].join('/')
 
   const blob = await client.send(
     new PutObjectCommand({
@@ -105,18 +105,16 @@ export async function storageSaveMedia(media: Prisma.Media, post: Prisma.Post, u
     })
   )
 
-  const url = getObjectURL(config.storage.bucketMedia, blobName + ext)
-
   await prisma.media.update({
     where: { id: media.id },
-    data: { blobName: url },
+    data: { blobName: blobName + ext },
   })
 
-  return { data, blob, url }
+  return { data, blob }
 }
 
-export async function storageSavePost(post: Prisma.Post, userId: string) {
-  const blobName = ['users', userId, 'posts', post.id + '.txt'].join('/')
+export async function storageSavePost(post: Prisma.Post) {
+  const blobName = ['users', post.userId, 'posts', post.id + '.txt'].join('/')
 
   const blob = await client.send(
     new PutObjectCommand({
@@ -127,12 +125,10 @@ export async function storageSavePost(post: Prisma.Post, userId: string) {
     })
   )
 
-  const url = getObjectURL(config.storage.bucketMedia, blobName)
-
   await prisma.post.update({
     where: { id: post.id },
-    data: { blobName: url },
+    data: { blobName },
   })
 
-  return { blob, url }
+  return { blob }
 }
