@@ -28,4 +28,9 @@ export const config = {
     clientSecret: process.env.TWITTER_CLIENT_SECRET,
     bearerToken: process.env.TWITTER_BEARER_TOKEN,
   },
+  comprehend: {
+    accessKey: process.env.COMPREHEND_ACCESS_KEY,
+    secretKey: process.env.COMPREHEND_SECRET_KEY,
+    region: process.env.COMPREHEND_REGION ?? 'us-east-1',
+  },
 }
