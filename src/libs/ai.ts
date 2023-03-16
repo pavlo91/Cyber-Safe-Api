@@ -84,8 +84,10 @@ const rekognitionClient = new RekognitionClient({
   },
 })
 
-function formatReason(...names: (string | undefined)[]) {
-  return names.filter((e) => !!e).join('/')
+function formatReason(moderationLabels: ModerationLabel[]) {
+  const reasons = moderationLabels.map((e) => [e.ParentName, e.Name].filter((e) => !!e).join('/')).filter((e) => !!e)
+
+  return [...new Set(reasons)].join(', ')
 }
 
 function containsModerationLabel(moderationLabels: ModerationLabel[]) {
@@ -155,7 +157,7 @@ export async function analyseTextFromPost(postId: string) {
       if (moderation.ModerationLabels && containsModerationLabel(moderation.ModerationLabels)) {
         return {
           flagged: true,
-          reason: moderation.ModerationLabels.map((e) => formatReason(e.ParentName, e.Name)).join(', '),
+          reason: formatReason(moderation.ModerationLabels),
         }
       }
     })
@@ -209,9 +211,7 @@ export async function finishAnalysisJob(
         data: {
           flagged: true,
           status: 'SUCCEEDED',
-          reason: moderation.ModerationLabels.map(({ ModerationLabel }) =>
-            formatReason(ModerationLabel?.ParentName, ModerationLabel?.Name)
-          ).join(', '),
+          reason: formatReason(moderation.ModerationLabels.map((e) => e.ModerationLabel ?? {})),
         },
       })
 
