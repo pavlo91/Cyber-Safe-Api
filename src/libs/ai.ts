@@ -2,6 +2,7 @@ import { ComprehendClient, DetectSentimentCommand } from '@aws-sdk/client-compre
 import {
   DetectModerationLabelsCommand,
   GetContentModerationCommand,
+  ModerationLabel,
   RekognitionClient,
   StartContentModerationCommand,
 } from '@aws-sdk/client-rekognition'
@@ -87,6 +88,22 @@ function formatReason(...names: (string | undefined)[]) {
   return names.filter((e) => !!e).join('/')
 }
 
+function containsModerationLabel(moderationLabels: ModerationLabel[]) {
+  for (const label of moderationLabels) {
+    const foundLabel = config.rekognition.labels.find((e) => {
+      const [parentName, name] = e.split('/')
+
+      return (label.ParentName === parentName || parentName === '*') && (label.Name === name || name === '*')
+    })
+
+    if (foundLabel) {
+      return true
+    }
+  }
+
+  return false
+}
+
 export async function analyseTextFromPost(postId: string) {
   const post = await prisma.post.findUniqueOrThrow({
     where: { id: postId },
@@ -135,7 +152,7 @@ export async function analyseTextFromPost(postId: string) {
         })
       )
 
-      if (moderation.ModerationLabels && moderation.ModerationLabels.length > 0) {
+      if (moderation.ModerationLabels && containsModerationLabel(moderation.ModerationLabels)) {
         return {
           flagged: true,
           reason: moderation.ModerationLabels.map((e) => formatReason(e.ParentName, e.Name)).join(', '),
@@ -181,7 +198,12 @@ export async function finishAnalysisJob(
   )
 
   if (moderation.JobStatus === 'SUCCEEDED') {
-    if (moderation.ModerationLabels && moderation.ModerationLabels.length > 0) {
+    if (
+      moderation.ModerationLabels &&
+      containsModerationLabel(
+        moderation.ModerationLabels.filter((e) => !!e.ModerationLabel).map((e) => e.ModerationLabel!)
+      )
+    ) {
       await prisma.analysisItem.update({
         where: { id: analysisItem.id },
         data: {

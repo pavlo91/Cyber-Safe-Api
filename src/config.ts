@@ -37,5 +37,6 @@ export const config = {
     accessKey: process.env.REKOGNITION_ACCESS_KEY,
     secretKey: process.env.REKOGNITION_SECRET_KEY,
     region: process.env.REKOGNITION_REGION ?? 'us-east-1',
+    labels: process.env.REKOGNITION_LABELS?.split(',') ?? [],
   },
 }
