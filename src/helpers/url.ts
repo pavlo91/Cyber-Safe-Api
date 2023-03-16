@@ -17,6 +17,7 @@ function composeURL(base: string, path: string, query: Record<string, string | n
 type ComposeAPIURL = {
   '/api/confirm/:token': { token: string }
   '/api/respond/:token/:response': { token: string; response: 'accept' | 'decline' }
+  '/oauth2/twitter': {}
 }
 
 export function composeAPIURL<K extends keyof ComposeAPIURL>(path: K, query: ComposeAPIURL[K]) {
@@ -30,6 +31,8 @@ type ComposeWebURL = {
   '/dashboard/staff/users': { search?: string }
   '/dashboard/admin/members': { search?: string }
   '/dashboard/coach/members': { search?: string }
+  '/dashboard/profile': {}
+  '/dashboard/coach/posts/:postId': { postId: string }
 }
 
 export function composeWebURL<K extends keyof ComposeWebURL>(

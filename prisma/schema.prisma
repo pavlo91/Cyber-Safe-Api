@@ -26,8 +26,26 @@ model User {
   parentRoles    ParentRole[]
   notifications  Notification[]
   uploads        Upload[]
+  twitter        Twitter?
+  posts          Post[]
+  emailSettings  EmailSetting[]
 
   @@index([emailConfirmed])
+}
+
+enum EmailSettingType {
+  BOOLEAN
+}
+
+model EmailSetting {
+  id      String
+  type    EmailSettingType
+  boolean Boolean?
+  userId  String
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([id, userId])
+  @@index([userId])
 }
 
 model School {
@@ -146,4 +164,92 @@ model Setting {
   id      String      @id
   type    SettingType
   boolean Boolean?
+}
+
+model Twitter {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  indexedAt       DateTime @default(now())
+  twitterId       String   @unique
+  twitterUsername String
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts           Post[]
+}
+
+model Post {
+  id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  externalId String    @unique
+  url        String
+  text       String
+  blobName   String?
+  twitterId  String
+  twitter    Twitter   @relation(fields: [twitterId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media      Media[]
+  analysis   Analysis?
+
+  @@index([twitterId])
+  @@index([userId])
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+model Media {
+  id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  externalId String    @unique
+  type       MediaType
+  mime       String
+  url        String
+  width      Int
+  height     Int
+  duration   Int
+  blobName   String?
+  postId     String
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+model Analysis {
+  id        String         @id @default(cuid())
+  createdAt DateTime       @default(now())
+  postId    String         @unique
+  post      Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  items     AnalysisItem[]
+
+  @@index([postId])
+}
+
+enum AnalysisItemType {
+  TEXT
+  MEDIA
+}
+
+enum AnalysisItemStatus {
+  IN_PROGRESS
+  SUCCEEDED
+  FAILED
+}
+
+model AnalysisItem {
+  id         String             @id @default(cuid())
+  createdAt  DateTime           @default(now())
+  type       AnalysisItemType
+  status     AnalysisItemStatus
+  error      String?
+  source     String
+  flagged    Boolean            @default(false)
+  reason     String?
+  jobId      String?            @unique
+  analysisId String
+  analysis   Analysis           @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([analysisId])
 }

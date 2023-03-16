@@ -2,10 +2,10 @@ import { FastifyRequest } from 'fastify'
 import { prisma } from '../prisma'
 import { parseJWT } from '../utils/crypto'
 
-function getUserFromToken(token: string) {
+async function getUserFromToken(token: string) {
   const { uuid } = parseJWT(token)
 
-  return prisma.user.findFirstOrThrow({
+  return await prisma.user.findFirstOrThrow({
     where: { uuid },
     include: {
       roles: {

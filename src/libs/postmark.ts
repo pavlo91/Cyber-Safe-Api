@@ -23,7 +23,7 @@ export async function sendEmail<K extends keyof HTMLFileMap>(
     filePath = path.join(filePath, fileName)
 
     fs.writeFileSync(filePath, html)
-    console.log(`Saved e-mail to ${emails.join(', ')} at ${filePath}`)
+    console.log(`Saved e-mail locally to ${filePath}`)
 
     return
   }
@@ -38,6 +38,6 @@ export async function sendEmail<K extends keyof HTMLFileMap>(
       }))
     )
     .catch((error) => {
-      console.error(`Error while sending email: ${error}`)
+      console.error(error)
     })
 }
