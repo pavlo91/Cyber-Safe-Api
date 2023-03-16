@@ -37,6 +37,7 @@ CREATE TABLE "Post" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "externalId" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
     "text" TEXT NOT NULL,
     "blobName" TEXT,
     "twitterId" TEXT NOT NULL,
@@ -80,6 +81,7 @@ CREATE TABLE "AnalysisItem" (
     "error" TEXT,
     "source" TEXT NOT NULL,
     "flagged" BOOLEAN NOT NULL DEFAULT false,
+    "reason" TEXT,
     "jobId" TEXT,
     "analysisId" TEXT NOT NULL,
 

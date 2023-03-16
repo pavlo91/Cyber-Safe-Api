@@ -25,6 +25,7 @@ cron.schedule('0 0 0 * * *', async () => {
               include: { media: true },
               update: {},
               create: {
+                url: post.url,
                 text: post.text,
                 externalId: post.id,
                 twitterId: twitter.id,

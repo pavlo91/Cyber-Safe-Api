@@ -28,7 +28,7 @@ function containsBlocklisted(text: string) {
   return false
 }
 
-type AnalysisResult = { flagged?: boolean; jobId?: string }
+type AnalysisResult = { flagged?: boolean; reason?: string; jobId?: string }
 
 async function beginAnalysisItem(
   analysis: Prisma.Prisma.AnalysisGetPayload<{ include: { post: true } }>,
@@ -43,6 +43,7 @@ async function beginAnalysisItem(
       data: {
         type,
         source,
+        reason: result?.reason,
         analysisId: analysis.id,
         flagged: result?.flagged,
         status: result?.jobId ? 'IN_PROGRESS' : 'SUCCEEDED',
@@ -82,6 +83,10 @@ const rekognitionClient = new RekognitionClient({
   },
 })
 
+function formatReason(...names: (string | undefined)[]) {
+  return names.filter((e) => !!e).join('/')
+}
+
 export async function analyseTextFromPost(postId: string) {
   const post = await prisma.post.findUniqueOrThrow({
     where: { id: postId },
@@ -99,7 +104,7 @@ export async function analyseTextFromPost(postId: string) {
   // Step 2 - check text with Amazon Comprehend
   await beginAnalysisItem(analysis, 'TEXT', post.text, async () => {
     if (containsBlocklisted(post.text)) {
-      return { flagged: true }
+      return { flagged: true, reason: 'Blocklist' }
     }
 
     const sentiment = await comprehendClient.send(
@@ -109,11 +114,8 @@ export async function analyseTextFromPost(postId: string) {
       })
     )
 
-    if (
-      !!sentiment.SentimentScore?.Negative &&
-      sentiment.SentimentScore.Negative >= config.comprehend.minNegativeSentiment
-    ) {
-      return { flagged: true }
+    if (sentiment.SentimentScore?.Negative && sentiment.SentimentScore.Negative > 0.75) {
+      return { flagged: true, reason: `Negativity` }
     }
   })
 
@@ -133,11 +135,11 @@ export async function analyseTextFromPost(postId: string) {
         })
       )
 
-      if (
-        !!moderation.ModerationLabels &&
-        moderation.ModerationLabels.length >= config.rekognition.minImageModerationLabels
-      ) {
-        return { flagged: true }
+      if (moderation.ModerationLabels && moderation.ModerationLabels.length > 0) {
+        return {
+          flagged: true,
+          reason: moderation.ModerationLabels.map((e) => formatReason(e.ParentName, e.Name)).join(', '),
+        }
       }
     })
   }
@@ -179,15 +181,15 @@ export async function finishAnalysisJob(
   )
 
   if (moderation.JobStatus === 'SUCCEEDED') {
-    if (
-      !!moderation.ModerationLabels &&
-      moderation.ModerationLabels.length >= config.rekognition.minVideoModerationLabels
-    ) {
+    if (moderation.ModerationLabels && moderation.ModerationLabels.length > 0) {
       await prisma.analysisItem.update({
         where: { id: analysisItem.id },
         data: {
           flagged: true,
           status: 'SUCCEEDED',
+          reason: moderation.ModerationLabels.map(({ ModerationLabel }) =>
+            formatReason(ModerationLabel?.ParentName, ModerationLabel?.Name)
+          ).join(', '),
         },
       })
 

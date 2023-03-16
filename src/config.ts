@@ -32,13 +32,10 @@ export const config = {
     accessKey: process.env.COMPREHEND_ACCESS_KEY,
     secretKey: process.env.COMPREHEND_SECRET_KEY,
     region: process.env.COMPREHEND_REGION ?? 'us-east-1',
-    minNegativeSentiment: 0.75,
   },
   rekognition: {
     accessKey: process.env.REKOGNITION_ACCESS_KEY,
     secretKey: process.env.REKOGNITION_SECRET_KEY,
     region: process.env.REKOGNITION_REGION ?? 'us-east-1',
-    minImageModerationLabels: 1,
-    minVideoModerationLabels: 1,
   },
 }

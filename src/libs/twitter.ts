@@ -65,6 +65,7 @@ type TwitterMedia = components['schemas']['Photo'] &
 
 type TwitterPost = {
   id: string
+  url: string
   text: string
   createdAt: Date
   media: {
@@ -99,6 +100,7 @@ async function getPaginatedTweets(twitter: Prisma.Twitter, nextToken?: string) {
     results.push(
       ...data.map((data) => ({
         id: data.id,
+        url: 'https://twitter.com/twitter/status/' + data.id,
         text: data.text,
         createdAt: new Date(data.created_at!),
         media:

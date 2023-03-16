@@ -181,6 +181,7 @@ model Post {
   id         String    @id @default(cuid())
   createdAt  DateTime  @default(now())
   externalId String    @unique
+  url        String
   text       String
   blobName   String?
   twitterId  String
@@ -245,6 +246,7 @@ model AnalysisItem {
   error      String?
   source     String
   flagged    Boolean            @default(false)
+  reason     String?
   jobId      String?            @unique
   analysisId String
   analysis   Analysis           @relation(fields: [analysisId], references: [id], onDelete: Cascade)
