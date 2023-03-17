@@ -8,7 +8,7 @@ import { Image } from './image'
 import { createOrderInput } from './order'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
 import { Twitter } from './twitter'
-import { SchoolRoleTypeEnum, UserRole, UserRoleStatusEnum } from './user-role'
+import { UserRole, UserRoleStatusEnum, UserRoleTypeEnum } from './user-role'
 
 export const UsersFromEnum = builder.enumType('UsersFromEnum', {
   values: ['SCHOOL', 'PARENT', 'CHILD'] as const,
@@ -43,17 +43,21 @@ export const UserFilter = createFilterInput(
     from: t.field({ type: UsersFromEnum, required: false }),
     fromId: t.id({ required: false }),
     search: t.string({ required: false }),
-    schoolRole: t.field({ type: SchoolRoleTypeEnum, required: false }),
+    roles: t.field({ type: [UserRoleTypeEnum], required: false }),
   }),
-  ({ from, fromId, search, schoolRole }) => {
+  ({ from, fromId, search, roles }) => {
     const where: Prisma.Prisma.UserWhereInput = {}
+
+    if (roles) {
+      where.roles = { some: { type: { in: roles } } }
+    }
 
     if (from && fromId) {
       switch (from) {
         case 'SCHOOL':
           where.roles = {
             some: {
-              type: schoolRole ?? undefined,
+              type: roles ? { in: roles } : undefined,
               schoolRole: { schoolId: fromId },
             },
           }

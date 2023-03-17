@@ -2,10 +2,29 @@ import Prisma from '@prisma/client'
 import { hasRoleInSchoolId } from '../helpers/auth'
 import { prisma } from '../prisma'
 import { builder } from './builder'
+import { createFilterInput } from './filter'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
 
 export const Post = builder.objectRef<Prisma.Post>('Post')
 export const PostPage = createPageObjectRef(Post)
+
+export const PostFilter = createFilterInput(
+  Post,
+  (t) => ({
+    flagged: t.boolean({ required: false }),
+  }),
+  ({ flagged }) => {
+    const where: Prisma.Prisma.PostWhereInput = {}
+
+    if (flagged === true) {
+      where.analysis = { items: { some: { flagged: true } } }
+    } else if (flagged === false) {
+      where.analysis = { items: { every: { flagged: true } } }
+    }
+
+    return where
+  }
+)
 
 export const Flag = builder.loadableObjectRef<Prisma.Prisma.AnalysisGetPayload<{ include: { items: true } }>, string>(
   'Flag',
@@ -62,9 +81,10 @@ builder.queryFields((t) => ({
     args: {
       schoolId: t.arg.id({ required: false }),
       ...createPageArgs(t.arg),
+      filter: t.arg({ type: PostFilter, required: false }),
     },
-    resolve: (obj, { schoolId, page }) => {
-      const where: Prisma.Prisma.PostWhereInput = {}
+    resolve: (obj, { schoolId, page, filter }) => {
+      const where: Prisma.Prisma.PostWhereInput = { ...PostFilter.toFilter(filter) }
       const orderBy: Prisma.Prisma.PostOrderByWithRelationInput = { createdAt: 'desc' }
 
       if (schoolId) {
