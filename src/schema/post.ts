@@ -1,11 +1,12 @@
 import Prisma from '@prisma/client'
-import { hasRoleInSchoolId } from '../helpers/auth'
+import { hasRoleInSchoolId, hasRoleToUserId } from '../helpers/auth'
 import { prisma } from '../prisma'
 import { builder } from './builder'
 import { createFilterInput } from './filter'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
+import { User } from './user'
 
-export const Post = builder.objectRef<Prisma.Post>('Post')
+export const Post = builder.objectRef<Prisma.Prisma.PostGetPayload<{ include: { media: true } }>>('Post')
 export const PostPage = createPageObjectRef(Post)
 
 export const PostFilter = createFilterInput(
@@ -19,7 +20,7 @@ export const PostFilter = createFilterInput(
     if (flagged === true) {
       where.analysis = { items: { some: { flagged: true } } }
     } else if (flagged === false) {
-      where.analysis = { items: { every: { flagged: true } } }
+      where.analysis = { items: { every: { flagged: false } } }
     }
 
     return where
@@ -54,6 +55,20 @@ Flag.implement({
   }),
 })
 
+export const Media = builder.objectRef<Prisma.Media>('Media')
+
+export const MediaTypeEnum = builder.enumType('MediaTypeEnum', {
+  values: ['IMAGE', 'VIDEO'] as const,
+})
+
+Media.implement({
+  fields: (t) => ({
+    id: t.exposeID('id'),
+    url: t.exposeString('url'),
+    type: t.expose('type', { type: MediaTypeEnum }),
+  }),
+})
+
 Post.implement({
   fields: (t) => ({
     id: t.exposeID('id'),
@@ -65,6 +80,11 @@ Post.implement({
       nullable: true,
       resolve: (post) => post.id,
     }),
+    user: t.field({
+      type: User,
+      resolve: (post) => post.userId,
+    }),
+    media: t.expose('media', { type: [Media] }),
   }),
 })
 
@@ -99,8 +119,34 @@ builder.queryFields((t) => ({
       }
 
       return createPage(page, (args) =>
-        prisma.$transaction([prisma.post.findMany({ ...args, where, orderBy }), prisma.post.count({ where })])
+        prisma.$transaction([
+          prisma.post.findMany({ ...args, where, orderBy, include: { media: true } }),
+          prisma.post.count({ where }),
+        ])
       )
+    },
+  }),
+  post: t.field({
+    authScopes: async (obj, { id }, { user }) => {
+      const post = await prisma.post.findUniqueOrThrow({
+        where: { id },
+      })
+
+      if (hasRoleToUserId(post.userId, user, ['ADMIN', 'COACH'])) {
+        return true
+      }
+
+      return { staff: true }
+    },
+    type: Post,
+    args: {
+      id: t.arg.id(),
+    },
+    resolve: (obj, { id }) => {
+      return prisma.post.findUniqueOrThrow({
+        where: { id },
+        include: { media: true },
+      })
     },
   }),
 }))

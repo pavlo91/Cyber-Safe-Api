@@ -14,7 +14,12 @@ export const UsersFromEnum = builder.enumType('UsersFromEnum', {
   values: ['SCHOOL', 'PARENT', 'CHILD'] as const,
 })
 
-export const User = builder.objectRef<Prisma.User>('User')
+export const User = builder.loadableObjectRef<Prisma.User, string>('User', {
+  load: async (keys) => {
+    const users = await prisma.user.findMany({ where: { id: { in: keys } } })
+    return keys.map((key) => users.find((user) => user.id === key)!)
+  },
+})
 export const UserPage = createPageObjectRef(User)
 
 export const UserOrder = createOrderInput(
