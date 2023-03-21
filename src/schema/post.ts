@@ -1,12 +1,29 @@
 import Prisma from '@prisma/client'
 import { hasRoleInSchoolId, hasRoleToUserId } from '../helpers/auth'
 import { prisma } from '../prisma'
+import { ActionKeys, executeAction } from '../utils/actions'
 import { builder } from './builder'
 import { createFilterInput } from './filter'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
 import { User } from './user'
 
-export const Post = builder.objectRef<Prisma.Prisma.PostGetPayload<{ include: { media: true } }>>('Post')
+export const PlatformEnum = builder.enumType('PlatformEnum', {
+  values: ['TWITTER', 'UNKNOWN'] as const,
+})
+
+export const Post = builder.objectRef<
+  Prisma.Prisma.PostGetPayload<{
+    include: {
+      media: true
+      actions: {
+        include: {
+          type: true
+          user: true
+        }
+      }
+    }
+  }>
+>('Post')
 export const PostPage = createPageObjectRef(Post)
 
 export const PostFilter = createFilterInput(
@@ -69,12 +86,36 @@ Media.implement({
   }),
 })
 
+export const Action = builder.objectRef<
+  Prisma.Prisma.ActionGetPayload<{
+    include: { type: true; user: true }
+  }>
+>('Action')
+
+Action.implement({
+  fields: (t) => ({
+    id: t.exposeID('id'),
+    createdAt: t.expose('createdAt', { type: 'DateTime' }),
+    name: t.string({ resolve: ({ type }) => type.name }),
+    user: t.expose('user', { type: User, nullable: true }),
+  }),
+})
+
 Post.implement({
   fields: (t) => ({
     id: t.exposeID('id'),
     createdAt: t.expose('createdAt', { type: 'DateTime' }),
     url: t.exposeString('url'),
     text: t.exposeString('text'),
+    platform: t.field({
+      type: PlatformEnum,
+      resolve: (post) => {
+        if (!!post.twitterId) {
+          return 'TWITTER'
+        }
+        return 'UNKNOWN'
+      },
+    }),
     flag: t.field({
       type: Flag,
       nullable: true,
@@ -85,6 +126,19 @@ Post.implement({
       resolve: (post) => post.userId,
     }),
     media: t.expose('media', { type: [Media] }),
+    latestAction: t.string({
+      nullable: true,
+      resolve: (post) => {
+        const actions = post.actions.sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf())
+        return actions[0]?.type.name
+      },
+    }),
+    actions: t.field({
+      type: [Action],
+      resolve: (post) => {
+        return post.actions.sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf())
+      },
+    }),
   }),
 })
 
@@ -120,7 +174,20 @@ builder.queryFields((t) => ({
 
       return createPage(page, (args) =>
         prisma.$transaction([
-          prisma.post.findMany({ ...args, where, orderBy, include: { media: true } }),
+          prisma.post.findMany({
+            ...args,
+            where,
+            orderBy,
+            include: {
+              media: true,
+              actions: {
+                include: {
+                  type: true,
+                  user: true,
+                },
+              },
+            },
+          }),
           prisma.post.count({ where }),
         ])
       )
@@ -145,8 +212,35 @@ builder.queryFields((t) => ({
     resolve: (obj, { id }) => {
       return prisma.post.findUniqueOrThrow({
         where: { id },
-        include: { media: true },
+        include: {
+          media: true,
+          actions: {
+            include: {
+              type: true,
+              user: true,
+            },
+          },
+        },
       })
+    },
+  }),
+}))
+
+export const ActionEnum = builder.enumType('ActionEnum', {
+  values: ActionKeys,
+})
+
+builder.mutationFields((t) => ({
+  executeAction: t.boolean({
+    authScopes: {
+      user: true,
+    },
+    args: {
+      type: t.arg({ type: ActionEnum }),
+      postId: t.arg.id(),
+    },
+    resolve: (obj, { type, postId }, { user }) => {
+      return executeAction(type, postId, user!.id).then(() => true)
     },
   }),
 }))

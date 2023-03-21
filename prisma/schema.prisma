@@ -29,6 +29,7 @@ model User {
   twitter        Twitter?
   posts          Post[]
   emailSettings  EmailSetting[]
+  actions        Action[]
 
   @@index([emailConfirmed])
 }
@@ -190,6 +191,7 @@ model Post {
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   media      Media[]
   analysis   Analysis?
+  actions    Action[]
 
   @@index([twitterId])
   @@index([userId])
@@ -215,6 +217,23 @@ model Media {
   post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([postId])
+}
+
+model Action {
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  typeId    String
+  type      ActionType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ActionType {
+  id      String   @id
+  name    String
+  actions Action[]
 }
 
 model Analysis {
