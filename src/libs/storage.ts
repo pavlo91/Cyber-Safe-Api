@@ -132,3 +132,12 @@ export async function storageSavePost(post: Prisma.Post) {
 
   return { blob }
 }
+
+export async function storageSignMediaURL(blobName: string) {
+  const command = new GetObjectCommand({
+    Key: blobName,
+    Bucket: config.storage.bucketMedia,
+  })
+
+  return await getSignedUrl(client, command, { expiresIn: 3600 })
+}

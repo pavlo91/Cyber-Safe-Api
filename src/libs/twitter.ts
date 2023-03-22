@@ -33,7 +33,7 @@ async function createTwitterAuthClientFromTwitterUser(twitter: Prisma.Twitter) {
 
   if (authClient.isAccessTokenExpired()) {
     const { token } = await authClient.refreshAccessToken()
-    console.log(token)
+
     await prisma.twitter.update({
       where: { id: twitter.id },
       data: {

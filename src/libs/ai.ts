@@ -12,6 +12,7 @@ import path from 'path'
 import { config } from '../config'
 import { sendPostFlaggedEmail } from '../helpers/email'
 import { prisma } from '../prisma'
+import { executeAction } from '../utils/actions'
 
 const files = ['racial.txt', 'suicide.txt']
 const paths = files.map((name) => path.join(__dirname, '../../blocklist', name))
@@ -109,7 +110,10 @@ function containsModerationLabel(moderationLabels: ModerationLabel[]) {
 export async function analyseTextFromPost(postId: string) {
   const post = await prisma.post.findUniqueOrThrow({
     where: { id: postId },
-    include: { media: true },
+    include: {
+      media: true,
+      twitter: true,
+    },
   })
 
   const analysis = await prisma.analysis.upsert({
@@ -123,6 +127,9 @@ export async function analyseTextFromPost(postId: string) {
   // Step 2 - check text with Amazon Comprehend
   await beginAnalysisItem(analysis, 'TEXT', post.text, async () => {
     if (containsBlocklisted(post.text)) {
+      // Automatically take down post
+      await executeAction('TAKE_DOWN_POST', post.id)
+
       return { flagged: true, reason: 'Blocklist' }
     }
 

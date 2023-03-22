@@ -4,6 +4,7 @@ import { sendNotification } from './notification'
 
 const Actions = {
   MARK_AS_ACCEPTABLE: 'Mark as Acceptable',
+  MARK_AS_NOT_ACCEPTABLE: 'Mark as Not Acceptable',
   NOTIFY_ATHLETE: 'Notify Athlete',
   TAKE_DOWN_POST: 'Take Down Post',
 }
@@ -34,7 +35,20 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
     case 'MARK_AS_ACCEPTABLE':
       await prisma.analysisItem.updateMany({
         where: { analysis: { postId } },
-        data: { flagged: false },
+        data: {
+          flagged: false,
+          manualReview: true,
+        },
+      })
+      break
+
+    case 'MARK_AS_NOT_ACCEPTABLE':
+      await prisma.analysisItem.updateMany({
+        where: { analysis: { postId } },
+        data: {
+          flagged: true,
+          manualReview: true,
+        },
       })
       break
 

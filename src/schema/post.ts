@@ -1,5 +1,6 @@
 import Prisma from '@prisma/client'
 import { hasRoleInSchoolId, hasRoleToUserId } from '../helpers/auth'
+import { storageSignMediaURL } from '../libs/storage'
 import { prisma } from '../prisma'
 import { ActionKeys, executeAction } from '../utils/actions'
 import { builder } from './builder'
@@ -69,6 +70,11 @@ Flag.implement({
         return obj.items.filter((e) => !!e.reason).map((e) => e.reason!)
       },
     }),
+    manualReview: t.boolean({
+      resolve: (obj) => {
+        return !!obj.items.find((e) => e.manualReview)
+      },
+    }),
   }),
 })
 
@@ -81,8 +87,15 @@ export const MediaTypeEnum = builder.enumType('MediaTypeEnum', {
 Media.implement({
   fields: (t) => ({
     id: t.exposeID('id'),
-    url: t.exposeString('url'),
     type: t.expose('type', { type: MediaTypeEnum }),
+    url: t.string({
+      resolve: (media) => {
+        if (media.blobName) {
+          return storageSignMediaURL(media.blobName)
+        }
+        return media.url
+      },
+    }),
   }),
 })
 
