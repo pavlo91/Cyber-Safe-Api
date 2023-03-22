@@ -40,6 +40,12 @@ const NotificationMap = {
           : composeWebURL('/dashboard/coach/members', { search: user.email }),
     }
   },
+  notifyAthleteAboutPost: (url: string) => {
+    return {
+      body: 'You coach has sent a notification to review your post',
+      url,
+    }
+  },
 } satisfies Record<string, (...args: any[]) => NotificationData | Promise<NotificationData>>
 
 type NotificationMap = typeof NotificationMap

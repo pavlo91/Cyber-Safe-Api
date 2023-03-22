@@ -1,4 +1,6 @@
+import { deleteTwitterPostFromTwitterUser } from '../libs/twitter'
 import { prisma } from '../prisma'
+import { sendNotification } from './notification'
 
 const Actions = {
   MARK_AS_ACCEPTABLE: 'Mark as Acceptable',
@@ -23,6 +25,11 @@ export async function updateAllActionTypes() {
 }
 
 export async function executeAction(typeId: Actions, postId: string, userId?: string) {
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+    include: { twitter: true },
+  })
+
   switch (typeId) {
     case 'MARK_AS_ACCEPTABLE':
       await prisma.analysisItem.updateMany({
@@ -32,11 +39,13 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
       break
 
     case 'NOTIFY_ATHLETE':
-      // TODO:
+      await sendNotification(post.userId, 'notifyAthleteAboutPost', post.url)
       break
 
     case 'TAKE_DOWN_POST':
-      // TODO:
+      if (post.twitter) {
+        await deleteTwitterPostFromTwitterUser(post.externalId, post.twitter)
+      }
       break
   }
 

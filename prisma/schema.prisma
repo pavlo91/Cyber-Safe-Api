@@ -173,6 +173,9 @@ model Twitter {
   indexedAt       DateTime @default(now())
   twitterId       String   @unique
   twitterUsername String
+  token           String
+  expiresAt       DateTime
+  refreshToken    String
   userId          String   @unique
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   posts           Post[]

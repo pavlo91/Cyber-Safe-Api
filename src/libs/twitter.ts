@@ -5,14 +5,46 @@ import { config } from '../config'
 import { composeAPIURL } from '../helpers/url'
 import { prisma } from '../prisma'
 
+const scopes: auth.OAuth2Scopes[] = ['offline.access', 'users.read', 'tweet.read', 'tweet.write']
+const callback = composeAPIURL('/oauth2/twitter', {})
+
 function createTwitterAuthClient(token?: auth.OAuth2UserOptions['token']) {
   return new auth.OAuth2User({
     token,
+    scopes,
+    callback,
     client_id: config.twitter.clientId!,
-    scopes: ['tweet.read', 'users.read'],
     client_secret: config.twitter.clientSecret!,
-    callback: composeAPIURL('/oauth2/twitter', {}),
   })
+}
+
+async function createTwitterAuthClientFromTwitterUser(twitter: Prisma.Twitter) {
+  const authClient = new auth.OAuth2User({
+    scopes,
+    callback,
+    client_id: config.twitter.clientId!,
+    client_secret: config.twitter.clientSecret!,
+    token: {
+      refresh_token: twitter.refreshToken,
+      access_token: twitter.token,
+      expires_at: twitter.expiresAt.valueOf(),
+    },
+  })
+
+  if (authClient.isAccessTokenExpired()) {
+    const { token } = await authClient.refreshAccessToken()
+    console.log(token)
+    await prisma.twitter.update({
+      where: { id: twitter.id },
+      data: {
+        token: token.access_token!,
+        expiresAt: new Date(token.expires_at!),
+        refreshToken: token.refresh_token!,
+      },
+    })
+  }
+
+  return authClient
 }
 
 function createAuthURL(client: auth.OAuth2User, state: string) {
@@ -33,7 +65,7 @@ export async function getUserFromCallback(code: string, state: string) {
   const authClient = authClients[state]
   if (!authClient) throw new Error('Twitter auth client was not found')
 
-  await authClient.requestAccessToken(code)
+  const { token } = await authClient.requestAccessToken(code)
 
   const client = new Client(authClient)
   const { data, errors } = await client.users.findMyUser()
@@ -47,6 +79,9 @@ export async function getUserFromCallback(code: string, state: string) {
       userId: state,
       twitterId: data!.id,
       twitterUsername: data!.username,
+      token: token.access_token!,
+      expiresAt: new Date(token.expires_at!),
+      refreshToken: token.refresh_token!,
     },
   })
 
@@ -147,4 +182,11 @@ async function getPaginatedTweets(twitter: Prisma.Twitter, nextToken?: string) {
 
 export function getPostsFromTwitterUser(twitter: Prisma.Twitter) {
   return getPaginatedTweets(twitter)
+}
+
+export async function deleteTwitterPostFromTwitterUser(id: string, twitter: Prisma.Twitter) {
+  const authClient = await createTwitterAuthClientFromTwitterUser(twitter)
+  const client = new Client(authClient)
+
+  await client.tweets.deleteTweetById(id)
 }
