@@ -41,20 +41,27 @@ async function beginAnalysisItem(
   try {
     const result = await callback()
 
-    await prisma.analysisItem.create({
-      data: {
-        type,
-        source,
-        reason: result?.reason,
-        analysisId: analysis.id,
-        flagged: result?.flagged,
-        status: result?.jobId ? 'IN_PROGRESS' : 'SUCCEEDED',
-      },
-    })
+    await prisma.$transaction(async (prisma) => {
+      await prisma.analysisItem.create({
+        data: {
+          type,
+          source,
+          reason: result?.reason,
+          analysisId: analysis.id,
+          flagged: result?.flagged,
+          status: result?.jobId ? 'IN_PROGRESS' : 'SUCCEEDED',
+        },
+      })
 
-    if (result?.flagged) {
-      sendPostFlaggedEmail(analysis.post)
-    }
+      if (result?.flagged) {
+        await prisma.post.update({
+          where: { id: analysis.post.id },
+          data: { flagged: true },
+        })
+
+        sendPostFlaggedEmail(analysis.post)
+      }
+    })
   } catch (error) {
     await prisma.analysisItem.create({
       data: {

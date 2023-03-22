@@ -182,19 +182,21 @@ model Twitter {
 }
 
 model Post {
-  id         String    @id @default(cuid())
-  createdAt  DateTime  @default(now())
-  externalId String    @unique
-  url        String
-  text       String
-  blobName   String?
-  twitterId  String
-  twitter    Twitter   @relation(fields: [twitterId], references: [id], onDelete: Cascade)
-  userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  media      Media[]
-  analysis   Analysis?
-  actions    Action[]
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  externalId   String    @unique
+  url          String
+  text         String
+  blobName     String?
+  flagged      Boolean   @default(false)
+  manualReview Boolean   @default(false)
+  twitterId    String
+  twitter      Twitter   @relation(fields: [twitterId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media        Media[]
+  analysis     Analysis?
+  actions      Action[]
 
   @@index([twitterId])
   @@index([userId])
@@ -261,18 +263,17 @@ enum AnalysisItemStatus {
 }
 
 model AnalysisItem {
-  id           String             @id @default(cuid())
-  createdAt    DateTime           @default(now())
-  type         AnalysisItemType
-  status       AnalysisItemStatus
-  error        String?
-  source       String
-  flagged      Boolean            @default(false)
-  manualReview Boolean            @default(false)
-  reason       String?
-  jobId        String?            @unique
-  analysisId   String
-  analysis     Analysis           @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  id         String             @id @default(cuid())
+  createdAt  DateTime           @default(now())
+  type       AnalysisItemType
+  status     AnalysisItemStatus
+  error      String?
+  source     String
+  flagged    Boolean            @default(false)
+  reason     String?
+  jobId      String?            @unique
+  analysisId String
+  analysis   Analysis           @relation(fields: [analysisId], references: [id], onDelete: Cascade)
 
   @@index([analysisId])
 }

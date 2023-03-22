@@ -35,10 +35,8 @@ export const PostFilter = createFilterInput(
   ({ flagged }) => {
     const where: Prisma.Prisma.PostWhereInput = {}
 
-    if (flagged === true) {
-      where.analysis = { items: { some: { flagged: true } } }
-    } else if (flagged === false) {
-      where.analysis = { items: { every: { flagged: false } } }
+    if (typeof flagged === 'boolean') {
+      where.flagged = flagged
     }
 
     return where
@@ -60,19 +58,9 @@ export const Flag = builder.loadableObjectRef<Prisma.Prisma.AnalysisGetPayload<{
 
 Flag.implement({
   fields: (t) => ({
-    flagged: t.boolean({
-      resolve: (obj) => {
-        return !!obj.items.find((e) => e.flagged)
-      },
-    }),
     reasons: t.stringList({
       resolve: (obj) => {
         return obj.items.filter((e) => !!e.reason).map((e) => e.reason!)
-      },
-    }),
-    manualReview: t.boolean({
-      resolve: (obj) => {
-        return !!obj.items.find((e) => e.manualReview)
       },
     }),
   }),
@@ -129,6 +117,8 @@ Post.implement({
         return 'UNKNOWN'
       },
     }),
+    flagged: t.exposeBoolean('flagged'),
+    manualReview: t.exposeBoolean('manualReview'),
     flag: t.field({
       type: Flag,
       nullable: true,

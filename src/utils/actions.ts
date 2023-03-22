@@ -33,8 +33,8 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
 
   switch (typeId) {
     case 'MARK_AS_ACCEPTABLE':
-      await prisma.analysisItem.updateMany({
-        where: { analysis: { postId } },
+      await prisma.post.update({
+        where: { id: postId },
         data: {
           flagged: false,
           manualReview: true,
@@ -43,8 +43,8 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
       break
 
     case 'MARK_AS_NOT_ACCEPTABLE':
-      await prisma.analysisItem.updateMany({
-        where: { analysis: { postId } },
+      await prisma.post.updateMany({
+        where: { id: postId },
         data: {
           flagged: true,
           manualReview: true,

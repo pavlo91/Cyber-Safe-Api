@@ -2,6 +2,7 @@ import SchemaBuilder from '@pothos/core'
 import DataloaderPlugin from '@pothos/plugin-dataloader'
 import ScopeAuthPlugin from '@pothos/plugin-scope-auth'
 import WithInputPlugin from '@pothos/plugin-with-input'
+import { GraphQLError } from 'graphql'
 import { DateTimeResolver } from 'graphql-scalars'
 import { Context } from '../helpers/context'
 
@@ -33,6 +34,15 @@ export const builder = new SchemaBuilder<SchemaType>({
     user: !!context.user,
     staff: !!context.user && !!context.user.roles.find((e) => e.type === 'STAFF'),
   }),
+  scopeAuthOptions: {
+    unauthorizedError: () => {
+      return new GraphQLError('Not authorized', {
+        extensions: {
+          code: 'NOT_AUTHORIZED',
+        },
+      })
+    },
+  },
   withInput: {
     typeOptions: {
       name: ({ parentTypeName, fieldName }) => {

@@ -7,7 +7,8 @@
 
 */
 -- AlterTable
-ALTER TABLE "AnalysisItem" ADD COLUMN     "manualReview" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Post" ADD COLUMN     "flagged" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "manualReview" BOOLEAN NOT NULL DEFAULT false;
 
 -- AlterTable
 ALTER TABLE "Twitter" ADD COLUMN     "expiresAt" TIMESTAMP(3) NOT NULL,
