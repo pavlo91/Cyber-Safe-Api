@@ -1,6 +1,7 @@
 import Prisma, { UserRoleType } from '@prisma/client'
 import { hasRoleInSchoolId, hasRoleToUserId } from '../helpers/auth'
 import { prisma } from '../prisma'
+import { logActivity } from '../utils/activity'
 import { builder } from './builder'
 import { School } from './school'
 import { User } from './user'
@@ -37,6 +38,8 @@ async function createUserRoleIfNone(data: {
         parentRole: data.parentRole && { create: { ...data.parentRole } },
       },
     })
+
+    logActivity('INVITE_USER', data.userId)
   }
 
   return userRole

@@ -2,6 +2,7 @@ import { ArgBuilder, InputShapeFromFields } from '@pothos/core'
 import Prisma from '@prisma/client'
 import { hasRoleInSchoolId, hasRoleToUserId, isParentToUserId, isSameUserId } from '../helpers/auth'
 import { prisma } from '../prisma'
+import { logActivity } from '../utils/activity'
 import { builder, DefaultSchemaType } from './builder'
 import { createFilterInput } from './filter'
 import { Image } from './image'
@@ -263,13 +264,15 @@ builder.mutationFields((t) => ({
       id: t.arg.id(),
       approve: t.arg.boolean(),
     },
-    resolve: (obj, { id, approve }) => {
-      return prisma.user
-        .update({
-          where: { id },
-          data: { parentalApproval: approve },
-        })
-        .then(() => true)
+    resolve: async (obj, { id, approve }) => {
+      await prisma.user.update({
+        where: { id },
+        data: { parentalApproval: approve },
+      })
+
+      logActivity('PARENTAL_APPROVAL', id)
+
+      return true
     },
   }),
 }))

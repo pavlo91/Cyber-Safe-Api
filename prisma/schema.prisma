@@ -32,6 +32,7 @@ model User {
   posts            Post[]
   emailSettings    EmailSetting[]
   actions          Action[]
+  activities       Activity[]
 
   @@index([emailConfirmed])
   @@index([parentalApproval])
@@ -285,4 +286,21 @@ model AnalysisItem {
   @@index([status])
   @@index([flagged])
   @@index([analysisId])
+}
+
+model Activity {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  typeId    String
+  type      ActivityType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ActivityType {
+  id         String     @id
+  name       String
+  activities Activity[]
 }

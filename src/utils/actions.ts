@@ -17,8 +17,8 @@ export async function updateAllActionTypes() {
   await prisma.$transaction(async (prisma) => {
     for (const [id, name] of Object.entries(Actions)) {
       await prisma.actionType.upsert({
-        update: {},
         where: { id },
+        update: { name },
         create: { id, name },
       })
     }

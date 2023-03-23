@@ -6,6 +6,7 @@ import './middleware'
 import './routes'
 import { fastify } from './routes/fastify'
 import { updateAllActionTypes } from './utils/actions'
+import { updateAllActivityTypes } from './utils/activity'
 
 if (config.dev) {
   import('./seed')
@@ -18,6 +19,7 @@ if (config.enableCronJobs) {
 }
 
 updateAllActionTypes()
+updateAllActivityTypes()
 
 async function main() {
   await fastify.register(cors)
