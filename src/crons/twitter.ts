@@ -6,7 +6,10 @@ import { cron } from './cron'
 
 // Runs every day at 12AM
 cron.schedule('0 0 0 * * *', async () => {
-  const twitters = await prisma.twitter.findMany()
+  const twitters = await prisma.twitter.findMany({
+    include: { user: true },
+    where: { user: { parentalApproval: true } },
+  })
 
   for (const twitter of twitters) {
     try {
@@ -29,7 +32,7 @@ cron.schedule('0 0 0 * * *', async () => {
                 text: post.text,
                 externalId: post.id,
                 twitterId: twitter.id,
-                userId: twitter.userId,
+                userId: twitter.user!.id,
                 media: {
                   createMany: {
                     data: post.media.map((media) => ({

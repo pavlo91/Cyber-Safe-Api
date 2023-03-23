@@ -7,6 +7,7 @@ import { createFilterInput } from './filter'
 import { Image } from './image'
 import { createOrderInput } from './order'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
+import { Platform, PlatformEnum } from './post'
 import { Twitter } from './twitter'
 import { UserRole, UserRoleStatusEnum, UserRoleTypeEnum } from './user-role'
 
@@ -20,6 +21,7 @@ export const User = builder.loadableObjectRef<Prisma.User, string>('User', {
     return keys.map((key) => users.find((user) => user.id === key)!)
   },
 })
+
 export const UserPage = createPageObjectRef(User)
 
 export const UserOrder = createOrderInput(
@@ -104,6 +106,19 @@ User.implement({
     email: t.exposeString('email'),
     emailConfirmed: t.exposeBoolean('emailConfirmed'),
     name: t.exposeString('name'),
+    parentalApproval: t.exposeBoolean('parentalApproval', { nullable: true }),
+    platforms: t.field({
+      type: [PlatformEnum],
+      resolve: (post) => {
+        const platforms: Platform[] = []
+
+        if (post.twitterId) {
+          platforms.push('TWITTER')
+        }
+
+        return platforms
+      },
+    }),
     avatar: t.field({
       type: Image,
       nullable: true,
@@ -143,9 +158,11 @@ User.implement({
       type: Twitter,
       nullable: true,
       resolve: (user) => {
-        return prisma.twitter.findUnique({
-          where: { userId: user.id },
-        })
+        if (user.twitterId) {
+          return prisma.twitter.findUnique({
+            where: { id: user.twitterId },
+          })
+        }
       },
     }),
   }),
@@ -206,9 +223,7 @@ builder.queryFields((t) => ({
       id: t.arg.id(),
     },
     resolve: (obj, { id }) => {
-      return prisma.user.findUniqueOrThrow({
-        where: { id },
-      })
+      return prisma.user.findUniqueOrThrow({ where: { id } })
     },
   }),
 }))
@@ -238,6 +253,23 @@ builder.mutationFields((t) => ({
           newEmail: input.newEmail ?? undefined,
         },
       })
+    },
+  }),
+  updateUserParentalApproval: t.boolean({
+    authScopes: (obj, { id }, { user }) => {
+      return isParentToUserId(id, user)
+    },
+    args: {
+      id: t.arg.id(),
+      approve: t.arg.boolean(),
+    },
+    resolve: (obj, { id, approve }) => {
+      return prisma.user
+        .update({
+          where: { id },
+          data: { parentalApproval: approve },
+        })
+        .then(() => true)
     },
   }),
 }))

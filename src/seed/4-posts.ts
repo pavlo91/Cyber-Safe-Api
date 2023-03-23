@@ -14,18 +14,22 @@ export async function seedPosts() {
     })
 
     for (const athlete of athletes) {
-      const twitter = await prisma.twitter.upsert({
-        update: {},
-        where: { userId: athlete.user.id },
-        create: {
-          token: '',
-          refreshToken: '',
-          expiresAt: new Date(),
-          twitterId: randUuid(),
-          userId: athlete.user.id,
-          twitterUsername: athlete.user.email,
-        },
+      let twitter = await prisma.twitter.findFirst({
+        where: { user: { id: athlete.user.id } },
       })
+
+      if (!twitter) {
+        twitter = await prisma.twitter.create({
+          data: {
+            token: '',
+            refreshToken: '',
+            expiresAt: new Date(),
+            twitterId: randUuid(),
+            twitterUsername: athlete.user.email,
+            user: { connect: { id: athlete.user.id } },
+          },
+        })
+      }
 
       for (let i = 0; i < 3; i++) {
         await prisma.post.create({

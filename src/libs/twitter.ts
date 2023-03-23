@@ -76,12 +76,12 @@ export async function getUserFromCallback(code: string, state: string) {
 
   const user = await prisma.twitter.create({
     data: {
-      userId: state,
       twitterId: data!.id,
-      twitterUsername: data!.username,
       token: token.access_token!,
-      expiresAt: new Date(token.expires_at!),
+      twitterUsername: data!.username,
+      user: { connect: { id: state } },
       refreshToken: token.refresh_token!,
+      expiresAt: new Date(token.expires_at!),
     },
   })
 

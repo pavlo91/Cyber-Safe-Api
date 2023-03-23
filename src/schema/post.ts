@@ -8,6 +8,7 @@ import { createFilterInput } from './filter'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
 import { User } from './user'
 
+export type Platform = 'TWITTER' | 'UNKNOWN'
 export const PlatformEnum = builder.enumType('PlatformEnum', {
   values: ['TWITTER', 'UNKNOWN'] as const,
 })

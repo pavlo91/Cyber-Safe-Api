@@ -10,28 +10,31 @@ datasource db {
 }
 
 model User {
-  id             String         @id @default(cuid())
-  uuid           String         @unique @default(uuid())
-  createdAt      DateTime       @default(now())
-  email          String         @unique @db.Citext
-  emailConfirmed Boolean        @default(false)
-  newEmail       String?
-  newEmailToken  String?        @unique
-  password       String?
-  passwordToken  String?        @unique
-  name           String
-  avatarId       String?        @unique
-  avatar         Image?         @relation(fields: [avatarId], references: [id], onDelete: SetNull)
-  roles          UserRole[]
-  parentRoles    ParentRole[]
-  notifications  Notification[]
-  uploads        Upload[]
-  twitter        Twitter?
-  posts          Post[]
-  emailSettings  EmailSetting[]
-  actions        Action[]
+  id               String         @id @default(cuid())
+  uuid             String         @unique @default(uuid())
+  createdAt        DateTime       @default(now())
+  email            String         @unique @db.Citext
+  emailConfirmed   Boolean        @default(false)
+  newEmail         String?
+  newEmailToken    String?        @unique
+  password         String?
+  passwordToken    String?        @unique
+  name             String
+  parentalApproval Boolean?
+  avatarId         String?        @unique
+  avatar           Image?         @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+  roles            UserRole[]
+  parentRoles      ParentRole[]
+  notifications    Notification[]
+  uploads          Upload[]
+  twitterId        String?        @unique
+  twitter          Twitter?       @relation(fields: [twitterId], references: [id], onDelete: SetNull)
+  posts            Post[]
+  emailSettings    EmailSetting[]
+  actions          Action[]
 
   @@index([emailConfirmed])
+  @@index([parentalApproval])
 }
 
 enum EmailSettingType {
@@ -176,8 +179,7 @@ model Twitter {
   token           String
   expiresAt       DateTime
   refreshToken    String
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User?
   posts           Post[]
 }
 
@@ -199,6 +201,8 @@ model Post {
   actions      Action[]
 
   @@index([twitterId])
+  @@index([flagged])
+  @@index([manualReview])
   @@index([userId])
 }
 
@@ -233,6 +237,9 @@ model Action {
   post      Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId    String?
   user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
 }
 
 model ActionType {
@@ -275,5 +282,7 @@ model AnalysisItem {
   analysisId String
   analysis   Analysis           @relation(fields: [analysisId], references: [id], onDelete: Cascade)
 
+  @@index([status])
+  @@index([flagged])
   @@index([analysisId])
 }
