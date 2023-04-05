@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { composeWebURL } from '../helpers/url'
 import { prisma } from '../prisma'
+import { logActivity } from '../utils/activity'
 import { getSchoolMemberIds, getStaffIds, sendNotification } from '../utils/notification'
 import { fastify } from './fastify'
 
@@ -62,6 +63,8 @@ fastify.get('/api/respond/:token/:response', async (req, reply) => {
     default:
       break
   }
+
+  logActivity('INVITE_USER_RESPONDED', userRole.userId)
 
   reply.redirect(composeWebURL('/auth/login', {}))
 

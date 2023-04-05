@@ -10,24 +10,47 @@ datasource db {
 }
 
 model User {
-  id             String         @id @default(cuid())
-  uuid           String         @unique @default(uuid())
-  createdAt      DateTime       @default(now())
-  email          String         @unique @db.Citext
-  emailConfirmed Boolean        @default(false)
-  newEmail       String?
-  newEmailToken  String?        @unique
-  password       String?
-  passwordToken  String?        @unique
-  name           String
-  avatarId       String?        @unique
-  avatar         Image?         @relation(fields: [avatarId], references: [id], onDelete: SetNull)
-  roles          UserRole[]
-  parentRoles    ParentRole[]
-  notifications  Notification[]
-  uploads        Upload[]
+  id               String         @id @default(cuid())
+  uuid             String         @unique @default(uuid())
+  createdAt        DateTime       @default(now())
+  email            String         @unique @db.Citext
+  emailConfirmed   Boolean        @default(false)
+  newEmail         String?
+  newEmailToken    String?        @unique
+  password         String?
+  passwordToken    String?        @unique
+  name             String
+  parentalApproval Boolean?
+  avatarId         String?        @unique
+  avatar           Image?         @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+  roles            UserRole[]
+  parentRoles      ParentRole[]
+  notifications    Notification[]
+  uploads          Upload[]
+  twitterId        String?        @unique
+  twitter          Twitter?       @relation(fields: [twitterId], references: [id], onDelete: SetNull)
+  posts            Post[]
+  emailSettings    EmailSetting[]
+  actions          Action[]
+  activities       Activity[]
 
   @@index([emailConfirmed])
+  @@index([parentalApproval])
+}
+
+enum EmailSettingType {
+  BOOLEAN
+}
+
+model EmailSetting {
+  id      String
+  type    EmailSettingType
+  boolean Boolean?
+  userId  String
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([id, userId])
+  @@index([userId])
 }
 
 model School {
@@ -146,4 +169,138 @@ model Setting {
   id      String      @id
   type    SettingType
   boolean Boolean?
+}
+
+model Twitter {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  indexedAt       DateTime @default(now())
+  twitterId       String   @unique
+  twitterUsername String
+  token           String
+  expiresAt       DateTime
+  refreshToken    String
+  user            User?
+  posts           Post[]
+}
+
+model Post {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  externalId   String    @unique
+  url          String
+  text         String
+  blobName     String?
+  flagged      Boolean   @default(false)
+  manualReview Boolean   @default(false)
+  twitterId    String
+  twitter      Twitter   @relation(fields: [twitterId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media        Media[]
+  analysis     Analysis?
+  actions      Action[]
+
+  @@index([twitterId])
+  @@index([flagged])
+  @@index([manualReview])
+  @@index([userId])
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+model Media {
+  id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  externalId String    @unique
+  type       MediaType
+  mime       String
+  url        String
+  width      Int
+  height     Int
+  duration   Int
+  blobName   String?
+  postId     String
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+model Action {
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  typeId    String
+  type      ActionType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+}
+
+model ActionType {
+  id      String   @id
+  name    String
+  actions Action[]
+}
+
+model Analysis {
+  id        String         @id @default(cuid())
+  createdAt DateTime       @default(now())
+  postId    String         @unique
+  post      Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  items     AnalysisItem[]
+
+  @@index([postId])
+}
+
+enum AnalysisItemType {
+  TEXT
+  MEDIA
+}
+
+enum AnalysisItemStatus {
+  IN_PROGRESS
+  SUCCEEDED
+  FAILED
+}
+
+model AnalysisItem {
+  id         String             @id @default(cuid())
+  createdAt  DateTime           @default(now())
+  type       AnalysisItemType
+  status     AnalysisItemStatus
+  error      String?
+  source     String
+  flagged    Boolean            @default(false)
+  reason     String?
+  jobId      String?            @unique
+  analysisId String
+  analysis   Analysis           @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([flagged])
+  @@index([analysisId])
+}
+
+model Activity {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  typeId    String
+  type      ActivityType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ActivityType {
+  id         String     @id
+  name       String
+  activities Activity[]
 }
