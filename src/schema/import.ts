@@ -138,6 +138,10 @@ builder.mutationFields((t) => ({
       }))
 
       for (const row of rows) {
+        if (!row.athleteEmail) {
+          throw new Error('Found empty Athelete E-mail value')
+        }
+
         let athlete = await prisma.user.findUnique({
           where: { email: row.athleteEmail },
         })
@@ -157,24 +161,26 @@ builder.mutationFields((t) => ({
           schoolRole: { schoolId },
         })
 
-        let parent = await prisma.user.findUnique({
-          where: { email: row.parentEmail },
-        })
+        if (!!row.parentEmail) {
+          let parent = await prisma.user.findUnique({
+            where: { email: row.parentEmail },
+          })
 
-        if (!parent) {
-          parent = await prisma.user.create({
-            data: {
-              email: row.parentEmail,
-              name: '',
-            },
+          if (!parent) {
+            parent = await prisma.user.create({
+              data: {
+                email: row.parentEmail,
+                name: '',
+              },
+            })
+          }
+
+          await createUserRoleIfNone({
+            type: 'PARENT',
+            userId: parent.id,
+            parentRole: { childUserId: athlete.id },
           })
         }
-
-        await createUserRoleIfNone({
-          type: 'PARENT',
-          userId: parent.id,
-          parentRole: { childUserId: athlete.id },
-        })
       }
 
       return true
