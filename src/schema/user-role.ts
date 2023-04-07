@@ -6,7 +6,7 @@ import { builder } from './builder'
 import { School } from './school'
 import { User } from './user'
 
-async function createUserRoleIfNone(data: {
+export async function createUserRoleIfNone(data: {
   userId: string
   type: UserRoleType
   schoolRole?: { schoolId: string }

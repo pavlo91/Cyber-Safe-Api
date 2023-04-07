@@ -9,6 +9,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import * as Prisma from '@prisma/client'
 import axios, { AxiosResponse } from 'axios'
 import { fromBuffer } from 'file-type'
+import { Stream } from 'stream'
 import { config } from '../config'
 import { prisma } from '../prisma'
 import { randomToken } from '../utils/crypto'
@@ -49,6 +50,21 @@ export async function storagePrepareForUpload(blobName: string) {
 
 function getObjectURL(bucket: string, key: string) {
   return `http://s3.${config.storage.region}.amazonaws.com/${bucket}/${key}`
+}
+
+export async function storageGetTempUploadStream(blobName: string) {
+  const blob = await client.send(
+    new GetObjectCommand({
+      Key: blobName,
+      Bucket: config.storage.bucketUpload,
+    })
+  )
+
+  const body = await blob.Body!.transformToByteArray()
+  const buffer = Buffer.from(body)
+  const stream = Stream.Readable.from(buffer)
+
+  return { stream }
 }
 
 export async function storageSaveUpload(blobName: string, newBlobName: string) {
