@@ -5,14 +5,14 @@ export async function seedParents() {
   const count = await prisma.parentRole.count()
   if (count > 1) return
 
-  console.debug('Seeding athlete parents...')
+  console.debug('Seeding student parents...')
 
   await prisma.$transaction(async (prisma) => {
-    const athletes = await prisma.userRole.findMany({
-      where: { type: 'ATHLETE' },
+    const students = await prisma.userRole.findMany({
+      where: { type: 'STUDENT' },
     })
 
-    for (const athlete of athletes) {
+    for (const student of students) {
       await prisma.user.create({
         data: {
           email: randEmail(),
@@ -25,7 +25,7 @@ export async function seedParents() {
               status: 'ACCEPTED',
               parentRole: {
                 create: {
-                  childUserId: athlete.userId,
+                  childUserId: student.userId,
                 },
               },
             },

@@ -27,7 +27,7 @@ const NotificationMap = {
   ) => {
     const { user } = userRole
     const displayName = user.name || user.email
-    const displayRole = userRole.type === 'ADMIN' ? 'admin' : userRole.type === 'COACH' ? 'coach' : 'athlete'
+    const displayRole = userRole.type === 'ADMIN' ? 'admin' : userRole.type === 'COACH' ? 'coach' : 'student'
 
     return {
       body:
@@ -40,7 +40,7 @@ const NotificationMap = {
           : composeWebURL('/dashboard/coach/members', { search: user.email }),
     }
   },
-  notifyAthleteAboutPost: (url: string) => {
+  notifyStudentAboutPost: (url: string) => {
     return {
       body: 'You coach has sent a notification to review your post',
       url,
@@ -91,7 +91,7 @@ export async function getStaffIds() {
   return users.map((user) => user.id)
 }
 
-type SchoolRole = 'ADMIN' | 'COACH' | 'ATHLETE'
+type SchoolRole = 'ADMIN' | 'COACH' | 'STUDENT'
 
 export async function getSchoolMemberIds(type: SchoolRole | SchoolRole[], schoolId: string) {
   const types = Array.isArray(type) ? type : [type]

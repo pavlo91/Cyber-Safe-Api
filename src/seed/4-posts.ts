@@ -8,14 +8,14 @@ export async function seedPosts() {
   console.debug('Seeding posts...')
 
   await prisma.$transaction(async (prisma) => {
-    const athletes = await prisma.userRole.findMany({
-      where: { type: 'ATHLETE' },
+    const students = await prisma.userRole.findMany({
+      where: { type: 'STUDENT' },
       include: { user: true },
     })
 
-    for (const athlete of athletes) {
+    for (const student of students) {
       let twitter = await prisma.twitter.findFirst({
-        where: { user: { id: athlete.user.id } },
+        where: { user: { id: student.user.id } },
       })
 
       if (!twitter) {
@@ -25,8 +25,8 @@ export async function seedPosts() {
             refreshToken: '',
             expiresAt: new Date(),
             twitterId: randUuid(),
-            twitterUsername: athlete.user.email,
-            user: { connect: { id: athlete.user.id } },
+            twitterUsername: student.user.email,
+            user: { connect: { id: student.user.id } },
           },
         })
       }
@@ -38,7 +38,7 @@ export async function seedPosts() {
             text: randSentence(),
             twitterId: twitter.id,
             externalId: randUuid(),
-            userId: athlete.user.id,
+            userId: student.user.id,
             media: {
               create: {
                 width: 0,

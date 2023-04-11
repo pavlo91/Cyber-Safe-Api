@@ -5,7 +5,7 @@ import { sendNotification } from './notification'
 const Actions = {
   MARK_AS_ACCEPTABLE: 'Mark as Acceptable',
   MARK_AS_NOT_ACCEPTABLE: 'Mark as Not Acceptable',
-  NOTIFY_ATHLETE: 'Notify Athlete',
+  NOTIFY_STUDENT: 'Notify Student',
   TAKE_DOWN_POST: 'Take Down Post',
 }
 
@@ -52,8 +52,8 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
       })
       break
 
-    case 'NOTIFY_ATHLETE':
-      await sendNotification(post.userId, 'notifyAthleteAboutPost', post.url)
+    case 'NOTIFY_STUDENT':
+      await sendNotification(post.userId, 'notifyStudentAboutPost', post.url)
       break
 
     case 'TAKE_DOWN_POST':

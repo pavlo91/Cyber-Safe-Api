@@ -46,11 +46,11 @@ export async function createUserRoleIfNone(data: {
 }
 
 export const UserRoleTypeEnum = builder.enumType('UserRoleTypeEnum', {
-  values: ['STAFF', 'ADMIN', 'COACH', 'ATHLETE', 'PARENT'] as const,
+  values: ['STAFF', 'ADMIN', 'COACH', 'STUDENT', 'PARENT'] as const,
 })
 
 export const SchoolRoleTypeEnum = builder.enumType('SchoolRoleTypeEnum', {
-  values: ['ADMIN', 'COACH', 'ATHLETE'] as const,
+  values: ['ADMIN', 'COACH', 'STUDENT'] as const,
 })
 
 export const UserRoleStatusEnum = builder.enumType('UserRoleStatusEnum', {
@@ -105,7 +105,7 @@ export const UserRole = builder.unionType('UserRole', {
     switch (userRole.type) {
       case 'ADMIN':
       case 'COACH':
-      case 'ATHLETE':
+      case 'STUDENT':
         return SchoolRole
       case 'PARENT':
         return ParentRole
@@ -130,7 +130,7 @@ builder.mutationFields((t) => ({
           break
 
         case 'COACH':
-        case 'ATHLETE':
+        case 'STUDENT':
           if (hasRoleInSchoolId(input.relationId!, user, ['ADMIN', 'COACH'])) {
             return true
           }
@@ -178,7 +178,7 @@ builder.mutationFields((t) => ({
 
         case 'ADMIN':
         case 'COACH':
-        case 'ATHLETE':
+        case 'STUDENT':
           await createUserRoleIfNone({
             userId: user.id,
             type: input.type,
@@ -214,7 +214,7 @@ builder.mutationFields((t) => ({
 
         case 'ADMIN':
         case 'COACH':
-        case 'ATHLETE':
+        case 'STUDENT':
           if (userRole.schoolRole && hasRoleInSchoolId(userRole.schoolRole.schoolId, user, ['ADMIN', 'COACH'])) {
             return true
           }

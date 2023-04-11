@@ -45,7 +45,7 @@ fastify.get('/api/respond/:token/:response', async (req, reply) => {
 
     case 'ADMIN':
     case 'COACH':
-    case 'ATHLETE':
+    case 'STUDENT':
       sendNotification(
         await getSchoolMemberIds('ADMIN', userRole.schoolRole!.schoolId),
         'userRespondedToMemberUserRole',

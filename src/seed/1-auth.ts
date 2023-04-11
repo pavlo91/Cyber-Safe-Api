@@ -117,13 +117,13 @@ export async function seedAuth() {
       update: {},
     })
 
-    const athlete = await prisma.user.upsert({
-      where: { email: 'athlete@wonderkiln.com' },
+    const student = await prisma.user.upsert({
+      where: { email: 'student@wonderkiln.com' },
       create: {
-        email: 'athlete@wonderkiln.com',
+        email: 'student@wonderkiln.com',
         emailConfirmed: true,
         password: 'password',
-        name: 'Athlete User',
+        name: 'Student User',
         avatar: {
           create: {
             url: randAvatar(),
@@ -131,7 +131,7 @@ export async function seedAuth() {
         },
         roles: {
           create: {
-            type: 'ATHLETE',
+            type: 'STUDENT',
             status: 'ACCEPTED',
             schoolRole: {
               create: {
@@ -162,7 +162,7 @@ export async function seedAuth() {
             status: 'ACCEPTED',
             parentRole: {
               create: {
-                childUserId: athlete.id,
+                childUserId: student.id,
               },
             },
           },

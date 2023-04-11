@@ -71,7 +71,7 @@ enum UserRoleType {
   STAFF
   ADMIN
   COACH
-  ATHLETE
+  STUDENT
   PARENT
 }
 
