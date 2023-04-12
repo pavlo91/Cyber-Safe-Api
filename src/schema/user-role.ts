@@ -2,6 +2,7 @@ import Prisma, { UserRoleType } from '@prisma/client'
 import { hasRoleInSchoolId, hasRoleToUserId } from '../helpers/auth'
 import { prisma } from '../prisma'
 import { logActivity } from '../utils/activity'
+import { getSchoolMemberIds, getStaffIds, sendNotification } from '../utils/notification'
 import { builder } from './builder'
 import { School } from './school'
 import { User } from './user'
@@ -114,6 +115,64 @@ export const UserRole = builder.unionType('UserRole', {
     }
   },
 })
+
+type InvitedRole = {
+  type: UserRoleType
+  schoolName?: string
+  schoolLogoURL?: string
+  isNewUser: boolean
+}
+
+const InvitedRole = builder.objectRef<InvitedRole>('InvitedRole')
+
+InvitedRole.implement({
+  fields: (t) => ({
+    type: t.expose('type', { type: UserRoleTypeEnum }),
+    schoolName: t.exposeString('schoolName', { nullable: true }),
+    schoolLogoURL: t.exposeString('schoolLogoURL', { nullable: true }),
+    isNewUser: t.exposeBoolean('isNewUser'),
+  }),
+})
+
+builder.queryFields((t) => ({
+  invitedRole: t.field({
+    type: InvitedRole,
+    args: {
+      token: t.arg.string(),
+    },
+    resolve: async (obj, { token }) => {
+      const role = await prisma.userRole
+        .findFirstOrThrow({
+          where: {
+            statusToken: token,
+            status: 'PENDING',
+          },
+          include: {
+            user: true,
+            schoolRole: {
+              include: {
+                school: {
+                  include: {
+                    logo: true,
+                  },
+                },
+              },
+            },
+          },
+        })
+        .catch(() => {
+          throw new Error('No pending invite found')
+        })
+
+      return {
+        type: role.type,
+        schoolName: role.schoolRole?.school.name,
+        schoolLogoURL: role.schoolRole?.school.logo?.url,
+        isNewUser: !role.user.password,
+      }
+    },
+  }),
+}))
 
 builder.mutationFields((t) => ({
   createUserRole: t.fieldWithInput({
@@ -234,6 +293,93 @@ builder.mutationFields((t) => ({
     },
     resolve: (obj, { id }) => {
       return prisma.userRole.delete({ where: { id } }).then(() => true)
+    },
+  }),
+  respondToInvitedRole: t.boolean({
+    args: {
+      token: t.arg.string(),
+      accept: t.arg.boolean(),
+      name: t.arg.string({ required: false }),
+      password: t.arg.string({ required: false }),
+    },
+    resolve: async (obj, { token, accept, name, password }) => {
+      let role = await prisma.userRole.findFirstOrThrow({
+        where: {
+          statusToken: token,
+          status: 'PENDING',
+        },
+        include: {
+          user: true,
+          schoolRole: true,
+        },
+      })
+
+      if (accept) {
+        if (!role.user.password) {
+          if (!name || !password) {
+            throw new Error('New user requires name and password')
+          }
+
+          await prisma.user.update({
+            where: { id: role.userId },
+            data: { name, password },
+          })
+        }
+
+        role = await prisma.userRole.update({
+          where: { id: role.id },
+          data: {
+            statusToken: null,
+            status: 'ACCEPTED',
+          },
+          include: {
+            user: true,
+            schoolRole: true,
+          },
+        })
+      } else {
+        role = await prisma.userRole.update({
+          where: { id: role.id },
+          data: {
+            statusToken: null,
+            status: 'DECLINED',
+          },
+          include: {
+            user: true,
+            schoolRole: true,
+          },
+        })
+      }
+
+      switch (role.type) {
+        case 'STAFF':
+          sendNotification(await getStaffIds(), 'userRespondedToStaffUserRole', role)
+          break
+
+        case 'ADMIN':
+        case 'COACH':
+        case 'STUDENT':
+          sendNotification(
+            await getSchoolMemberIds('ADMIN', role.schoolRole!.schoolId),
+            'userRespondedToMemberUserRole',
+            role,
+            'ADMIN'
+          )
+          sendNotification(
+            await getSchoolMemberIds('COACH', role.schoolRole!.schoolId),
+            'userRespondedToMemberUserRole',
+            role,
+            'COACH'
+          )
+          break
+
+        default:
+          break
+      }
+
+      logActivity('INVITE_USER_RESPONDED', role.userId)
+
+      return true
     },
   }),
 }))

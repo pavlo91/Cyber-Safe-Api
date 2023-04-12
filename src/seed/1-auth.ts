@@ -20,7 +20,6 @@ export async function seedAuth() {
       where: { email: 'staff@wonderkiln.com' },
       create: {
         email: 'staff@wonderkiln.com',
-        emailConfirmed: true,
         password: 'password',
         name: 'Staff User',
         avatar: {
@@ -67,7 +66,6 @@ export async function seedAuth() {
       where: { email: 'admin@wonderkiln.com' },
       create: {
         email: 'admin@wonderkiln.com',
-        emailConfirmed: true,
         password: 'password',
         name: 'Admin User',
         avatar: {
@@ -94,7 +92,6 @@ export async function seedAuth() {
       where: { email: 'coach@wonderkiln.com' },
       create: {
         email: 'coach@wonderkiln.com',
-        emailConfirmed: true,
         password: 'password',
         name: 'Coach User',
         avatar: {
@@ -121,7 +118,6 @@ export async function seedAuth() {
       where: { email: 'student@wonderkiln.com' },
       create: {
         email: 'student@wonderkiln.com',
-        emailConfirmed: true,
         password: 'password',
         name: 'Student User',
         avatar: {
@@ -148,7 +144,6 @@ export async function seedAuth() {
       where: { email: 'parent@wonderkiln.com' },
       create: {
         email: 'parent@wonderkiln.com',
-        emailConfirmed: true,
         password: 'password',
         name: 'Parent User',
         avatar: {

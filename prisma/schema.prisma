@@ -14,7 +14,6 @@ model User {
   uuid             String         @unique @default(uuid())
   createdAt        DateTime       @default(now())
   email            String         @unique @db.Citext
-  emailConfirmed   Boolean        @default(false)
   newEmail         String?
   newEmailToken    String?        @unique
   password         String?
@@ -34,7 +33,6 @@ model User {
   actions          Action[]
   activities       Activity[]
 
-  @@index([emailConfirmed])
   @@index([parentalApproval])
 }
 

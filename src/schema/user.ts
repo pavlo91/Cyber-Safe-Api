@@ -3,7 +3,7 @@ import Prisma from '@prisma/client'
 import { hasRoleInSchoolId, hasRoleToUserId, isParentToUserId, isSameUserId } from '../helpers/auth'
 import { prisma } from '../prisma'
 import { logActivity } from '../utils/activity'
-import { builder, DefaultSchemaType } from './builder'
+import { DefaultSchemaType, builder } from './builder'
 import { createFilterInput } from './filter'
 import { Image } from './image'
 import { createOrderInput } from './order'
@@ -105,7 +105,6 @@ User.implement({
     id: t.exposeID('id'),
     createdAt: t.expose('createdAt', { type: 'DateTime' }),
     email: t.exposeString('email'),
-    emailConfirmed: t.exposeBoolean('emailConfirmed'),
     name: t.exposeString('name'),
     parentalApproval: t.exposeBoolean('parentalApproval', { nullable: true }),
     platforms: t.field({

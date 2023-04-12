@@ -48,7 +48,6 @@ export async function seedSchools() {
         await prisma.user.create({
           data: {
             email: randEmail(),
-            emailConfirmed: true,
             password: 'password',
             name: randFullName(),
             avatar: {

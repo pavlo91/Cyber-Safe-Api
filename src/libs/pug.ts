@@ -1,7 +1,7 @@
 import path from 'path'
 import pug from 'pug'
 import { config } from '../config'
-import { composeAPIURL, composeWebURL } from '../helpers/url'
+import { composeWebURL } from '../helpers/url'
 
 const HTMLFileMap = {
   confirm: (url: string) => {
@@ -11,19 +11,16 @@ const HTMLFileMap = {
     return { url }
   },
   'invite-staff': (token: string) => {
-    const acceptURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'accept' })
-    const declineURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'decline' })
-    return { acceptURL, declineURL }
+    const url = composeWebURL('/invite/:token', { token })
+    return { url }
   },
   'invite-member': (token: string, schoolName: string) => {
-    const acceptURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'accept' })
-    const declineURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'decline' })
-    return { acceptURL, declineURL, schoolName }
+    const url = composeWebURL('/invite/:token', { token })
+    return { schoolName, url }
   },
   'invite-parent': (token: string, childName: string) => {
-    const acceptURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'accept' })
-    const declineURL = composeAPIURL('/api/respond/:token/:response', { token, response: 'decline' })
-    return { acceptURL, declineURL, childName }
+    const url = composeWebURL('/invite/:token', { token })
+    return { childName, url }
   },
   notification: (body: string, url?: string) => {
     return { body, url }
