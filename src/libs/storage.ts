@@ -33,6 +33,10 @@ export function getStorageBlobName(...paths: string[]) {
   return ['uploads', ...paths, randomToken()].join('/')
 }
 
+export function getStorageExactBlobName(...paths: string[]) {
+  return ['uploads', ...paths].join('/')
+}
+
 export async function storagePrepareForUpload(blobName: string) {
   const command = new PutObjectCommand({
     Key: blobName,

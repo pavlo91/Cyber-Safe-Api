@@ -10,30 +10,45 @@ datasource db {
 }
 
 model User {
-  id               String         @id @default(cuid())
-  uuid             String         @unique @default(uuid())
-  createdAt        DateTime       @default(now())
-  email            String         @unique @db.Citext
+  id               String          @id @default(cuid())
+  uuid             String          @unique @default(uuid())
+  createdAt        DateTime        @default(now())
+  email            String          @unique @db.Citext
   newEmail         String?
-  newEmailToken    String?        @unique
+  newEmailToken    String?         @unique
   password         String?
-  passwordToken    String?        @unique
+  passwordToken    String?         @unique
   name             String
   parentalApproval Boolean?
-  avatarId         String?        @unique
-  avatar           Image?         @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+  avatarId         String?         @unique
+  avatar           Image?          @relation(fields: [avatarId], references: [id], onDelete: SetNull)
   roles            UserRole[]
   parentRoles      ParentRole[]
   notifications    Notification[]
   uploads          Upload[]
-  twitterId        String?        @unique
-  twitter          Twitter?       @relation(fields: [twitterId], references: [id], onDelete: SetNull)
+  twitterId        String?         @unique
+  twitter          Twitter?        @relation(fields: [twitterId], references: [id], onDelete: SetNull)
   posts            Post[]
   emailSettings    EmailSetting[]
   actions          Action[]
   activities       Activity[]
+  parentConsent    ParentConsent[] @relation(name: "Parent")
+  childConsent     ParentConsent[] @relation(name: "Child")
 
   @@index([parentalApproval])
+}
+
+model ParentConsent {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  parentUserId String
+  parentUser   User     @relation(fields: [parentUserId], references: [id], onDelete: Cascade, name: "Parent")
+  childUserId  String
+  childUser    User     @relation(fields: [childUserId], references: [id], onDelete: Cascade, name: "Child")
+  signatureId  String?  @unique
+  signature    Image?   @relation(fields: [signatureId], references: [id], onDelete: SetNull)
+  version      String
+  ip           String
 }
 
 enum EmailSettingType {
@@ -141,12 +156,13 @@ model Address {
 }
 
 model Image {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  url         String
-  userAvatar  User?
-  schoolLogo  School?  @relation(name: "SchoolLogo")
-  schoolCover School?  @relation(name: "SchoolCover")
+  id            String         @id @default(cuid())
+  createdAt     DateTime       @default(now())
+  url           String
+  userAvatar    User?
+  schoolLogo    School?        @relation(name: "SchoolLogo")
+  schoolCover   School?        @relation(name: "SchoolCover")
+  parentConsent ParentConsent?
 }
 
 model Upload {
