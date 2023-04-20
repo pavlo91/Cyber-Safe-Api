@@ -35,7 +35,7 @@ REKOGNITION_LABELS=
 - `staff@wonderkiln.com`
 - `admin@wonderkiln.com`
 - `coach@wonderkiln.com`
-- `athlete@wonderkiln.com`
+- `student@wonderkiln.com`
 - `parent@wonderkiln.com`
 
 The password for all is `password`.

@@ -26,8 +26,8 @@ export function composeAPIURL<K extends keyof ComposeAPIURL>(path: K, query: Com
 
 type ComposeWebURL = {
   '/auth/login': {}
-  '/auth/activate/:token': { token: string }
   '/auth/reset/:token': { token: string }
+  '/invite/:token': { token: string }
   '/dashboard/staff/users': { search?: string }
   '/dashboard/admin/members': { search?: string }
   '/dashboard/coach/members': { search?: string }

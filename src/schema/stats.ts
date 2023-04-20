@@ -61,13 +61,11 @@ builder.queryFields((t) => ({
                 TO_CHAR("createdAt", 'YYYY-MM-DD') AS day,
                 CAST(COUNT(*) AS INTEGER) AS value
               FROM "User"
-              WHERE "emailConfirmed" = TRUE AND "createdAt" >= ${startDate}
+              WHERE "createdAt" >= ${startDate}
               GROUP BY day
               ORDER BY day DESC
             `,
-          prisma.user.count({
-            where: { emailConfirmed: true },
-          }),
+          prisma.user.count(),
         ])
       )
     },

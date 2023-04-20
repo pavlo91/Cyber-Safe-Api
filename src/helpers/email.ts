@@ -28,7 +28,7 @@ export function sendUserRoleConfirmationEmail(
 
       case 'ADMIN':
       case 'COACH':
-      case 'ATHLETE':
+      case 'STUDENT':
         sendEmail(userRole.user.email, 'invite-member', userRole.statusToken, userRole.schoolRole?.school.name ?? '')
         break
 

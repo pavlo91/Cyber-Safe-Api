@@ -148,9 +148,15 @@ Post.implement({
 
 builder.queryFields((t) => ({
   posts: t.field({
-    authScopes: (obj, { schoolId }, { user }) => {
+    authScopes: (obj, { schoolId, userId }, { user }) => {
       if (schoolId && hasRoleInSchoolId(schoolId, user, ['ADMIN', 'COACH'])) {
         return true
+      }
+
+      if (userId) {
+        if (userId === user!.id || hasRoleToUserId(userId, user, ['ADMIN', 'COACH'])) {
+          return true
+        }
       }
 
       return { staff: true }
@@ -158,10 +164,11 @@ builder.queryFields((t) => ({
     type: PostPage,
     args: {
       schoolId: t.arg.id({ required: false }),
+      userId: t.arg.id({ required: false }),
       ...createPageArgs(t.arg),
       filter: t.arg({ type: PostFilter, required: false }),
     },
-    resolve: (obj, { schoolId, page, filter }) => {
+    resolve: (obj, { schoolId, userId, page, filter }) => {
       const where: Prisma.Prisma.PostWhereInput = { ...PostFilter.toFilter(filter) }
       const orderBy: Prisma.Prisma.PostOrderByWithRelationInput = { createdAt: 'desc' }
 
@@ -174,6 +181,9 @@ builder.queryFields((t) => ({
             },
           },
         }
+      }
+      if (userId) {
+        where.userId = userId
       }
 
       return createPage(page, (args) =>

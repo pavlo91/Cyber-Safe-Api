@@ -48,7 +48,6 @@ export async function seedSchools() {
         await prisma.user.create({
           data: {
             email: randEmail(),
-            emailConfirmed: true,
             password: 'password',
             name: randFullName(),
             avatar: {
@@ -58,7 +57,7 @@ export async function seedSchools() {
             },
             roles: {
               create: {
-                type: i === 0 ? 'ADMIN' : i === 1 ? 'COACH' : 'ATHLETE',
+                type: i === 0 ? 'ADMIN' : i === 1 ? 'COACH' : 'STUDENT',
                 status: 'ACCEPTED',
                 schoolRole: {
                   create: {

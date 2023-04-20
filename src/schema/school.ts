@@ -90,7 +90,7 @@ School.implement({
           where: {
             status: status ?? undefined,
             schoolRole: { schoolId: school.id },
-            type: { in: ['ADMIN', 'COACH', 'ATHLETE'] },
+            type: { in: ['ADMIN', 'COACH', 'STUDENT'] },
           },
         })
       },

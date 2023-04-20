@@ -20,7 +20,6 @@ export async function seedAuth() {
       where: { email: 'staff@wonderkiln.com' },
       create: {
         email: 'staff@wonderkiln.com',
-        emailConfirmed: true,
         password: 'password',
         name: 'Staff User',
         avatar: {
@@ -67,7 +66,6 @@ export async function seedAuth() {
       where: { email: 'admin@wonderkiln.com' },
       create: {
         email: 'admin@wonderkiln.com',
-        emailConfirmed: true,
         password: 'password',
         name: 'Admin User',
         avatar: {
@@ -94,7 +92,6 @@ export async function seedAuth() {
       where: { email: 'coach@wonderkiln.com' },
       create: {
         email: 'coach@wonderkiln.com',
-        emailConfirmed: true,
         password: 'password',
         name: 'Coach User',
         avatar: {
@@ -117,13 +114,12 @@ export async function seedAuth() {
       update: {},
     })
 
-    const athlete = await prisma.user.upsert({
-      where: { email: 'athlete@wonderkiln.com' },
+    const student = await prisma.user.upsert({
+      where: { email: 'student@wonderkiln.com' },
       create: {
-        email: 'athlete@wonderkiln.com',
-        emailConfirmed: true,
+        email: 'student@wonderkiln.com',
         password: 'password',
-        name: 'Athlete User',
+        name: 'Student User',
         avatar: {
           create: {
             url: randAvatar(),
@@ -131,7 +127,7 @@ export async function seedAuth() {
         },
         roles: {
           create: {
-            type: 'ATHLETE',
+            type: 'STUDENT',
             status: 'ACCEPTED',
             schoolRole: {
               create: {
@@ -148,7 +144,6 @@ export async function seedAuth() {
       where: { email: 'parent@wonderkiln.com' },
       create: {
         email: 'parent@wonderkiln.com',
-        emailConfirmed: true,
         password: 'password',
         name: 'Parent User',
         avatar: {
@@ -162,7 +157,7 @@ export async function seedAuth() {
             status: 'ACCEPTED',
             parentRole: {
               create: {
-                childUserId: athlete.id,
+                childUserId: student.id,
               },
             },
           },

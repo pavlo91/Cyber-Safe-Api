@@ -1,9 +1,11 @@
 import { ArgBuilder, InputShapeFromFields } from '@pothos/core'
 import Prisma from '@prisma/client'
+import { format } from 'date-fns'
 import { hasRoleInSchoolId, hasRoleToUserId, isParentToUserId, isSameUserId } from '../helpers/auth'
+import { getStorageExactBlobName, storageSaveUpload } from '../libs/storage'
 import { prisma } from '../prisma'
 import { logActivity } from '../utils/activity'
-import { builder, DefaultSchemaType } from './builder'
+import { DefaultSchemaType, builder } from './builder'
 import { createFilterInput } from './filter'
 import { Image } from './image'
 import { createOrderInput } from './order'
@@ -105,7 +107,6 @@ User.implement({
     id: t.exposeID('id'),
     createdAt: t.expose('createdAt', { type: 'DateTime' }),
     email: t.exposeString('email'),
-    emailConfirmed: t.exposeBoolean('emailConfirmed'),
     name: t.exposeString('name'),
     parentalApproval: t.exposeBoolean('parentalApproval', { nullable: true }),
     platforms: t.field({
@@ -263,8 +264,46 @@ builder.mutationFields((t) => ({
     args: {
       id: t.arg.id(),
       approve: t.arg.boolean(),
+      signatureUploadId: t.arg.id({ required: false }),
     },
-    resolve: async (obj, { id, approve }) => {
+    resolve: async (obj, { id, approve, signatureUploadId }, { req, user }) => {
+      if (approve) {
+        if (!signatureUploadId) {
+          throw new Error('Signature required for approving child')
+        }
+
+        const upload = await prisma.upload.findUniqueOrThrow({
+          where: { id: signatureUploadId },
+        })
+
+        const blobName = getStorageExactBlobName(
+          'users',
+          user!.id,
+          'signatures',
+          'signature-' + format(new Date(), 'yyyy-MM-dd-HH-mm')
+        )
+        const { url } = await storageSaveUpload(upload.blobName, blobName)
+
+        const { id: signatureId } = await prisma.$transaction(async (prisma) => {
+          await prisma.upload.delete({
+            where: { id: upload.id },
+          })
+          return await prisma.image.create({
+            data: { url },
+          })
+        })
+
+        await prisma.parentConsent.create({
+          data: {
+            signatureId,
+            version: 'v1', // This is a filler for now
+            childUserId: id,
+            parentUserId: user!.id,
+            ip: req.ip ?? req.headers['x-forwarded-for'] ?? '127.0.0.1',
+          },
+        })
+      }
+
       await prisma.user.update({
         where: { id },
         data: { parentalApproval: approve },

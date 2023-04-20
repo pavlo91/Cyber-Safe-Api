@@ -28,14 +28,14 @@ export const PreviewImportTypeEnum = builder.enumType('PreviewImportTypeEnum', {
   values: ['CSV', 'EXCEL'] as const,
 })
 
-type ImportAthletesAndParentsHeader = { athleteEmail: string; parentEmail: string }
-export const ImportAthletesAndParentsHeader = builder.inputRef<ImportAthletesAndParentsHeader>(
-  'ImportAthletesAndParentsHeader'
+type ImportStudentsAndParentsHeader = { studentEmail: string; parentEmail: string }
+export const ImportStudentsAndParentsHeader = builder.inputRef<ImportStudentsAndParentsHeader>(
+  'ImportStudentsAndParentsHeader'
 )
 
-ImportAthletesAndParentsHeader.implement({
+ImportStudentsAndParentsHeader.implement({
   fields: (t) => ({
-    athleteEmail: t.string(),
+    studentEmail: t.string(),
     parentEmail: t.string(),
   }),
 })
@@ -109,7 +109,7 @@ builder.mutationFields((t) => ({
       return parseUpload(uploadId, type)
     },
   }),
-  importAthletesAndParents: t.fieldWithInput({
+  importStudentsAndParents: t.fieldWithInput({
     authScopes: (obj, { schoolId }, { user }) => {
       if (hasRoleInSchoolId(schoolId, user, ['ADMIN', 'COACH'])) {
         return true
@@ -124,40 +124,40 @@ builder.mutationFields((t) => ({
     input: {
       uploadId: t.input.id(),
       type: t.input.field({ type: PreviewImportTypeEnum }),
-      header: t.input.field({ type: ImportAthletesAndParentsHeader }),
+      header: t.input.field({ type: ImportStudentsAndParentsHeader }),
     },
     resolve: async (obj, { schoolId, input: { uploadId, type, header } }) => {
       const data = await parseUpload(uploadId, type)
 
-      const atheleteEmailsHeaderIndex = data.headers.findIndex((e) => e === header.athleteEmail)
+      const atheleteEmailsHeaderIndex = data.headers.findIndex((e) => e === header.studentEmail)
       const parentEmailsHeaderIndex = data.headers.findIndex((e) => e === header.parentEmail)
 
       const rows = data.rows.map(({ values }) => ({
-        athleteEmail: values[atheleteEmailsHeaderIndex],
+        studentEmail: values[atheleteEmailsHeaderIndex],
         parentEmail: values[parentEmailsHeaderIndex],
       }))
 
       for (const row of rows) {
-        if (!row.athleteEmail) {
+        if (!row.studentEmail) {
           throw new Error('Found empty Athelete E-mail value')
         }
 
-        let athlete = await prisma.user.findUnique({
-          where: { email: row.athleteEmail },
+        let student = await prisma.user.findUnique({
+          where: { email: row.studentEmail },
         })
 
-        if (!athlete) {
-          athlete = await prisma.user.create({
+        if (!student) {
+          student = await prisma.user.create({
             data: {
-              email: row.athleteEmail,
+              email: row.studentEmail,
               name: '',
             },
           })
         }
 
         await createUserRoleIfNone({
-          type: 'ATHLETE',
-          userId: athlete.id,
+          type: 'STUDENT',
+          userId: student.id,
           schoolRole: { schoolId },
         })
 
@@ -178,7 +178,7 @@ builder.mutationFields((t) => ({
           await createUserRoleIfNone({
             type: 'PARENT',
             userId: parent.id,
-            parentRole: { childUserId: athlete.id },
+            parentRole: { childUserId: student.id },
           })
         }
       }

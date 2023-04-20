@@ -15,7 +15,7 @@ export function hasRoleInSchoolId(
       }
     }
   }> | null,
-  role?: ('ADMIN' | 'COACH' | 'ATHLETE')[]
+  role?: ('ADMIN' | 'COACH' | 'STUDENT')[]
 ) {
   if (user) {
     for (const userRole of user.roles) {
@@ -51,7 +51,7 @@ export function hasRoleToUserId(
       }
     }
   }> | null,
-  role?: ('ADMIN' | 'COACH' | 'ATHLETE')[]
+  role?: ('ADMIN' | 'COACH' | 'STUDENT')[]
 ) {
   if (user) {
     for (const userRole of user.roles) {

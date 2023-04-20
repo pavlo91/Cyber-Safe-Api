@@ -9,17 +9,5 @@
   "[prisma]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "Prisma.prisma"
-  },
-  "emeraldwalk.runonsave": {
-    "commands": [
-      {
-        "match": "graphql/.*\\.ts$",
-        "cmd": "yarn codegen"
-      },
-      {
-        "match": "codegen.yml",
-        "cmd": "yarn codegen"
-      }
-    ]
   }
 }

@@ -58,23 +58,6 @@ builder.mutationFields((t) => ({
       })
     },
   }),
-  finalizeAccount: t.fieldWithInput({
-    type: UserWithToken,
-    input: {
-      token: t.input.string(),
-      password: t.input.string(),
-      name: t.input.string(),
-    },
-    resolve: (obj, { input: { token, password, name } }) => {
-      return prisma.user.update({
-        where: { passwordToken: token },
-        data: {
-          password,
-          name,
-        },
-      })
-    },
-  }),
   forgotPassword: t.boolean({
     args: {
       email: t.arg.string(),
