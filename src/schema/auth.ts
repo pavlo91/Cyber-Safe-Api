@@ -63,10 +63,14 @@ builder.mutationFields((t) => ({
       email: t.arg.string(),
     },
     resolve: async (obj, { email }) => {
-      const user = await prisma.user.update({
-        where: { email },
-        data: { passwordToken: randomToken() },
-      })
+      const user = await prisma.user
+        .update({
+          where: { email },
+          data: { passwordToken: randomToken() },
+        })
+        .catch(() => {
+          throw new Error('E-mail does not exist')
+        })
 
       const url = composeWebURL('/auth/reset/:token', { token: user.passwordToken! })
       sendEmail(email, 'reset-password', url)
