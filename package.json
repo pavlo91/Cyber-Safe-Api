@@ -9,13 +9,13 @@
     "dev": "ts-node-dev --transpile-only --exit-child --quiet --cls -r dotenv/config src/index.ts",
     "dev:cron": "ts-node -r dotenv/config src/crons/index-dev.ts",
     "dev:initial": "rm -rf prisma/migrations && yarn reset && yarn migrate initial",
+    "dev:staff": "ts-node -r dotenv/config src/scripts/staff.ts",
     "reset": "prisma migrate reset --force",
     "migrate": "prisma migrate dev --name",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
     "build": "tsc",
-    "start": "prisma migrate deploy && node dist/index.js",
-    "staff": "node dist/scripts/staff.js"
+    "start": "prisma migrate deploy && node dist/index.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
