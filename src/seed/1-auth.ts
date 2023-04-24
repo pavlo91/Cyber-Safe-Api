@@ -120,6 +120,7 @@ export async function seedAuth() {
         email: 'student@wonderkiln.com',
         password: 'password',
         name: 'Student User',
+        parentalApproval: true,
         avatar: {
           create: {
             url: randAvatar(),
