@@ -56,5 +56,11 @@ export function loadHTML<K extends keyof HTMLFileMap>(fileName: K, ...args: Para
 
 export function loadHTMLTitle(html: string) {
   const titleRegex = new RegExp('<title>(.+)</title>')
-  return titleRegex.exec(html)?.[1] ?? ''
+  const title = titleRegex.exec(html)?.[1] ?? ''
+
+  if (config.dev) {
+    return '[DEVELOP] ' + title
+  }
+
+  return title
 }
