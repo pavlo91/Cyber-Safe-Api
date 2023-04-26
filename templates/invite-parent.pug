@@ -4,7 +4,6 @@ block head
   title You have been invited as parent of #{childName}
 
 block body
-  p
-    | You have been invited as parent of #{childName}. Click 
-    a(href=url) here
-    |  to view invitation.
+  p You have been invited as parent of #{childName}.
+  br
+  a.button(href=url) Accept Invite

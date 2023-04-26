@@ -47,6 +47,7 @@ html(lang="en")
         font-size: 0.9rem;
         margin-top: 1.5rem;
         text-align: center;
+        line-height: 2rem;
       }
       
       p {
@@ -55,6 +56,15 @@ html(lang="en")
 
       a {
         color: #dd3333;
+      }
+
+      a.button {
+        color: white;
+        font-size: 0.9rem;
+        border-radius: 8px;
+        background: #dd3333;
+        display: inline-block;
+        padding: 0.6rem 0.8rem;
       }
 
       h1.title {
@@ -91,5 +101,7 @@ html(lang="en")
       main
         block body
       footer
+        | This is a system generated email, please do not reply directly to it.
+        <br />
         | &copy; 2022 - #{new Date().getFullYear()} 
         a(href=webURL) #{appName}
