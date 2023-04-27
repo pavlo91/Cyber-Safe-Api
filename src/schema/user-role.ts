@@ -3,6 +3,7 @@ import { hasRoleInSchoolId, hasRoleToUserId } from '../helpers/auth'
 import { prisma } from '../prisma'
 import { logActivity } from '../utils/activity'
 import { getSchoolMemberIds, getStaffIds, sendNotification } from '../utils/notification'
+import { UserWithToken } from './auth'
 import { builder } from './builder'
 import { School } from './school'
 import { User } from './user'
@@ -295,7 +296,8 @@ builder.mutationFields((t) => ({
       return prisma.userRole.delete({ where: { id } }).then(() => true)
     },
   }),
-  respondToInvitedRole: t.boolean({
+  respondToInvitedRole: t.field({
+    type: UserWithToken,
     args: {
       token: t.arg.string(),
       accept: t.arg.boolean(),
@@ -379,7 +381,7 @@ builder.mutationFields((t) => ({
 
       logActivity('INVITE_USER_RESPONDED', role.userId)
 
-      return true
+      return role.user
     },
   }),
 }))
