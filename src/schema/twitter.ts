@@ -8,6 +8,7 @@ export const Twitter = builder.objectRef<Prisma.Twitter>('Twitter')
 Twitter.implement({
   fields: (t) => ({
     id: t.exposeID('twitterId'),
+    createdAt: t.expose('createdAt', { type: 'DateTime' }),
     username: t.exposeString('twitterUsername'),
   }),
 })
