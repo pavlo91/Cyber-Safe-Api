@@ -56,13 +56,11 @@ builder.mutationFields((t) => ({
       switch (name) {
         case 'twitter':
           await prisma.twitter.deleteMany({ where: { user: { id: user!.id } } })
-          break
+          return true
         case 'facebook':
           await prisma.facebook.deleteMany({ where: { user: { id: user!.id } } })
-          break
+          return true
       }
-
-      return true
     },
   }),
 }))

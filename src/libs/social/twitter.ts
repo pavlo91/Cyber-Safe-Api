@@ -143,6 +143,7 @@ export class TwitterProvider implements SocialProvider {
           twitterUsername: user.screen_name,
           twitterToken: oauth.token,
           twitterTokenSecret: oauth.token_secret,
+          user: { connect: { id: userId } },
         },
       })
     }
@@ -150,5 +151,5 @@ export class TwitterProvider implements SocialProvider {
 
   // This is not needed for Twitter OAuth 1.0a
   // https://developer.twitter.com/en/docs/authentication/oauth-1-0a/obtaining-user-access-tokens
-  async refreshToken(userId: string): Promise<void> {}
+  async refreshToken(id: string): Promise<void> {}
 }

@@ -86,6 +86,7 @@ export class FacebookProvider implements SocialProvider {
           facebookUsername: user.name,
           facebookToken: access_token,
           facebookTokenExpiration: add(new Date(), { seconds: expires_in }),
+          user: { connect: { id: userId } },
         },
       })
     }
@@ -107,16 +108,16 @@ export class FacebookProvider implements SocialProvider {
     return fetchSchema(schema, url)
   }
 
-  async refreshToken(userId: string): Promise<void> {
+  async refreshToken(id: string): Promise<void> {
     const facebook = await prisma.facebook.findFirst({
-      where: { user: { id: userId } },
+      where: { id },
     })
 
     if (facebook) {
       const { access_token, expires_in } = await this.refreshAccessToken(facebook.facebookToken)
 
       await prisma.facebook.update({
-        where: { id: facebook.id },
+        where: { id },
         data: {
           facebookToken: access_token,
           facebookTokenExpiration: add(new Date(), { seconds: expires_in }),
