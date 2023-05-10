@@ -21,9 +21,8 @@ export async function seedPosts() {
       if (!twitter) {
         twitter = await prisma.twitter.create({
           data: {
-            token: '',
-            refreshToken: '',
-            expiresAt: new Date(),
+            twitterToken: '',
+            twitterTokenSecret: '',
             twitterId: randUuid(),
             twitterUsername: student.user.email,
             user: { connect: { id: student.user.id } },

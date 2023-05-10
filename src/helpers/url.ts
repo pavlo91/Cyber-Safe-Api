@@ -18,6 +18,7 @@ type ComposeAPIURL = {
   '/api/confirm/:token': { token: string }
   '/api/respond/:token/:response': { token: string; response: 'accept' | 'decline' }
   '/oauth2/twitter': {}
+  '/oauth2/facebook': {}
 }
 
 export function composeAPIURL<K extends keyof ComposeAPIURL>(path: K, query: ComposeAPIURL[K]) {

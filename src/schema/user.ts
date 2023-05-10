@@ -11,7 +11,7 @@ import { Image } from './image'
 import { createOrderInput } from './order'
 import { createPage, createPageArgs, createPageObjectRef } from './page'
 import { Platform, PlatformEnum } from './post'
-import { Twitter } from './twitter'
+import { Social } from './social'
 import { UserRole, UserRoleStatusEnum, UserRoleTypeEnum } from './user-role'
 
 export const UsersFromEnum = builder.enumType('UsersFromEnum', {
@@ -156,15 +156,21 @@ User.implement({
         })
       },
     }),
-    twitter: t.field({
-      type: Twitter,
-      nullable: true,
-      resolve: (user) => {
-        if (user.twitterId) {
-          return prisma.twitter.findUnique({
-            where: { id: user.twitterId },
-          })
-        }
+    socials: t.field({
+      type: [Social],
+      resolve: async (user) => {
+        const userWithSocial = await prisma.user.findUniqueOrThrow({
+          where: { id: user.id },
+          include: {
+            twitter: true,
+            facebook: true,
+          },
+        })
+
+        return [userWithSocial.twitter, userWithSocial.facebook].filter((e) => !!e) as (
+          | Prisma.Twitter
+          | Prisma.Facebook
+        )[]
       },
     }),
   }),

@@ -28,6 +28,8 @@ model User {
   uploads          Upload[]
   twitterId        String?         @unique
   twitter          Twitter?        @relation(fields: [twitterId], references: [id], onDelete: SetNull)
+  facebookId       String?         @unique
+  facebook         Facebook?       @relation(fields: [facebookId], references: [id], onDelete: SetNull)
   posts            Post[]
   emailSettings    EmailSetting[]
   actions          Action[]
@@ -186,16 +188,27 @@ model Setting {
 }
 
 model Twitter {
-  id              String   @id @default(cuid())
-  createdAt       DateTime @default(now())
-  indexedAt       DateTime @default(now())
-  twitterId       String   @unique
-  twitterUsername String
-  token           String
-  expiresAt       DateTime
-  refreshToken    String
-  user            User?
-  posts           Post[]
+  id                 String   @id @default(cuid())
+  createdAt          DateTime @default(now())
+  indexedAt          DateTime @default(now())
+  twitterId          String   @unique
+  twitterUsername    String
+  twitterToken       String
+  twitterTokenSecret String
+  user               User?
+  posts              Post[]
+}
+
+model Facebook {
+  id                      String   @id @default(cuid())
+  createdAt               DateTime @default(now())
+  indexedAt               DateTime @default(now())
+  facebookId              String   @unique
+  facebookUsername        String
+  facebookToken           String
+  facebookTokenExpiration DateTime
+  user                    User?
+  posts                   Post[]
 }
 
 model Post {
@@ -207,8 +220,10 @@ model Post {
   blobName     String?
   flagged      Boolean   @default(false)
   manualReview Boolean   @default(false)
-  twitterId    String
-  twitter      Twitter   @relation(fields: [twitterId], references: [id], onDelete: Cascade)
+  twitterId    String?
+  twitter      Twitter?  @relation(fields: [twitterId], references: [id], onDelete: Cascade)
+  facebookId   String?
+  facebook     Facebook? @relation(fields: [facebookId], references: [id], onDelete: Cascade)
   userId       String
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   media        Media[]

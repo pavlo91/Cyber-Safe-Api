@@ -1,4 +1,3 @@
-import { deleteTwitterPostFromTwitterUser } from '../libs/twitter'
 import { prisma } from '../prisma'
 import { sendNotification } from './notification'
 
@@ -58,7 +57,7 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
 
     case 'TAKE_DOWN_POST':
       if (post.twitter) {
-        await deleteTwitterPostFromTwitterUser(post.externalId, post.twitter)
+        // TODO:
       }
       break
   }

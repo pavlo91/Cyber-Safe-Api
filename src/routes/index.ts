@@ -1,7 +1,8 @@
 import { config } from '../config'
 import './confirm-email'
 import './graphql'
-import './twitter'
+import './oauth'
+import './webhook'
 
 if (config.dev) {
   import('./preview')
