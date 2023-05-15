@@ -8,8 +8,16 @@ import { cron } from './cron'
 cron.schedule('0 0 0 * * *', async () => {
   const lt = add(new Date(), { days: 3 })
 
+  const twitter = await prisma.twitter.findMany({
+    where: { twitterTokenExpiresAt: { lt } },
+  })
+
+  for (const social of twitter) {
+    await getSocialProvider('twitter').refreshToken(social.id)
+  }
+
   const facebook = await prisma.facebook.findMany({
-    where: { facebookTokenExpiration: { lt } },
+    where: { facebookTokenExpiresAt: { lt } },
   })
 
   for (const social of facebook) {

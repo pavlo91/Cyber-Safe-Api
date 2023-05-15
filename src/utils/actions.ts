@@ -1,3 +1,4 @@
+import { getSocialProvider } from '../libs/social'
 import { prisma } from '../prisma'
 import { sendNotification } from './notification'
 
@@ -27,7 +28,6 @@ export async function updateAllActionTypes() {
 export async function executeAction(typeId: Actions, postId: string, userId?: string) {
   const post = await prisma.post.findUniqueOrThrow({
     where: { id: postId },
-    include: { twitter: true },
   })
 
   switch (typeId) {
@@ -56,8 +56,10 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
       break
 
     case 'TAKE_DOWN_POST':
-      if (post.twitter) {
-        // TODO:
+      if (post.twitterId) {
+        await getSocialProvider('twitter').deletePost(post.externalId)
+      } else if (post.facebookId) {
+        await getSocialProvider('facebook').deletePost(post.externalId)
       }
       break
   }

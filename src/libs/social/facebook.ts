@@ -1,8 +1,9 @@
+import Prisma from '@prisma/client'
 import { add } from 'date-fns'
 import { z } from 'zod'
 import { prisma } from '../../prisma'
 import { fetchSchema } from './fetchSchema'
-import { SocialProvider } from './interface'
+import { FetchAndSaveResult, SocialProvider } from './interface'
 
 export class FacebookProvider implements SocialProvider {
   constructor(
@@ -59,8 +60,8 @@ export class FacebookProvider implements SocialProvider {
     return fetchSchema(schema, url)
   }
 
-  async finishAuthorization(data: unknown): Promise<void> {
-    const { code, state: userId } = this.parseCallback(data)
+  async finishAuthorization(payload: unknown): Promise<void> {
+    const { code, state: userId } = this.parseCallback(payload)
     const { access_token, expires_in } = await this.getAccessToken(code)
 
     const user = await this.getMyUser(access_token)
@@ -75,8 +76,8 @@ export class FacebookProvider implements SocialProvider {
         data: {
           facebookId: user.id,
           facebookUsername: user.name,
-          facebookToken: access_token,
-          facebookTokenExpiration: add(new Date(), { seconds: expires_in }),
+          facebookAccessToken: access_token,
+          facebookTokenExpiresAt: add(new Date(), { seconds: expires_in }),
         },
       })
     } else {
@@ -84,8 +85,8 @@ export class FacebookProvider implements SocialProvider {
         data: {
           facebookId: user.id,
           facebookUsername: user.name,
-          facebookToken: access_token,
-          facebookTokenExpiration: add(new Date(), { seconds: expires_in }),
+          facebookAccessToken: access_token,
+          facebookTokenExpiresAt: add(new Date(), { seconds: expires_in }),
           user: { connect: { id: userId } },
         },
       })
@@ -108,21 +109,54 @@ export class FacebookProvider implements SocialProvider {
     return fetchSchema(schema, url)
   }
 
-  async refreshToken(id: string): Promise<void> {
+  async refreshToken(socialId: string): Promise<void> {
     const facebook = await prisma.facebook.findFirst({
-      where: { id },
+      where: { id: socialId },
     })
 
     if (facebook) {
-      const { access_token, expires_in } = await this.refreshAccessToken(facebook.facebookToken)
+      const { access_token, expires_in } = await this.refreshAccessToken(facebook.facebookAccessToken)
 
       await prisma.facebook.update({
-        where: { id },
+        where: { id: facebook.id },
         data: {
-          facebookToken: access_token,
-          facebookTokenExpiration: add(new Date(), { seconds: expires_in }),
+          facebookAccessToken: access_token,
+          facebookTokenExpiresAt: add(new Date(), { seconds: expires_in }),
         },
       })
     }
+  }
+
+  savePost(socialId: string, payload: unknown): Promise<void> {
+    throw new Error('Not implemented')
+  }
+
+  // https://developers.facebook.com/docs/graph-api/reference/v16.0/user/posts
+  private async getPaginatedPosts(facebook: Prisma.Prisma.FacebookGetPayload<{ include: { user: true } }>) {
+    const url = new URL(`https://graph.facebook.com/v16.0/${facebook.user!.id}/posts`)
+    url.searchParams.append('access_token', facebook.facebookAccessToken)
+
+    const schema = z.object({
+      data: z.array(z.object({})),
+      paging: z.object({}),
+    })
+
+    const data = await fetchSchema(schema, url)
+  }
+
+  async fetchAndSavePosts(socialId: string): Promise<FetchAndSaveResult[]> {
+    const facebook = await prisma.facebook.findFirstOrThrow({
+      where: { id: socialId, user: { isNot: null } },
+      include: { user: true },
+    })
+
+    const posts = this.getPaginatedPosts(facebook)
+
+    return []
+  }
+
+  // https://developers.facebook.com/docs/graph-api/reference/v16.0/user/posts
+  deletePost(externalId: string): Promise<void> {
+    throw new Error('This operation is not supported for Facebook')
   }
 }

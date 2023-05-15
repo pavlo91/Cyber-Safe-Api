@@ -10,9 +10,9 @@ ALTER TABLE "Post" ADD COLUMN     "facebookId" TEXT,
 ALTER COLUMN "twitterId" DROP NOT NULL;
 
 -- AlterTable
-ALTER TABLE "Twitter" DROP COLUMN "expiresAt";
-ALTER TABLE "Twitter" RENAME COLUMN "token" TO "twitterToken";
-ALTER TABLE "Twitter" RENAME COLUMN "refreshToken" TO "twitterTokenSecret";
+ALTER TABLE "Twitter" RENAME COLUMN "token" TO "twitterAccessToken";
+ALTER TABLE "Twitter" RENAME COLUMN "refreshToken" TO "twitterRefreshToken";
+ALTER TABLE "Twitter" RENAME COLUMN "expiresAt" TO "twitterTokenExpiresAt";
 
 -- AlterTable
 ALTER TABLE "User" ADD COLUMN     "facebookId" TEXT;
@@ -24,8 +24,8 @@ CREATE TABLE "Facebook" (
     "indexedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "facebookId" TEXT NOT NULL,
     "facebookUsername" TEXT NOT NULL,
-    "facebookToken" TEXT NOT NULL,
-    "facebookTokenExpiration" TIMESTAMP(3) NOT NULL,
+    "facebookAccessToken" TEXT NOT NULL,
+    "facebookTokenExpiresAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Facebook_pkey" PRIMARY KEY ("id")
 );

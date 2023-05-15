@@ -28,6 +28,10 @@ export const config = {
     clientSecret: process.env.TWITTER_CLIENT_SECRET,
     bearerToken: process.env.TWITTER_BEARER_TOKEN,
   },
+  facebook: {
+    appId: process.env.FACEBOOK_APP_ID,
+    appSecret: process.env.FACEBOOK_APP_SECRET,
+  },
   comprehend: {
     accessKey: process.env.COMPREHEND_ACCESS_KEY,
     secretKey: process.env.COMPREHEND_SECRET_KEY,

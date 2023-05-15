@@ -1,4 +1,5 @@
 import { randAvatar, randSentence, randUrl, randUuid } from '@ngneat/falso'
+import { add } from 'date-fns'
 import { prisma } from '../prisma'
 
 export async function seedPosts() {
@@ -21,8 +22,9 @@ export async function seedPosts() {
       if (!twitter) {
         twitter = await prisma.twitter.create({
           data: {
-            twitterToken: '',
-            twitterTokenSecret: '',
+            twitterAccessToken: '',
+            twitterRefreshToken: '',
+            twitterTokenExpiresAt: add(new Date(), { years: 1 }),
             twitterId: randUuid(),
             twitterUsername: student.user.email,
             user: { connect: { id: student.user.id } },

@@ -188,27 +188,28 @@ model Setting {
 }
 
 model Twitter {
-  id                 String   @id @default(cuid())
-  createdAt          DateTime @default(now())
-  indexedAt          DateTime @default(now())
-  twitterId          String   @unique
-  twitterUsername    String
-  twitterToken       String
-  twitterTokenSecret String
-  user               User?
-  posts              Post[]
+  id                    String   @id @default(cuid())
+  createdAt             DateTime @default(now())
+  indexedAt             DateTime @default(now())
+  twitterId             String   @unique
+  twitterUsername       String
+  twitterAccessToken    String
+  twitterRefreshToken   String
+  twitterTokenExpiresAt DateTime
+  user                  User?
+  posts                 Post[]
 }
 
 model Facebook {
-  id                      String   @id @default(cuid())
-  createdAt               DateTime @default(now())
-  indexedAt               DateTime @default(now())
-  facebookId              String   @unique
-  facebookUsername        String
-  facebookToken           String
-  facebookTokenExpiration DateTime
-  user                    User?
-  posts                   Post[]
+  id                     String   @id @default(cuid())
+  createdAt              DateTime @default(now())
+  indexedAt              DateTime @default(now())
+  facebookId             String   @unique
+  facebookUsername       String
+  facebookAccessToken    String
+  facebookTokenExpiresAt DateTime
+  user                   User?
+  posts                  Post[]
 }
 
 model Post {
