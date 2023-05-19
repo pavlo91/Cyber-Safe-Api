@@ -1,4 +1,4 @@
-extends layout.pug
+extends _layout.pug
 
 block head
   title You have been invited as parent of #{childName}
@@ -6,4 +6,4 @@ block head
 block body
   p You have been invited as parent of #{childName}.
   br
-  a.button(href=url) Accept Invite
+  a.button(href=webURL + "/invite/" + token) Accept Invite

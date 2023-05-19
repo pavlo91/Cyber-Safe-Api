@@ -170,7 +170,7 @@ model Image {
 model Upload {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-  blobName  String   @unique
+  blobURL   String   @unique
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -218,7 +218,7 @@ model Post {
   externalId   String    @unique
   url          String
   text         String
-  blobName     String?
+  blobURL      String?
   flagged      Boolean   @default(false)
   manualReview Boolean   @default(false)
   twitterId    String?
@@ -252,7 +252,7 @@ model Media {
   width      Int
   height     Int
   duration   Int
-  blobName   String?
+  blobURL    String?
   postId     String
   post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
 

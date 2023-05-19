@@ -1,2 +1,0 @@
-import './password'
-import './token'

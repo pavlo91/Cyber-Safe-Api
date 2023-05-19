@@ -1,7 +1,10 @@
-extends layout.pug
+extends _layout.pug
 
 block head
-  title Notification
+  if title
+    title #{title}
+  else
+    title Notification
 
 block body
   p #{body}
