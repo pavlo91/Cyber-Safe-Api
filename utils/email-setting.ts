@@ -4,11 +4,13 @@ const KEYS = {
   receivePostFlagged: 'RECEIVE_POST_FLAGGED',
 }
 
+export type EmailSettingKey = keyof typeof KEYS
+
 const DEFAULTS = {
   receivePostFlagged: true,
 }
 
-export function emailSettingValueFor(key: keyof typeof KEYS, settings: EmailSetting[]) {
+export function emailSettingValueFor(key: EmailSettingKey, settings: EmailSetting[]) {
   const setting = settings.find((e) => e.id === KEYS[key])
 
   switch (setting?.type) {
@@ -21,7 +23,7 @@ export function emailSettingValueFor(key: keyof typeof KEYS, settings: EmailSett
 }
 
 export async function updateEmailSettingValueFor(
-  key: keyof typeof KEYS,
+  key: EmailSettingKey,
   value: any,
   userId: string,
   prisma: Omit<PrismaClient, `$${string}`>

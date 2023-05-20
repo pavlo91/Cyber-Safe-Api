@@ -8,10 +8,14 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import axios, { AxiosResponse } from 'axios'
 import { format } from 'date-fns'
-import { fromBuffer } from 'file-type'
 import { Stream } from 'stream'
 import config from '../config'
 import { randomToken } from '../utils/crypto'
+
+async function fileTypeFromBuffer(buffer: Uint8Array | ArrayBuffer) {
+  const fileType = await (eval('import("file-type")') as Promise<typeof import('file-type')>)
+  return await fileType.fileTypeFromBuffer(buffer)
+}
 
 type Container = 'public' | 'private'
 
@@ -110,7 +114,7 @@ class AmazonStorage {
     )
 
     const body = await req.Body!.transformToByteArray()
-    const type = await fromBuffer(body)
+    const type = await fileTypeFromBuffer(body)
 
     const ext = type?.ext ? '.' + type.ext : ''
     const mime = type?.mime ?? 'application/octet-stream'
@@ -138,7 +142,7 @@ class AmazonStorage {
 
   async uploadFromURL(url: string, container: Container, blob: string) {
     const { data } = (await axios.get(url, { responseType: 'arraybuffer' })) as AxiosResponse<Buffer>
-    const type = await fromBuffer(data)
+    const type = await fileTypeFromBuffer(data)
 
     const ext = type?.ext ? '.' + type.ext : ''
     const mime = type?.mime ?? 'application/octet-stream'

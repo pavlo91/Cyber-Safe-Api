@@ -5,38 +5,11 @@ import logger from '../../libs/logger'
 import prisma from '../../libs/prisma'
 import { uploadAndAnalyzePost } from '../../utils/moderator'
 import { getSocialProvider } from '../../utils/social'
+import { createTwitterPost, finishTwitterAuthorization, refreshExpiringTwitterTokens } from '../../utils/twitter'
 import { composeWebURL } from '../../utils/url'
 
 fastify.get(config.twitter.callbackURL, async (req, reply) => {
-  const twitterUser = await getSocialProvider('twitter').finishAuthorization(req.query)
-
-  const twitter = await prisma.twitter.findFirst({
-    where: { user: { id: twitterUser.state } },
-  })
-
-  if (twitter) {
-    await prisma.twitter.update({
-      where: { id: twitter.id },
-      data: {
-        twitterId: twitterUser.id,
-        twitterUsername: twitterUser.username,
-        twitterAccessToken: twitterUser.accessToken,
-        twitterRefreshToken: twitterUser.refreshToken,
-        twitterTokenExpiresAt: new Date(twitterUser.tokenExpiresAt),
-      },
-    })
-  } else {
-    await prisma.twitter.create({
-      data: {
-        twitterId: twitterUser.id,
-        twitterUsername: twitterUser.username,
-        twitterAccessToken: twitterUser.accessToken,
-        twitterRefreshToken: twitterUser.refreshToken,
-        twitterTokenExpiresAt: new Date(twitterUser.tokenExpiresAt),
-        user: { connect: { id: twitterUser.state } },
-      },
-    })
-  }
+  await finishTwitterAuthorization(req)
 
   reply.redirect(composeWebURL('/dashboard/profile'))
 
@@ -57,33 +30,11 @@ cron.schedule('cron.twitter', '0 0 0 * * *', async () => {
       const indexedAt = new Date()
 
       for (const twitterPost of twitterPosts) {
-        const post = await prisma.post.upsert({
-          where: { externalId: twitterPost.externalId },
-          create: {
-            ...twitterPost,
-            twitterId: twitter.id,
-            userId: twitter.user!.id,
-            media: {
-              createMany: {
-                data: twitterPost.media,
-              },
-            },
-          },
-          update: {
-            ...twitterPost,
-            media: {
-              deleteMany: {},
-              createMany: {
-                data: twitterPost.media,
-              },
-            },
-          },
-          include: {
-            media: true,
-          },
-        })
-
-        await uploadAndAnalyzePost(post)
+        await createTwitterPost(twitter, twitterPost)
+          .then((post) => uploadAndAnalyzePost(post))
+          .catch((error) => {
+            logger.error('Error while saving twitter post: %s', error)
+          })
       }
 
       await prisma.twitter.update({
@@ -94,4 +45,8 @@ cron.schedule('cron.twitter', '0 0 0 * * *', async () => {
       logger.error('Error while getting Twitter posts: %s', error)
     }
   }
+})
+
+cron.schedule('cron.twitter-refresh-tokens', '0 0 0 * * *', async () => {
+  await refreshExpiringTwitterTokens()
 })

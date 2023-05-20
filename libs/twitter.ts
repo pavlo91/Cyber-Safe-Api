@@ -2,7 +2,9 @@ import { MediaType, Twitter } from '@prisma/client'
 import { Client, auth } from 'twitter-api-sdk'
 import { z } from 'zod'
 
-class TwitterUser {
+export type TwitterPost = Awaited<ReturnType<TwitterUser['fetchPosts']>>[0]
+
+export class TwitterUser {
   constructor(private authClient: auth.OAuth2User, private id: string = '') {}
 
   async refreshToken() {
