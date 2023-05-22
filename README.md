@@ -47,6 +47,8 @@ For authenticating the user we save the access token and the refresh token. We w
 
 Twitter does not support webhooks for when the user creates a tweet, so instead we are using a cron job everyday.
 
+Also there is a bug in the Twitter mobile app that does not allow redirecting to the callback url. Because of this, logging in from a mobile browser with Twitter mobile app installed will not work correctly (https://twittercommunity.com/t/web-oauth-2-0-is-broken-on-android-if-twitter-app-is-installed/169698).
+
 ### 2. Facebook
 
 For authenticating the user we save the access token. We will check in a cron job and refresh the almost expiring tokens.
