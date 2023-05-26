@@ -44,6 +44,11 @@ const config = {
     appSecret: process.env.FACEBOOK_APP_SECRET,
     callbackURL: '/oauth2/facebook',
   },
+  instagram: {
+    appId: process.env.INSTAGRAM_APP_ID,
+    appSecret: process.env.INSTAGRAM_APP_SECRET,
+    callbackURL: '/oauth2/instagram',
+  },
 }
 
 export default config

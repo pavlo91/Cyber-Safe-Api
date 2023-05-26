@@ -30,6 +30,8 @@ model User {
   twitter          Twitter?        @relation(fields: [twitterId], references: [id], onDelete: SetNull)
   facebookId       String?         @unique
   facebook         Facebook?       @relation(fields: [facebookId], references: [id], onDelete: SetNull)
+  instagramId      String?         @unique
+  instagram        Instagram?      @relation(fields: [instagramId], references: [id], onDelete: SetNull)
   posts            Post[]
   emailSettings    EmailSetting[]
   actions          Action[]
@@ -212,21 +214,35 @@ model Facebook {
   posts                  Post[]
 }
 
+model Instagram {
+  id                      String   @id @default(cuid())
+  createdAt               DateTime @default(now())
+  indexedAt               DateTime @default(now())
+  instagramId             String   @unique
+  instagramUsername       String
+  instagramAccessToken    String
+  instagramTokenExpiresAt DateTime
+  user                    User?
+  posts                   Post[]
+}
+
 model Post {
-  id           String    @id @default(cuid())
-  createdAt    DateTime  @default(now())
-  externalId   String    @unique
+  id           String     @id @default(cuid())
+  createdAt    DateTime   @default(now())
+  externalId   String     @unique
   url          String
   text         String
   blobURL      String?
-  flagged      Boolean   @default(false)
-  manualReview Boolean   @default(false)
+  flagged      Boolean    @default(false)
+  manualReview Boolean    @default(false)
   twitterId    String?
-  twitter      Twitter?  @relation(fields: [twitterId], references: [id], onDelete: Cascade)
+  twitter      Twitter?   @relation(fields: [twitterId], references: [id], onDelete: Cascade)
   facebookId   String?
-  facebook     Facebook? @relation(fields: [facebookId], references: [id], onDelete: Cascade)
+  facebook     Facebook?  @relation(fields: [facebookId], references: [id], onDelete: Cascade)
+  instagramId  String?
+  instagram    Instagram? @relation(fields: [instagramId], references: [id])
   userId       String
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   media        Media[]
   analysis     Analysis?
   actions      Action[]

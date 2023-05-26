@@ -150,10 +150,11 @@ GQLUser.implement({
           include: {
             twitter: true,
             facebook: true,
+            instagram: true,
           },
         })
 
-        return [userWithSocial.twitter, userWithSocial.facebook].filter((e) => !!e) as any[]
+        return [userWithSocial.twitter, userWithSocial.facebook, userWithSocial.instagram].filter((e) => !!e) as any[]
       },
     }),
   }),

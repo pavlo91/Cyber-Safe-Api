@@ -1,13 +1,14 @@
-import { Facebook, Twitter } from '@prisma/client'
+import { Facebook, Instagram, Twitter } from '@prisma/client'
 import pothos from '../../libs/pothos'
 import prisma from '../../libs/prisma'
 import { checkAuth, isUser } from '../../utils/auth'
 import { getSocialProvider } from '../../utils/social'
 import './facebook'
+import './instagram'
 import './twitter'
 
 export const GQLSocialNameEnum = pothos.enumType('SocialNameEnum', {
-  values: ['TWITTER', 'FACEBOOK'] as const,
+  values: ['TWITTER', 'FACEBOOK', 'INSTAGRAM'] as const,
 })
 
 export const GQLTwitter = pothos.objectRef<Twitter>('Twitter')
@@ -28,11 +29,21 @@ GQLFacebook.implement({
   }),
 })
 
+export const GQLInstagram = pothos.objectRef<Instagram>('Instagram')
+
+GQLInstagram.implement({
+  fields: (t) => ({
+    id: t.exposeID('instagramId'),
+    username: t.exposeString('instagramUsername'),
+  }),
+})
+
 export const GQLSocial = pothos.unionType('Social', {
-  types: [GQLTwitter, GQLFacebook],
+  types: [GQLTwitter, GQLFacebook, GQLInstagram],
   resolveType: (obj) => {
     if ('twitterId' in obj) return GQLTwitter
     if ('facebookId' in obj) return GQLFacebook
+    if ('instagramId' in obj) return GQLInstagram
   },
 })
 
@@ -49,6 +60,8 @@ pothos.mutationFields((t) => ({
           return await getSocialProvider('twitter').getAuthorizationURL(user!.id)
         case 'FACEBOOK':
           return await getSocialProvider('facebook').getAuthorizationURL(user!.id)
+        case 'INSTAGRAM':
+          return await getSocialProvider('instagram').getAuthorizationURL(user!.id)
       }
     },
   }),
@@ -65,6 +78,9 @@ pothos.mutationFields((t) => ({
           return true
         case 'FACEBOOK':
           await prisma.facebook.deleteMany({ where: { user: { id: user!.id } } })
+          return true
+        case 'INSTAGRAM':
+          await prisma.instagram.deleteMany({ where: { user: { id: user!.id } } })
           return true
       }
     },

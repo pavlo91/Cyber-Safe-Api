@@ -1,14 +1,16 @@
 import config from '../config'
 import { FacebookProvider } from '../libs/facebook'
+import { InstagramProvider } from '../libs/instagram'
 import { TwitterProvider } from '../libs/twitter'
 import { composeAPIURL } from './url'
 
 const SocialProviders: Partial<{
   twitter: TwitterProvider
   facebook: FacebookProvider
+  instagram: InstagramProvider
 }> = {}
 
-const { twitter, facebook } = config
+const { twitter, facebook, instagram } = config
 
 if (!!twitter.clientId && !!twitter.clientSecret) {
   SocialProviders.twitter = new TwitterProvider({
@@ -23,6 +25,14 @@ if (!!facebook.appId && !!facebook.appSecret) {
     appId: facebook.appId,
     appSecret: facebook.appSecret,
     callbackURL: composeAPIURL(facebook.callbackURL),
+  })
+}
+
+if (!!instagram.appId && !!instagram.appSecret) {
+  SocialProviders.instagram = new InstagramProvider({
+    appId: instagram.appId,
+    appSecret: instagram.appSecret,
+    callbackURL: composeAPIURL(instagram.callbackURL),
   })
 }
 
