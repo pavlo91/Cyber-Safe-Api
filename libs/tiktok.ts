@@ -21,12 +21,13 @@ class TikTokUser {
       token_type: z.string(),
     })
 
-    const token = await fetchSchema(schema, 'https://open.tiktokapis.com/v2/oauth/token', {
+    const token = await fetchSchema(schema, {
       method: 'POST',
+      url: 'https://open.tiktokapis.com/v2/oauth/token',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: JSON.stringify({
+      data: stringify({
         grant_type: 'refresh_token',
         client_key: this.config.clientKey,
         refresh_token: this.user.refreshToken,
@@ -55,7 +56,8 @@ class TikTokUser {
     const url = new URL('https://open.tiktokapis.com/v2/user/info')
     url.searchParams.append('fields', 'open_id,union_id,avatar_url,display_name')
 
-    const { data } = await fetchSchema(schema, url, {
+    const { data } = await fetchSchema(schema, {
+      url: url.toString(),
       headers: {
         Authorization: 'Bearer ' + this.user.accessToken,
       },
@@ -104,12 +106,13 @@ export class TikTokProvider {
       token_type: z.string(),
     })
 
-    return await fetchSchema(schema, 'https://open.tiktokapis.com/v2/oauth/token', {
+    return await fetchSchema(schema, {
       method: 'POST',
+      url: 'https://open.tiktokapis.com/v2/oauth/token',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: stringify({
+      data: stringify({
         code,
         grant_type: 'authorization_code',
         client_key: this.config.clientKey,

@@ -24,7 +24,7 @@ class InstagramUser {
     url.searchParams.append('fields', 'id,username')
     url.searchParams.append('access_token', this.accessToken)
 
-    return fetchSchema(schema, url)
+    return fetchSchema(schema, { url: url.toString() })
   }
 
   async refreshToken() {
@@ -38,7 +38,7 @@ class InstagramUser {
       expires_in: z.number(),
     })
 
-    const { access_token, expires_in } = await fetchSchema(schema, url)
+    const { access_token, expires_in } = await fetchSchema(schema, { url: url.toString() })
 
     return {
       accessToken: access_token,
@@ -86,12 +86,13 @@ export class InstagramProvider {
       user_id: z.number(),
     })
 
-    return fetchSchema(schema, 'https://api.instagram.com/oauth/access_token', {
+    return fetchSchema(schema, {
       method: 'POST',
+      url: 'https://api.instagram.com/oauth/access_token',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: stringify({
+      data: stringify({
         code,
         client_id: this.config.appId,
         grant_type: 'authorization_code',
@@ -113,7 +114,7 @@ export class InstagramProvider {
     url.searchParams.append('client_secret', this.config.appSecret)
     url.searchParams.append('access_token', access_token)
 
-    return fetchSchema(schema, url)
+    return fetchSchema(schema, { url: url.toString() })
   }
 
   async finishAuthorization(payload: unknown) {

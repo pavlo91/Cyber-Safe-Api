@@ -22,7 +22,7 @@ class FacebookUser {
     const url = new URL('https://graph.facebook.com/me')
     url.searchParams.append('access_token', this.accessToken)
 
-    return fetchSchema(schema, url)
+    return fetchSchema(schema, { url: url.toString() })
   }
 
   async refreshToken() {
@@ -38,7 +38,7 @@ class FacebookUser {
       expires_in: z.number(),
     })
 
-    const { access_token, expires_in } = await fetchSchema(schema, url)
+    const { access_token, expires_in } = await fetchSchema(schema, { url: url.toString() })
 
     return {
       accessToken: access_token,
@@ -92,7 +92,7 @@ export class FacebookProvider {
       expires_in: z.number(),
     })
 
-    return fetchSchema(schema, url)
+    return fetchSchema(schema, { url: url.toString() })
   }
 
   async finishAuthorization(payload: unknown) {

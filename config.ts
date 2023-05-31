@@ -6,7 +6,7 @@ const config = {
   dev: process.env.ENVIRONMENT !== 'production',
   port: parseInt(process.env.PORT ?? '3001'),
   secret: process.env.SECRET ?? 'secret',
-  apiURL: process.env.API_URL ?? 'http://localhost:3001',
+  apiURL: process.env.API_URL ?? 'https://localhost:3001',
   webURL: process.env.WEB_URL ?? 'http://localhost:3000',
   enableCronJobs: process.env.ENABLE_CRON_JOBS === 'true',
   contactEmail: process.env.CONTACT_EMAIL,
