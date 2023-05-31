@@ -33,7 +33,7 @@ class LocalModerator implements Moderator {
       { path: 'suicide-words.txt', reason: 'Blocklisted Suicide Word' },
     ]
 
-    files = files.map((file) => ({ ...file, path: path.join(process.cwd(), 'static' + file.path) }))
+    files = files.map((file) => ({ ...file, path: path.join(process.cwd(), 'static/' + file.path) }))
 
     this.blocklist = files.map((file) => ({
       reason: file.reason,
