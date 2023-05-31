@@ -1,5 +1,6 @@
 import { Instagram } from '@prisma/client'
 import { add } from 'date-fns'
+import { stringify } from 'querystring'
 import { z } from 'zod'
 import { fetchSchema } from '../utils/fetch'
 
@@ -16,21 +17,20 @@ class InstagramUser {
   getMyUser() {
     const schema = z.object({
       id: z.string(),
-      name: z.string(),
+      username: z.string(),
     })
 
-    const url = new URL('https://graph.facebook.com/me')
+    const url = new URL('https://graph.instagram.com/v17.0/me')
+    url.searchParams.append('fields', 'id,username')
     url.searchParams.append('access_token', this.accessToken)
 
     return fetchSchema(schema, url)
   }
 
   async refreshToken() {
-    const url = new URL('https://graph.facebook.com/v16.0/oauth/access_token')
-    url.searchParams.append('grant_type', 'fb_exchange_token')
-    url.searchParams.append('client_id', this.config.appId)
-    url.searchParams.append('client_secret', this.config.appSecret)
-    url.searchParams.append('fb_exchange_token', this.accessToken)
+    const url = new URL('https://graph.instagram.com/refresh_access_token')
+    url.searchParams.append('grant_type', 'ig_refresh_token')
+    url.searchParams.append('access_token', this.accessToken)
 
     const schema = z.object({
       access_token: z.string(),
@@ -46,9 +46,8 @@ class InstagramUser {
     }
   }
 
-  // https://developers.facebook.com/docs/graph-api/reference/v16.0/user/posts
   deletePost(id: string) {
-    throw new Error('This operation is not supported for Facebook')
+    throw new Error('This operation is not supported for Instagram')
   }
 }
 
@@ -62,9 +61,11 @@ export class InstagramProvider {
   ) {}
 
   async getAuthorizationURL(state: string) {
-    const url = new URL('https://www.facebook.com/v16.0/dialog/oauth')
+    const url = new URL('https://api.instagram.com/oauth/authorize')
     url.searchParams.append('client_id', this.config.appId)
     url.searchParams.append('redirect_uri', this.config.callbackURL)
+    url.searchParams.append('scope', 'user_profile,user_media')
+    url.searchParams.append('response_type', 'code')
     url.searchParams.append('state', state)
 
     return url.toString()
@@ -79,25 +80,46 @@ export class InstagramProvider {
     return schema.parse(data)
   }
 
-  private getAccessToken(code: string) {
-    const url = new URL('https://graph.facebook.com/v16.0/oauth/access_token')
-    url.searchParams.append('client_id', this.config.appId)
-    url.searchParams.append('redirect_uri', this.config.callbackURL)
-    url.searchParams.append('client_secret', this.config.appSecret)
-    url.searchParams.append('code', code)
+  private getOauthAccessToken(code: string) {
+    const schema = z.object({
+      access_token: z.string(),
+      user_id: z.number(),
+    })
 
+    return fetchSchema(schema, 'https://api.instagram.com/oauth/access_token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: stringify({
+        code,
+        client_id: this.config.appId,
+        grant_type: 'authorization_code',
+        client_secret: this.config.appSecret,
+        redirect_uri: this.config.callbackURL,
+      }),
+    })
+  }
+
+  private getAccessToken(access_token: string) {
     const schema = z.object({
       access_token: z.string(),
       token_type: z.string(),
       expires_in: z.number(),
     })
 
+    const url = new URL('https://graph.instagram.com/access_token')
+    url.searchParams.append('grant_type', 'ig_exchange_token')
+    url.searchParams.append('client_secret', this.config.appSecret)
+    url.searchParams.append('access_token', access_token)
+
     return fetchSchema(schema, url)
   }
 
   async finishAuthorization(payload: unknown) {
     const { code, state } = this.parseCallback(payload)
-    const { access_token, expires_in } = await this.getAccessToken(code)
+    const token = await this.getOauthAccessToken(code)
+    const { access_token, expires_in } = await this.getAccessToken(token.access_token)
 
     const instagramUser = new InstagramUser(this.config, access_token)
     const user = await instagramUser.getMyUser()
@@ -105,7 +127,7 @@ export class InstagramProvider {
     return {
       state,
       id: user.id,
-      username: user.name,
+      username: user.username,
       accessToken: access_token,
       tokenExpiresAt: add(new Date(), { seconds: expires_in }),
     }

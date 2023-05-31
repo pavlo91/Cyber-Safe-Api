@@ -49,6 +49,11 @@ const config = {
     appSecret: process.env.INSTAGRAM_APP_SECRET,
     callbackURL: '/oauth2/instagram',
   },
+  tiktok: {
+    clientKey: process.env.TIKTOK_CLIENT_KEY,
+    clientSecret: process.env.TIKTOK_CLIENT_SECRET,
+    callbackURL: '/oauth2/tiktok',
+  },
 }
 
 export default config

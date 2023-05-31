@@ -115,6 +115,12 @@ GQLPost.implement({
         if (!!post.facebookId) {
           return 'FACEBOOK'
         }
+        if (!!post.instagramId) {
+          return 'INSTAGRAM'
+        }
+        if (!!post.tiktokId) {
+          return 'TIKTOK'
+        }
       },
     }),
     flagged: t.exposeBoolean('flagged'),

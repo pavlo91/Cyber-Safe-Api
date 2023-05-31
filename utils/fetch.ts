@@ -4,8 +4,8 @@ export function fetchSchema<T>(schema: z.Schema<T>, url: URL | string, init?: Re
   return fetch(url, {
     ...init,
     headers: {
-      ...init?.headers,
       'Content-Type': 'application/json',
+      ...init?.headers,
     },
   })
     .then(async (res) => {

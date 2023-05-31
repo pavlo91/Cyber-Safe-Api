@@ -151,10 +151,16 @@ GQLUser.implement({
             twitter: true,
             facebook: true,
             instagram: true,
+            tiktok: true,
           },
         })
 
-        return [userWithSocial.twitter, userWithSocial.facebook, userWithSocial.instagram].filter((e) => !!e) as any[]
+        return [
+          userWithSocial.twitter,
+          userWithSocial.facebook,
+          userWithSocial.instagram,
+          userWithSocial.tiktok,
+        ].filter((e) => !!e) as any[]
       },
     }),
   }),

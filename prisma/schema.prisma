@@ -32,6 +32,8 @@ model User {
   facebook         Facebook?       @relation(fields: [facebookId], references: [id], onDelete: SetNull)
   instagramId      String?         @unique
   instagram        Instagram?      @relation(fields: [instagramId], references: [id], onDelete: SetNull)
+  tiktokId         String?         @unique
+  tiktok           TikTok?         @relation(fields: [tiktokId], references: [id], onDelete: SetNull)
   posts            Post[]
   emailSettings    EmailSetting[]
   actions          Action[]
@@ -226,6 +228,20 @@ model Instagram {
   posts                   Post[]
 }
 
+model TikTok {
+  id                          String   @id @default(cuid())
+  createdAt                   DateTime @default(now())
+  indexedAt                   DateTime @default(now())
+  tiktokId                    String   @unique
+  tiktokUsername              String
+  tiktokAccessToken           String
+  tiktokRefreshToken          String
+  tiktokTokenExpiresAt        DateTime
+  tiktokRefreshTokenExpiresAt DateTime
+  user                        User?
+  posts                       Post[]
+}
+
 model Post {
   id           String     @id @default(cuid())
   createdAt    DateTime   @default(now())
@@ -241,6 +257,8 @@ model Post {
   facebook     Facebook?  @relation(fields: [facebookId], references: [id], onDelete: Cascade)
   instagramId  String?
   instagram    Instagram? @relation(fields: [instagramId], references: [id])
+  tiktokId     String?
+  tiktok       TikTok?    @relation(fields: [tiktokId], references: [id])
   userId       String
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   media        Media[]

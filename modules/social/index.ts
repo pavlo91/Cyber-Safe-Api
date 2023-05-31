@@ -1,14 +1,15 @@
-import { Facebook, Instagram, Twitter } from '@prisma/client'
+import { Facebook, Instagram, TikTok, Twitter } from '@prisma/client'
 import pothos from '../../libs/pothos'
 import prisma from '../../libs/prisma'
 import { checkAuth, isUser } from '../../utils/auth'
 import { getSocialProvider } from '../../utils/social'
 import './facebook'
 import './instagram'
+import './tiktok'
 import './twitter'
 
 export const GQLSocialNameEnum = pothos.enumType('SocialNameEnum', {
-  values: ['TWITTER', 'FACEBOOK', 'INSTAGRAM'] as const,
+  values: ['TWITTER', 'FACEBOOK', 'INSTAGRAM', 'TIKTOK'] as const,
 })
 
 export const GQLTwitter = pothos.objectRef<Twitter>('Twitter')
@@ -38,12 +39,22 @@ GQLInstagram.implement({
   }),
 })
 
+export const GQLTikTok = pothos.objectRef<TikTok>('TikTok')
+
+GQLTikTok.implement({
+  fields: (t) => ({
+    id: t.exposeID('tiktokId'),
+    username: t.exposeString('tiktokUsername'),
+  }),
+})
+
 export const GQLSocial = pothos.unionType('Social', {
-  types: [GQLTwitter, GQLFacebook, GQLInstagram],
+  types: [GQLTwitter, GQLFacebook, GQLInstagram, GQLTikTok],
   resolveType: (obj) => {
     if ('twitterId' in obj) return GQLTwitter
     if ('facebookId' in obj) return GQLFacebook
     if ('instagramId' in obj) return GQLInstagram
+    if ('tiktokId' in obj) return GQLTikTok
   },
 })
 
@@ -62,6 +73,8 @@ pothos.mutationFields((t) => ({
           return await getSocialProvider('facebook').getAuthorizationURL(user!.id)
         case 'INSTAGRAM':
           return await getSocialProvider('instagram').getAuthorizationURL(user!.id)
+        case 'TIKTOK':
+          return await getSocialProvider('tiktok').getAuthorizationURL(user!.id)
       }
     },
   }),
@@ -81,6 +94,9 @@ pothos.mutationFields((t) => ({
           return true
         case 'INSTAGRAM':
           await prisma.instagram.deleteMany({ where: { user: { id: user!.id } } })
+          return true
+        case 'TIKTOK':
+          await prisma.tikTok.deleteMany({ where: { user: { id: user!.id } } })
           return true
       }
     },

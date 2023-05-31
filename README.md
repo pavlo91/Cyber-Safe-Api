@@ -27,6 +27,10 @@ TWITTER_CLIENT_ID=
 TWITTER_CLIENT_SECRET=
 FACEBOOK_APP_ID=
 FACEBOOK_APP_SECRET=
+INSTAGRAM_APP_ID=
+INSTAGRAM_APP_SECRET=
+TIKTOK_CLIENT_KEY=
+TIKTOK_CLIENT_SECRET=
 ```
 
 ## Seeded Logins
@@ -54,3 +58,7 @@ Also there is a bug in the Twitter mobile app that does not allow redirecting to
 For authenticating the user we save the access token. We will check in a cron job and refresh the almost expiring tokens.
 
 Facebook does not support webhooks for when the user creates a post, so instead we are using a cron job everyday. Also it [does not support deleting a user post](https://developers.facebook.com/docs/graph-api/reference/v16.0/user/posts).
+
+### 3. Instagram
+
+### 4. TikTok
