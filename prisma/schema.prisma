@@ -28,6 +28,12 @@ model User {
   uploads          Upload[]
   twitterId        String?         @unique
   twitter          Twitter?        @relation(fields: [twitterId], references: [id], onDelete: SetNull)
+  facebookId       String?         @unique
+  facebook         Facebook?       @relation(fields: [facebookId], references: [id], onDelete: SetNull)
+  instagramId      String?         @unique
+  instagram        Instagram?      @relation(fields: [instagramId], references: [id], onDelete: SetNull)
+  tiktokId         String?         @unique
+  tiktok           TikTok?         @relation(fields: [tiktokId], references: [id], onDelete: SetNull)
   posts            Post[]
   emailSettings    EmailSetting[]
   actions          Action[]
@@ -168,7 +174,7 @@ model Image {
 model Upload {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-  blobName  String   @unique
+  blobURL   String   @unique
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -186,31 +192,75 @@ model Setting {
 }
 
 model Twitter {
-  id              String   @id @default(cuid())
-  createdAt       DateTime @default(now())
-  indexedAt       DateTime @default(now())
-  twitterId       String   @unique
-  twitterUsername String
-  token           String
-  expiresAt       DateTime
-  refreshToken    String
-  user            User?
-  posts           Post[]
+  id                    String   @id @default(cuid())
+  createdAt             DateTime @default(now())
+  indexedAt             DateTime @default(now())
+  twitterId             String   @unique
+  twitterUsername       String
+  twitterAccessToken    String
+  twitterRefreshToken   String
+  twitterTokenExpiresAt DateTime
+  user                  User?
+  posts                 Post[]
+}
+
+model Facebook {
+  id                     String   @id @default(cuid())
+  createdAt              DateTime @default(now())
+  indexedAt              DateTime @default(now())
+  facebookId             String   @unique
+  facebookUsername       String
+  facebookAccessToken    String
+  facebookTokenExpiresAt DateTime
+  user                   User?
+  posts                  Post[]
+}
+
+model Instagram {
+  id                      String   @id @default(cuid())
+  createdAt               DateTime @default(now())
+  indexedAt               DateTime @default(now())
+  instagramId             String   @unique
+  instagramUsername       String
+  instagramAccessToken    String
+  instagramTokenExpiresAt DateTime
+  user                    User?
+  posts                   Post[]
+}
+
+model TikTok {
+  id                          String   @id @default(cuid())
+  createdAt                   DateTime @default(now())
+  indexedAt                   DateTime @default(now())
+  tiktokId                    String   @unique
+  tiktokUsername              String
+  tiktokAccessToken           String
+  tiktokRefreshToken          String
+  tiktokTokenExpiresAt        DateTime
+  tiktokRefreshTokenExpiresAt DateTime
+  user                        User?
+  posts                       Post[]
 }
 
 model Post {
-  id           String    @id @default(cuid())
-  createdAt    DateTime  @default(now())
-  externalId   String    @unique
+  id           String     @id @default(cuid())
+  createdAt    DateTime   @default(now())
+  externalId   String     @unique
   url          String
   text         String
-  blobName     String?
-  flagged      Boolean   @default(false)
-  manualReview Boolean   @default(false)
-  twitterId    String
-  twitter      Twitter   @relation(fields: [twitterId], references: [id], onDelete: Cascade)
+  blobURL      String?
+  flagged      Boolean    @default(false)
+  manualReview Boolean    @default(false)
+  twitterId    String?
+  twitter      Twitter?   @relation(fields: [twitterId], references: [id], onDelete: Cascade)
+  facebookId   String?
+  facebook     Facebook?  @relation(fields: [facebookId], references: [id], onDelete: Cascade)
+  instagramId  String?
+  instagram    Instagram? @relation(fields: [instagramId], references: [id])
+  tiktokId     String?
+  tiktok       TikTok?    @relation(fields: [tiktokId], references: [id])
   userId       String
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   media        Media[]
   analysis     Analysis?
   actions      Action[]
@@ -236,7 +286,7 @@ model Media {
   width      Int
   height     Int
   duration   Int
-  blobName   String?
+  blobURL    String?
   postId     String
   post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
 

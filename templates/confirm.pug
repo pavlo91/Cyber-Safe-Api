@@ -1,4 +1,4 @@
-extends layout.pug
+extends _layout.pug
 
 block head
   title Please confirm your e-mail
@@ -6,5 +6,5 @@ block head
 block body
   p
     | Please confirm your e-mail by clicking 
-    a(href=url) this link
+    a(href=apiURL + "/api/confirm/" + token) this link
     | .
