@@ -1,3 +1,4 @@
+import fetch, { RequestInit } from 'node-fetch'
 import { z } from 'zod'
 
 export function fetchSchema<T>(schema: z.Schema<T>, url: URL | string, init?: RequestInit) {
