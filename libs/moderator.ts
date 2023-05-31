@@ -16,7 +16,6 @@ export type ModeratorResult =
   | { status: 'in_progress'; jobId: string }
   | { status: 'not_flagged' }
 
-// TODO: rename prisma blobname to bloburl
 interface Moderator {
   analyzeText(text: string): Promise<ModeratorResult>
   analyzeImage(blobURL: string): Promise<ModeratorResult>

@@ -28,6 +28,11 @@ type ServerContext = {
 const yoga = createYoga<ServerContext>({
   schema: pothos.toSchema(),
   context: ({ req }) => getContextFromRequest(req),
+  maskedErrors: {
+    maskError: (error) => {
+      return error as Error
+    },
+  },
 })
 
 fastify.route({

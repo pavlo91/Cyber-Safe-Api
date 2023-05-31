@@ -60,9 +60,13 @@ pothos.mutationFields((t) => ({
       password: t.input.string(),
     },
     resolve: async (obj, { input: { email, password } }) => {
-      const user = await prisma.user.findUniqueOrThrow({
-        where: { email },
-      })
+      const user = await prisma.user
+        .findUniqueOrThrow({
+          where: { email },
+        })
+        .catch(() => {
+          throw new Error('E-mail not found')
+        })
 
       if (!user.password) {
         throw new Error('Account is not activated')
