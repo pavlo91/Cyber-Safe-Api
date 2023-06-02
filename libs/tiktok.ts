@@ -23,7 +23,7 @@ class TikTokUser {
 
     const token = await fetchSchema(schema, {
       method: 'POST',
-      url: 'https://open.tiktokapis.com/v2/oauth/token',
+      url: 'https://open.tiktokapis.com/v2/oauth/token/',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
@@ -46,14 +46,16 @@ class TikTokUser {
   async getMyUser() {
     const schema = z.object({
       data: z.object({
-        avatar_url: z.string(),
-        open_id: z.string(),
-        union_id: z.string(),
-        display_name: z.string(),
+        user: z.object({
+          avatar_url: z.string(),
+          open_id: z.string(),
+          union_id: z.string(),
+          display_name: z.string(),
+        }),
       }),
     })
 
-    const url = new URL('https://open.tiktokapis.com/v2/user/info')
+    const url = new URL('https://open.tiktokapis.com/v2/user/info/')
     url.searchParams.append('fields', 'open_id,union_id,avatar_url,display_name')
 
     const { data } = await fetchSchema(schema, {
@@ -63,7 +65,7 @@ class TikTokUser {
       },
     })
 
-    return data
+    return data.user
   }
 }
 
@@ -71,7 +73,7 @@ export class TikTokProvider {
   constructor(private config: { clientKey: string; clientSecret: string; callbackURL: string }) {}
 
   async getAuthorizationURL(state: string) {
-    const url = new URL('https://www.tiktok.com/v2/auth/authorize')
+    const url = new URL('https://www.tiktok.com/v2/auth/authorize/')
     url.searchParams.append('client_key', this.config.clientKey)
     url.searchParams.append('response_type', 'code')
     url.searchParams.append('scope', 'user.info.basic,video.list')
@@ -92,6 +94,10 @@ export class TikTokProvider {
 
     const { code, scopes, state, error, error_description } = schema.parse(data)
 
+    if (!!error_description) {
+      throw new Error(error_description)
+    }
+
     return { code, scopes, state, error, error_description }
   }
 
@@ -108,7 +114,7 @@ export class TikTokProvider {
 
     return await fetchSchema(schema, {
       method: 'POST',
-      url: 'https://open.tiktokapis.com/v2/oauth/token',
+      url: 'https://open.tiktokapis.com/v2/oauth/token/',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
@@ -124,7 +130,6 @@ export class TikTokProvider {
 
   async finishAuthorization(payload: unknown) {
     const { code, state } = this.parseCallback(payload)
-
     const token = await this.getToken(code)
 
     const tiktokUser = new TikTokUser(this.config, {

@@ -17,6 +17,9 @@ export function composeURL(base: string, path: string, query?: Record<string, st
 }
 
 export function composeAPIURL(path: string, query?: Record<string, string | number>) {
+  if (path.startsWith('http')) {
+    return composeURL(path, '', query)
+  }
   return composeURL(config.apiURL, path, query)
 }
 

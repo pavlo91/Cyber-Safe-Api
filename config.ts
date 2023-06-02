@@ -52,7 +52,7 @@ const config = {
   tiktok: {
     clientKey: process.env.TIKTOK_CLIENT_KEY,
     clientSecret: process.env.TIKTOK_CLIENT_SECRET,
-    callbackURL: '/oauth2/tiktok',
+    callbackURL: '/oauth2/tiktok/',
   },
 }
 

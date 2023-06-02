@@ -47,18 +47,30 @@ The password for all is `password`.
 
 ### 1. Twitter
 
-For authenticating the user we save the access token and the refresh token. We will check in a cron job and refresh the almost expiring tokens.
-
-Twitter does not support webhooks for when the user creates a tweet, so instead we are using a cron job everyday.
+- ✅ Supports login via OAuth2
+- ✅ Refresh tokens via cron jobs
+- ❌ No webhooks, using cron jobs
+- ✅ Supports deleting posts
 
 Also there is a bug in the Twitter mobile app that does not allow redirecting to the callback url. Because of this, logging in from a mobile browser with Twitter mobile app installed will not work correctly (https://twittercommunity.com/t/web-oauth-2-0-is-broken-on-android-if-twitter-app-is-installed/169698).
 
 ### 2. Facebook
 
-For authenticating the user we save the access token. We will check in a cron job and refresh the almost expiring tokens.
-
-Facebook does not support webhooks for when the user creates a post, so instead we are using a cron job everyday. Also it [does not support deleting a user post](https://developers.facebook.com/docs/graph-api/reference/v16.0/user/posts).
+- ✅ Supports login via OAuth2
+- ✅ Refresh tokens via cron jobs
+- ❌ No webhooks, using cron jobs
+- ❌ No support for deleting posts ([link](https://developers.facebook.com/docs/graph-api/reference/v16.0/user/posts))
 
 ### 3. Instagram
 
+- ✅ Supports login via OAuth2
+- ✅ Refresh tokens via cron jobs
+- ❌ No webhooks, using cron jobs
+
 ### 4. TikTok
+
+- ✅ Supports login via OAuth2
+- ✅ Refresh tokens via cron jobs
+- ❌ No webhooks, using cron jobs
+
+THe developer platform does not support setting a `localhost` redirect url. In this case you can set `TIKTOK_CALLBACK_URL=https://api.develop.cybersafely.ai/oauth2/tiktok` as an env var that will redirect to this url instead and you can then replace the base to `localhost`.

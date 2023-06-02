@@ -18,7 +18,7 @@ if (!!twitter.clientId && !!twitter.clientSecret) {
   SocialProviders.twitter = new TwitterProvider({
     clientId: twitter.clientId,
     clientSecret: twitter.clientSecret,
-    callbackURL: composeAPIURL(twitter.callbackURL),
+    callbackURL: composeAPIURL(process.env.TWITTER_CALLBACK_URL ?? twitter.callbackURL),
   })
 }
 
@@ -26,7 +26,7 @@ if (!!facebook.appId && !!facebook.appSecret) {
   SocialProviders.facebook = new FacebookProvider({
     appId: facebook.appId,
     appSecret: facebook.appSecret,
-    callbackURL: composeAPIURL(facebook.callbackURL),
+    callbackURL: composeAPIURL(process.env.FACEBOOK_CALLBACK_URL ?? facebook.callbackURL),
   })
 }
 
@@ -34,7 +34,7 @@ if (!!instagram.appId && !!instagram.appSecret) {
   SocialProviders.instagram = new InstagramProvider({
     appId: instagram.appId,
     appSecret: instagram.appSecret,
-    callbackURL: composeAPIURL(instagram.callbackURL),
+    callbackURL: composeAPIURL(process.env.INSTAGRAM_CALLBACK_URL ?? instagram.callbackURL),
   })
 }
 
@@ -42,7 +42,7 @@ if (!!tiktok.clientKey && !!tiktok.clientSecret) {
   SocialProviders.tiktok = new TikTokProvider({
     clientKey: tiktok.clientKey,
     clientSecret: tiktok.clientSecret,
-    callbackURL: composeAPIURL(tiktok.callbackURL),
+    callbackURL: composeAPIURL(process.env.TIKTOK_CALLBACK_URL ?? tiktok.callbackURL),
   })
 }
 
