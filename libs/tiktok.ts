@@ -158,6 +158,10 @@ class TikTokUser {
 
     return results
   }
+
+  deletePost(id: string) {
+    throw new Error('This operation is not supported for TikTok')
+  }
 }
 
 export class TikTokProvider {

@@ -31,6 +31,8 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
     include: {
       twitter: true,
       facebook: true,
+      instagram: true,
+      tiktok: true,
     },
   })
 
@@ -66,7 +68,11 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
       if (post.twitter) {
         await getSocialProvider('twitter').getTwitterUser(post.twitter).deletePost(post.externalId)
       } else if (post.facebook) {
-        await getSocialProvider('facebook').getFacebookUser(post.facebook).deletePost(post.externalId)
+        getSocialProvider('facebook').getFacebookUser(post.facebook).deletePost(post.externalId)
+      } else if (post.instagram) {
+        getSocialProvider('instagram').getInstagramUser(post.instagram).deletePost(post.externalId)
+      } else if (post.tiktok) {
+        getSocialProvider('tiktok').getTikTokUser(post.tiktok).deletePost(post.externalId)
       }
       break
   }
