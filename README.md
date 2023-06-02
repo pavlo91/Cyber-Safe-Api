@@ -60,6 +60,7 @@ Also there is a bug in the Twitter mobile app that does not allow redirecting to
 - ✅ Refresh tokens via cron jobs
 - ❌ No webhooks, using cron jobs
 - ❌ No support for deleting posts ([link](https://developers.facebook.com/docs/graph-api/reference/v16.0/user/posts))
+- ❌ No paging implemented while getting posts, gets the newest max 50 since the indexed date
 
 ### 3. Instagram
 
