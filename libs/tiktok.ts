@@ -4,6 +4,24 @@ import { stringify } from 'querystring'
 import { z } from 'zod'
 import { fetchSchema } from '../utils/fetch'
 
+export type TikTokPost = {
+  text: string
+  externalId: string
+  createdAt: Date
+  url: string
+  media: [
+    {
+      type: 'VIDEO'
+      mime: 'video/mp4'
+      externalId: string
+      width: number
+      height: number
+      duration: number
+      url: string
+    }
+  ]
+}
+
 class TikTokUser {
   constructor(
     private config: { clientKey: string; clientSecret: string; callbackURL: string },
@@ -66,6 +84,79 @@ class TikTokUser {
     })
 
     return data.user
+  }
+
+  private async parseVideoURL(share_url: string) {
+    const schema = z.object({
+      video: z.object({
+        url: z.object({
+          no_wm: z.string(),
+        }),
+      }),
+    })
+
+    const ttdl = require('tiktok-video-downloader')
+    const data = await ttdl.getInfo(share_url)
+
+    return schema.parse(data).video.url.no_wm
+  }
+
+  async fetchPosts(before: Date) {
+    const schema = z.object({
+      data: z.object({
+        videos: z.array(
+          z.object({
+            id: z.string(),
+            create_time: z.number(),
+            duration: z.number(),
+            height: z.number(),
+            width: z.number(),
+            title: z.string(),
+            share_url: z.string(),
+          })
+        ),
+      }),
+    })
+
+    const url = new URL('https://open.tiktokapis.com/v2/video/list/')
+    url.searchParams.append('fields', 'id,create_time,duration,height,width,title,share_url')
+
+    const { data } = await fetchSchema(schema, {
+      method: 'POST',
+      url: url.toString(),
+      headers: {
+        Authorization: 'Bearer ' + this.user.accessToken,
+      },
+      data: JSON.stringify({
+        max_count: 20,
+      }),
+    })
+
+    const results: TikTokPost[] = []
+
+    const videos = data.videos.filter((e) => e.create_time * 1000 >= before.valueOf())
+
+    for (const data of videos) {
+      results.push({
+        text: data.title,
+        externalId: data.id,
+        createdAt: new Date(data.create_time * 1000),
+        url: data.share_url,
+        media: [
+          {
+            type: 'VIDEO',
+            mime: 'video/mp4',
+            externalId: data.id,
+            width: data.width,
+            height: data.height,
+            duration: data.duration * 1000,
+            url: await this.parseVideoURL(data.share_url),
+          },
+        ],
+      })
+    }
+
+    return results
   }
 }
 

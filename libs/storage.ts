@@ -50,7 +50,7 @@ class AmazonStorage {
 
   parseBlobURL(blobURL: string) {
     const url = new URL(blobURL)
-    const [container, ...blobComponents] = url.pathname.split('/')
+    const [container, ...blobComponents] = url.pathname.substring(1).split('/')
     const blob = blobComponents.join('/')
 
     return { container, blob }
@@ -105,11 +105,13 @@ class AmazonStorage {
   async moveBlob(blobURL: string, container: Container, blob: string) {
     const parsedBlobURL = this.parseBlobURL(blobURL)
 
+    const bucket = container === 'public' ? this.config.publicBucket : this.config.privateBucket
+
     const req = await this.client.send(
       new GetObjectCommand({
         Range: '0-40',
+        Bucket: bucket,
         Key: parsedBlobURL.blob,
-        Bucket: container === 'public' ? this.config.publicBucket : this.config.privateBucket,
       })
     )
 
@@ -121,8 +123,8 @@ class AmazonStorage {
 
     await this.client.send(
       new CopyObjectCommand({
+        Bucket: bucket,
         Key: blob + ext,
-        Bucket: container,
         CopySource: blobURL,
       })
     )
@@ -136,7 +138,7 @@ class AmazonStorage {
 
     return {
       mime,
-      blobURL: this.getBlobURL(container, blob + ext),
+      blobURL: this.getBlobURL(bucket, blob + ext),
     }
   }
 
@@ -147,34 +149,38 @@ class AmazonStorage {
     const ext = type?.ext ? '.' + type.ext : ''
     const mime = type?.mime ?? 'application/octet-stream'
 
+    const bucket = container === 'public' ? this.config.publicBucket : this.config.privateBucket
+
     await this.client.send(
       new PutObjectCommand({
         Body: data,
+        Bucket: bucket,
         Key: blob + ext,
         ContentType: mime,
-        Bucket: container === 'public' ? this.config.publicBucket : this.config.privateBucket,
       })
     )
 
     return {
       mime,
-      blobURL: this.getBlobURL(container, blob + ext),
+      blobURL: this.getBlobURL(bucket, blob + ext),
     }
   }
 
   async uploadText(text: string, container: Container, blob: string) {
+    const bucket = container === 'public' ? this.config.publicBucket : this.config.privateBucket
+
     await this.client.send(
       new PutObjectCommand({
         Body: text,
+        Bucket: bucket,
         Key: blob + '.txt',
         ContentType: 'text/plain',
-        Bucket: container === 'public' ? this.config.publicBucket : this.config.privateBucket,
       })
     )
 
     return {
       mime: 'text/plain',
-      blobURL: this.getBlobURL(container, blob + '.txt'),
+      blobURL: this.getBlobURL(bucket, blob + '.txt'),
     }
   }
 }

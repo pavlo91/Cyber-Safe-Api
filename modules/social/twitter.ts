@@ -33,7 +33,7 @@ cron.schedule('cron.twitter', '0 0 0 * * *', async () => {
         await createTwitterPost(twitter, twitterPost)
           .then((post) => uploadAndAnalyzePost(post))
           .catch((error) => {
-            logger.error('Error while saving twitter post: %s', error)
+            logger.error('Error while saving Twitter post: %s', error)
           })
       }
 

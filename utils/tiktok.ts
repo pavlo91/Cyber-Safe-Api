@@ -1,6 +1,8 @@
+import { Prisma } from '@prisma/client'
 import { add } from 'date-fns'
 import { FastifyRequest } from 'fastify'
 import prisma from '../libs/prisma'
+import { TikTokPost } from '../libs/tiktok'
 import { getSocialProvider } from './social'
 
 export async function finishTikTokAuthorization(req: FastifyRequest) {
@@ -60,4 +62,35 @@ export async function refreshExpiringTikTokTokens() {
       },
     })
   }
+}
+
+export async function createTikTokPost(
+  tiktok: Prisma.TikTokGetPayload<{ include: { user: true } }>,
+  tiktokPost: TikTokPost
+) {
+  return await prisma.post.upsert({
+    where: { externalId: tiktokPost.externalId },
+    create: {
+      ...tiktokPost,
+      tiktokId: tiktok.id,
+      userId: tiktok.user!.id,
+      media: {
+        createMany: {
+          data: tiktokPost.media,
+        },
+      },
+    },
+    update: {
+      ...tiktokPost,
+      media: {
+        deleteMany: {},
+        createMany: {
+          data: tiktokPost.media,
+        },
+      },
+    },
+    include: {
+      media: true,
+    },
+  })
 }
