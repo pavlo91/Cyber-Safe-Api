@@ -1,5 +1,7 @@
+import { Prisma } from '@prisma/client'
 import { add } from 'date-fns'
 import { FastifyRequest } from 'fastify'
+import { InstagramPost } from '../libs/instagram'
 import prisma from '../libs/prisma'
 import { getSocialProvider } from './social'
 
@@ -51,4 +53,35 @@ export async function refreshExpiringInstagramTokens() {
       },
     })
   }
+}
+
+export async function createInstagramPost(
+  instagram: Prisma.InstagramGetPayload<{ include: { user: true } }>,
+  instagramPost: InstagramPost
+) {
+  return await prisma.post.upsert({
+    where: { externalId: instagramPost.externalId },
+    create: {
+      ...instagramPost,
+      instagramId: instagram.id,
+      userId: instagram.user!.id,
+      media: {
+        createMany: {
+          data: instagramPost.media,
+        },
+      },
+    },
+    update: {
+      ...instagramPost,
+      media: {
+        deleteMany: {},
+        createMany: {
+          data: instagramPost.media,
+        },
+      },
+    },
+    include: {
+      media: true,
+    },
+  })
 }

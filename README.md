@@ -68,6 +68,7 @@ Also there is a bug in the Twitter mobile app that does not allow redirecting to
 - ✅ Supports login via OAuth2
 - ✅ Refresh tokens via cron jobs
 - ❌ No webhooks, using cron jobs
+- ❌ No paging implemented while getting posts, gets the newest max 50 since the indexed date
 - ❌ No support for deleting posts
 
 ### 4. TikTok

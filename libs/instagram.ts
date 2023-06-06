@@ -4,6 +4,22 @@ import { stringify } from 'querystring'
 import { z } from 'zod'
 import { fetchSchema } from '../utils/fetch'
 
+export type InstagramPost = {
+  text: string
+  externalId: string
+  createdAt: Date
+  url: string
+  media: {
+    type: 'IMAGE' | 'VIDEO'
+    mime: string
+    externalId: string
+    width: number
+    height: number
+    duration: number
+    url: string
+  }[]
+}
+
 class InstagramUser {
   constructor(
     private config: {
@@ -11,7 +27,10 @@ class InstagramUser {
       appSecret: string
       callbackURL: string
     },
-    private accessToken: string
+    private user: {
+      accessToken: string
+      userId: string
+    }
   ) {}
 
   getMyUser() {
@@ -22,7 +41,7 @@ class InstagramUser {
 
     const url = new URL('https://graph.instagram.com/v17.0/me')
     url.searchParams.append('fields', 'id,username')
-    url.searchParams.append('access_token', this.accessToken)
+    url.searchParams.append('access_token', this.user.accessToken)
 
     return fetchSchema(schema, { url: url.toString() })
   }
@@ -30,7 +49,7 @@ class InstagramUser {
   async refreshToken() {
     const url = new URL('https://graph.instagram.com/refresh_access_token')
     url.searchParams.append('grant_type', 'ig_refresh_token')
-    url.searchParams.append('access_token', this.accessToken)
+    url.searchParams.append('access_token', this.user.accessToken)
 
     const schema = z.object({
       access_token: z.string(),
@@ -46,6 +65,75 @@ class InstagramUser {
     }
   }
 
+  async fetchPosts(before: Date): Promise<InstagramPost[]> {
+    const schema = z.object({
+      data: z.array(
+        z.object({
+          id: z.string(),
+          caption: z.string(),
+          media_type: z.enum(['CAROUSEL_ALBUM', 'IMAGE', 'VIDEO']),
+          media_url: z.string(),
+          timestamp: z.string(),
+          permalink: z.string(),
+          children: z
+            .object({
+              data: z.array(
+                z.object({
+                  id: z.string(),
+                  media_type: z.enum(['IMAGE', 'VIDEO']),
+                  media_url: z.string(),
+                })
+              ),
+            })
+            .optional(),
+        })
+      ),
+    })
+
+    const url = new URL(`https://graph.instagram.com/v17.0/${this.user.userId}/media`)
+    url.searchParams.append(
+      'fields',
+      'id,caption,media_type,media_url,timestamp,permalink,children{id,media_type,media_url}'
+    )
+    url.searchParams.append('since', String(Math.floor(before.valueOf() / 1000)))
+    url.searchParams.append('limit', '50')
+    url.searchParams.append('access_token', this.user.accessToken)
+
+    const { data } = await fetchSchema(schema, {
+      url: url.toString(),
+    })
+
+    return data.map((post) => ({
+      text: post.caption,
+      url: post.permalink,
+      externalId: post.id,
+      createdAt: new Date(post.timestamp),
+      media:
+        post.media_type === 'CAROUSEL_ALBUM' && post.children
+          ? post.children.data.map((media) => ({
+              width: 0,
+              height: 0,
+              duration: 0,
+              url: media.media_url,
+              externalId: media.id,
+              type: media.media_type === 'VIDEO' ? 'VIDEO' : 'IMAGE',
+              mime: media.media_type === 'VIDEO' ? 'video/mp4' : 'image/jpeg',
+            }))
+          : [
+              {
+                width: 0,
+                height: 0,
+                duration: 0,
+                url: post.media_url,
+                externalId: post.id,
+                type: post.media_type === 'VIDEO' ? 'VIDEO' : 'IMAGE',
+                mime: post.media_type === 'VIDEO' ? 'video/mp4' : 'image/jpeg',
+              },
+            ],
+    }))
+  }
+
+  // https://developers.facebook.com/docs/instagram-api/reference/ig-media
   deletePost(id: string) {
     throw new Error('This operation is not supported for Instagram')
   }
@@ -122,7 +210,10 @@ export class InstagramProvider {
     const token = await this.getOauthAccessToken(code)
     const { access_token, expires_in } = await this.getAccessToken(token.access_token)
 
-    const instagramUser = new InstagramUser(this.config, access_token)
+    const instagramUser = new InstagramUser(this.config, {
+      accessToken: access_token,
+      userId: '',
+    })
     const user = await instagramUser.getMyUser()
 
     return {
@@ -135,6 +226,9 @@ export class InstagramProvider {
   }
 
   getInstagramUser(instagram: Instagram) {
-    return new InstagramUser(this.config, instagram.instagramAccessToken)
+    return new InstagramUser(this.config, {
+      accessToken: instagram.instagramAccessToken,
+      userId: instagram.instagramId,
+    })
   }
 }
