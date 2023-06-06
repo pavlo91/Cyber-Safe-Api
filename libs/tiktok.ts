@@ -95,8 +95,9 @@ class TikTokUser {
       }),
     })
 
-    const ttdl = require('tiktok-video-downloader')
-    const data = await ttdl.getInfo(share_url)
+    // The original lib was taken down so I copied the src
+    const getInfo = require('./tiktok-downloader')
+    const data = await getInfo(share_url)
 
     return schema.parse(data).video.url.no_wm
   }
