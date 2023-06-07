@@ -60,7 +60,8 @@ Also there is a bug in the Twitter mobile app that does not allow redirecting to
 - ✅ Supports login via OAuth2
 - ✅ Refresh tokens via cron jobs
 - ❌ No webhooks, using cron jobs
-- ❌ No support for deleting posts ([link](https://developers.facebook.com/docs/graph-api/reference/v16.0/user/posts))
+- ❌ No paging implemented while getting posts, gets the newest max 50 since the indexed date
+- ❌ No support for deleting posts ([link](https://developers.facebook.com/docs/graph-api/reference/v17.0/user/posts))
 
 
 ### 3. Instagram
@@ -69,7 +70,7 @@ Also there is a bug in the Twitter mobile app that does not allow redirecting to
 - ✅ Refresh tokens via cron jobs
 - ❌ No webhooks, using cron jobs
 - ❌ No paging implemented while getting posts, gets the newest max 50 since the indexed date
-- ❌ No support for deleting posts
+- ❌ No support for deleting posts ([link](https://developers.facebook.com/docs/instagram-api/reference/ig-media))
 
 ### 4. TikTok
 

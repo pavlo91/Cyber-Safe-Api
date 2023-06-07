@@ -1,5 +1,7 @@
+import { Prisma } from '@prisma/client'
 import { add } from 'date-fns'
 import { FastifyRequest } from 'fastify'
+import { FacebookPost } from '../libs/facebook'
 import prisma from '../libs/prisma'
 import { getSocialProvider } from './social'
 
@@ -51,4 +53,35 @@ export async function refreshExpiringFacebookTokens() {
       },
     })
   }
+}
+
+export async function createFacebookPost(
+  facebook: Prisma.FacebookGetPayload<{ include: { user: true } }>,
+  facebookPost: FacebookPost
+) {
+  return await prisma.post.upsert({
+    where: { externalId: facebookPost.externalId },
+    create: {
+      ...facebookPost,
+      facebookId: facebook.id,
+      userId: facebook.user!.id,
+      media: {
+        createMany: {
+          data: facebookPost.media,
+        },
+      },
+    },
+    update: {
+      ...facebookPost,
+      media: {
+        deleteMany: {},
+        createMany: {
+          data: facebookPost.media,
+        },
+      },
+    },
+    include: {
+      media: true,
+    },
+  })
 }
