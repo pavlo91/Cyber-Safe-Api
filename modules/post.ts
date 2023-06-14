@@ -24,16 +24,20 @@ export const GQLPost = pothos.objectRef<
 >('Post')
 export const GQLPostPage = createPageObjectRef(GQLPost)
 
+export const GQLAnalysisItemSeverityEnum = pothos.enumType('AnalysisItemSeverityEnum', {
+  values: ['NONE', 'LOW', 'HIGH'] as const,
+})
+
 export const GQLPostFilter = createFilterInput(
   GQLPost,
   (t) => ({
-    flagged: t.boolean({ required: false }),
+    severity: t.field({ type: GQLAnalysisItemSeverityEnum, required: false }),
   }),
-  ({ flagged }) => {
+  ({ severity }) => {
     const where: Prisma.PostWhereInput = {}
 
-    if (typeof flagged === 'boolean') {
-      where.flagged = flagged
+    if (!!severity) {
+      where.analysis = { items: { some: { severity } } }
     }
 
     return where
@@ -55,6 +59,18 @@ export const GQLFlag = pothos.loadableObjectRef<Prisma.AnalysisGetPayload<{ incl
 
 GQLFlag.implement({
   fields: (t) => ({
+    severity: t.field({
+      type: GQLAnalysisItemSeverityEnum,
+      resolve: (obj) => {
+        if (!!obj.items.find((e) => e.severity === 'HIGH')) {
+          return 'HIGH'
+        }
+        if (!!obj.items.find((e) => e.severity === 'LOW')) {
+          return 'LOW'
+        }
+        return 'NONE'
+      },
+    }),
     reasons: t.stringList({
       resolve: (obj) => {
         return obj.items.filter((e) => !!e.reason).map((e) => e.reason!)
@@ -123,7 +139,7 @@ GQLPost.implement({
         }
       },
     }),
-    flagged: t.exposeBoolean('flagged'),
+    severity: t.expose('severity', { type: GQLAnalysisItemSeverityEnum }),
     manualReview: t.exposeBoolean('manualReview'),
     flag: t.field({
       type: GQLFlag,

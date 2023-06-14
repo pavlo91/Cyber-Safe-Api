@@ -12,7 +12,7 @@ import config from '../config'
 import storage from './storage'
 
 export type ModeratorResult =
-  | { status: 'flagged'; reason: string }
+  | { status: 'flagged'; reason: string; severity: 'LOW' | 'HIGH' }
   | { status: 'in_progress'; jobId: string }
   | { status: 'not_flagged' }
 
@@ -49,7 +49,7 @@ class LocalModerator implements Moderator {
     for (const blocklist of this.blocklist) {
       for (const word of blocklist.words) {
         if (lowercaseText.includes(word)) {
-          return { status: 'flagged', reason: blocklist.reason }
+          return { status: 'flagged', reason: blocklist.reason, severity: 'HIGH' }
         }
       }
     }
@@ -100,8 +100,13 @@ class AmazonModerator implements Moderator {
       })
     )
 
-    if (sentiment.SentimentScore?.Negative && sentiment.SentimentScore.Negative > 0.75) {
-      return { status: 'flagged', reason: `Negativity` }
+    if (sentiment.SentimentScore?.Negative) {
+      if (sentiment.SentimentScore.Negative > 0.75) {
+        return { status: 'flagged', reason: `Negativity`, severity: 'HIGH' }
+      }
+      if (sentiment.SentimentScore.Negative > 0.25) {
+        return { status: 'flagged', reason: `Negativity`, severity: 'LOW' }
+      }
     }
 
     return { status: 'not_flagged' }
@@ -141,10 +146,19 @@ class AmazonModerator implements Moderator {
       })
     )
 
-    if (moderation.ModerationLabels && this.containsModerationLabel(moderation.ModerationLabels)) {
+    if (moderation.ModerationLabels && moderation.ModerationLabels.length > 0) {
+      if (this.containsModerationLabel(moderation.ModerationLabels)) {
+        return {
+          status: 'flagged',
+          reason: this.formatReason(moderation.ModerationLabels),
+          severity: 'HIGH',
+        }
+      }
+
       return {
         status: 'flagged',
         reason: this.formatReason(moderation.ModerationLabels),
+        severity: 'LOW',
       }
     }
 
@@ -180,15 +194,27 @@ class AmazonModerator implements Moderator {
     )
 
     if (moderation.JobStatus === 'SUCCEEDED') {
-      if (
-        moderation.ModerationLabels &&
-        this.containsModerationLabel(
-          moderation.ModerationLabels.filter((e) => !!e.ModerationLabel).map((e) => e.ModerationLabel!)
-        )
-      ) {
+      if (moderation.ModerationLabels && moderation.ModerationLabels.length > 0) {
+        if (
+          this.containsModerationLabel(
+            moderation.ModerationLabels.filter((e) => !!e.ModerationLabel).map((e) => e.ModerationLabel!)
+          )
+        ) {
+          return {
+            status: 'flagged',
+            reason: this.formatReason(
+              moderation.ModerationLabels.filter((e) => !!e.ModerationLabel).map((e) => e.ModerationLabel!)
+            ),
+            severity: 'HIGH',
+          }
+        }
+
         return {
           status: 'flagged',
-          reason: this.formatReason(moderation.ModerationLabels.map((e) => e.ModerationLabel ?? {})),
+          reason: this.formatReason(
+            moderation.ModerationLabels.filter((e) => !!e.ModerationLabel).map((e) => e.ModerationLabel!)
+          ),
+          severity: 'LOW',
         }
       }
     } else if (moderation.JobStatus === 'FAILED') {
