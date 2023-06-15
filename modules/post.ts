@@ -37,7 +37,7 @@ export const GQLPostFilter = createFilterInput(
     const where: Prisma.PostWhereInput = {}
 
     if (!!severity) {
-      where.analysis = { items: { some: { severity } } }
+      where.severity = severity
     }
 
     return where
