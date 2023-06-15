@@ -59,9 +59,18 @@ export async function analyzePost(postId: string) {
       analysis: true,
       user: {
         include: {
+          parentRoles: {
+            include: {
+              userRole: true,
+            },
+          },
           roles: {
             include: {
-              schoolRole: true,
+              schoolRole: {
+                include: {
+                  school: true,
+                },
+              },
             },
           },
         },
@@ -117,9 +126,7 @@ export async function analyzePost(postId: string) {
     data: { severity },
   })
 
-  if (severity !== 'NONE') {
-    sendFlaggedPostNotification(post)
-  }
+  sendFlaggedPostNotification(post)
 }
 
 export async function uploadAndAnalyzePost(post: Prisma.PostGetPayload<{ include: { media: true } }>) {

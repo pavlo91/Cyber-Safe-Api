@@ -3,7 +3,7 @@ import pothos from '../libs/pothos'
 import prisma from '../libs/prisma'
 import storage from '../libs/storage'
 import { ActionKeys, executeAction } from '../utils/actions'
-import { checkAuth, hasRoleToUser, isSameUser, isStaff, isUser } from '../utils/auth'
+import { checkAuth, hasRoleInSchool, hasRoleToUser, isSameUser, isStaff, isUser } from '../utils/auth'
 import { GQLSocialNameEnum } from './social'
 import { GQLUser } from './user'
 import { createFilterInput } from './utils/filter'
@@ -178,7 +178,7 @@ pothos.queryFields((t) => ({
     },
     resolve: async (obj, { schoolId, userId, page, filter }, { user }) => {
       await checkAuth(
-        () => !!schoolId && hasRoleToUser(schoolId, user, ['ADMIN', 'COACH']),
+        () => !!schoolId && hasRoleInSchool(schoolId, user, ['ADMIN', 'COACH']),
         () => !!userId && isSameUser(userId, user),
         () => !!userId && hasRoleToUser(userId, user, ['ADMIN', 'COACH']),
         () => isStaff(user)

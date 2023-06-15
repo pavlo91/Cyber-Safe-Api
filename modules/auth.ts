@@ -3,10 +3,10 @@ import { z } from 'zod'
 import fastify from '../libs/fastify'
 import pothos from '../libs/pothos'
 import prisma from '../libs/prisma'
-import { composeWebURL } from '../utils//url'
 import { checkAuth, isUser } from '../utils/auth'
 import { comparePassword, createJWT, randomToken } from '../utils/crypto'
 import { sendEmailTemplate } from '../utils/email'
+import { composeWebURL } from '../utils/url'
 import { GQLUser } from './user'
 
 fastify.get('/api/confirm/:token', async (req, reply) => {
