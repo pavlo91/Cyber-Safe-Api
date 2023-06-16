@@ -41,7 +41,7 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
       await prisma.post.update({
         where: { id: postId },
         data: {
-          flagged: false,
+          severity: 'NONE',
           manualReview: true,
         },
       })
@@ -51,7 +51,7 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
       await prisma.post.updateMany({
         where: { id: postId },
         data: {
-          flagged: true,
+          severity: 'HIGH',
           manualReview: true,
         },
       })

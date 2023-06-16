@@ -243,30 +243,30 @@ model TikTok {
 }
 
 model Post {
-  id           String     @id @default(cuid())
-  createdAt    DateTime   @default(now())
-  externalId   String     @unique
+  id           String               @id @default(cuid())
+  createdAt    DateTime             @default(now())
+  externalId   String               @unique
   url          String
   text         String
   blobURL      String?
-  flagged      Boolean    @default(false)
-  manualReview Boolean    @default(false)
+  severity     AnalysisItemSeverity @default(NONE)
+  manualReview Boolean              @default(false)
   twitterId    String?
-  twitter      Twitter?   @relation(fields: [twitterId], references: [id], onDelete: Cascade)
+  twitter      Twitter?             @relation(fields: [twitterId], references: [id], onDelete: Cascade)
   facebookId   String?
-  facebook     Facebook?  @relation(fields: [facebookId], references: [id], onDelete: Cascade)
+  facebook     Facebook?            @relation(fields: [facebookId], references: [id], onDelete: Cascade)
   instagramId  String?
-  instagram    Instagram? @relation(fields: [instagramId], references: [id])
+  instagram    Instagram?           @relation(fields: [instagramId], references: [id])
   tiktokId     String?
-  tiktok       TikTok?    @relation(fields: [tiktokId], references: [id])
+  tiktok       TikTok?              @relation(fields: [tiktokId], references: [id])
   userId       String
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   media        Media[]
   analysis     Analysis?
   actions      Action[]
 
   @@index([twitterId])
-  @@index([flagged])
+  @@index([severity])
   @@index([manualReview])
   @@index([userId])
 }
@@ -334,21 +334,27 @@ enum AnalysisItemStatus {
   FAILED
 }
 
+enum AnalysisItemSeverity {
+  NONE
+  LOW
+  HIGH
+}
+
 model AnalysisItem {
-  id         String             @id @default(cuid())
-  createdAt  DateTime           @default(now())
+  id         String               @id @default(cuid())
+  createdAt  DateTime             @default(now())
   type       AnalysisItemType
   status     AnalysisItemStatus
   error      String?
   source     String
-  flagged    Boolean            @default(false)
+  severity   AnalysisItemSeverity @default(NONE)
   reason     String?
-  jobId      String?            @unique
+  jobId      String?              @unique
   analysisId String
-  analysis   Analysis           @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  analysis   Analysis             @relation(fields: [analysisId], references: [id], onDelete: Cascade)
 
   @@index([status])
-  @@index([flagged])
+  @@index([severity])
   @@index([analysisId])
 }
 

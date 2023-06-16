@@ -48,40 +48,89 @@ export function getStaffIds() {
 export function getMemberIds(schoolId: string, roles: UserRoleType[]) {
   return prisma.user
     .findMany({ where: { roles: { some: { type: { in: roles }, status: 'ACCEPTED', schoolRole: { schoolId } } } } })
-    .then((users) => users.map((user) => user.email))
-}
-
-export function getSchoolsMemberIds(schoolIds: string[], roles: UserRoleType[]) {
-  return prisma.user
-    .findMany({
-      where: {
-        roles: {
-          some: {
-            status: 'ACCEPTED',
-            type: { in: roles },
-            schoolRole: { schoolId: { in: schoolIds } },
-          },
-        },
-      },
-    })
-    .then((users) => users.map((user) => user.email))
+    .then((users) => users.map((user) => user.id))
 }
 
 export async function sendFlaggedPostNotification(
-  post: Prisma.PostGetPayload<{ include: { user: { include: { roles: { include: { schoolRole: true } } } } } }>
+  post: Prisma.PostGetPayload<{
+    include: {
+      user: {
+        include: {
+          parentRoles: {
+            include: {
+              userRole: true
+            }
+          }
+          roles: {
+            include: {
+              schoolRole: {
+                include: {
+                  school: true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }>
 ) {
-  const schoolIds = post.user.roles.filter((role) => !!role.schoolRole).map((role) => role.schoolRole!.schoolId)
+  // Get only the first school for now
+  const school = post.user.roles.find((e) => !!e.schoolRole)?.schoolRole?.school
 
-  await sendNotification(
-    getSchoolsMemberIds(schoolIds, ['ADMIN', 'COACH']),
-    (user) => ({
-      title: 'A post has been flagged',
-      body: `A post created by ${post.user.name} has been flagged`,
-      url: composeWebURL('/dashboard/:role/posts/:postId', {
-        role: user.roles.find((e) => e.type === 'ADMIN') ? 'admin' : 'coach',
-        postId: post.id,
-      }),
-    }),
-    'receivePostFlagged'
-  )
+  if (!school) {
+    return
+  }
+
+  const adminIds = await getMemberIds(school.id, ['ADMIN'])
+  const coachIds = await getMemberIds(school.id, ['COACH'])
+  const parentIds = post.user.parentRoles.map((e) => e.userRole.userId)
+
+  function formatURL(userId: string) {
+    if (adminIds.includes(userId)) {
+      return composeWebURL('/dashboard/admin/posts/:postId', { postId: post.id })
+    }
+    if (coachIds.includes(userId)) {
+      return composeWebURL('/dashboard/coach/posts/:postId', { postId: post.id })
+    }
+    if (parentIds.includes(userId)) {
+      return composeWebURL('/dashboard/parent/posts/:postId', { postId: post.id })
+    }
+  }
+
+  switch (post.severity) {
+    case 'NONE':
+      await sendNotification(
+        [...adminIds, ...coachIds, ...parentIds],
+        (user) => ({
+          title: `A post from ${post.user.name} has been analyzed`,
+          body: `A post from ${post.user.name} in school ${school.name} has been analyzed`,
+          url: formatURL(user.id),
+        }),
+        'receivePostNoneSeverity'
+      )
+      break
+    case 'LOW':
+      await sendNotification(
+        [...adminIds, ...coachIds, ...parentIds],
+        (user) => ({
+          title: `A post from ${post.user.name} has a concern`,
+          body: `A post from ${post.user.name} in school ${school.name} has a concern`,
+          url: formatURL(user.id),
+        }),
+        'receivePostLowSeverity'
+      )
+      break
+    case 'HIGH':
+      await sendNotification(
+        [...adminIds, ...coachIds, ...parentIds],
+        (user) => ({
+          title: `A post from ${post.user.name} needs action`,
+          body: `A post from ${post.user.name} in school ${school.name} needs action`,
+          url: formatURL(user.id),
+        }),
+        'receivePostHighSeverity'
+      )
+      break
+  }
 }

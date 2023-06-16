@@ -6,7 +6,7 @@ class Template {
   constructor(private model: Record<string, any>, private prefix: string) {}
 
   getHTML(name: string, model?: Record<string, any>) {
-    const filePath = path.join(__dirname, '../../templates', name + '.pug')
+    const filePath = path.join(__dirname, '../templates', name + '.pug')
     return pug.renderFile(filePath, { ...this.model, ...model, pretty: true })
   }
 
