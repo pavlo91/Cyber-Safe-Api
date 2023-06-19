@@ -8,8 +8,6 @@ block head
 
 block body
   p #{body}
+  br
   if url
-    p
-      | Click 
-      a(href=url) here
-      |  to view.
+    a.button(href=url) View Notification
