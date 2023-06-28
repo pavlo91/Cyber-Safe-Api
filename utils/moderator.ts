@@ -51,7 +51,7 @@ export async function analyzeItem(
   }
 }
 
-export async function analyzePost(postId: string) {
+export async function analyzePost(postId: string, config?: { simulateSeverity?: 'LOW' | 'HIGH' }) {
   const post = await prisma.post.findUniqueOrThrow({
     where: { id: postId },
     include: {
@@ -96,28 +96,36 @@ export async function analyzePost(postId: string) {
     }
   }
 
-  const resultText = await analyzeItem(undefined, analysis.id, post.text, () => moderator.analyzeText(post.text))
-  setSeverity(resultText)
+  if (config?.simulateSeverity) {
+    setSeverity({
+      status: 'flagged',
+      reason: 'Simulation',
+      severity: config.simulateSeverity,
+    })
+  } else {
+    const resultText = await analyzeItem(undefined, analysis.id, post.text, () => moderator.analyzeText(post.text))
+    setSeverity(resultText)
 
-  for (const media of post.media) {
-    if (!media.blobURL) {
-      logger.warn('Skipping analysis of media %s because no blob was uploaded...', media.id)
-      continue
-    }
+    for (const media of post.media) {
+      if (!media.blobURL) {
+        logger.warn('Skipping analysis of media %s because no blob was uploaded...', media.id)
+        continue
+      }
 
-    switch (media.type) {
-      case 'IMAGE':
-        const resultImage = await analyzeItem(undefined, analysis.id, media.blobURL, () =>
-          moderator.analyzeImage(media.blobURL!)
-        )
-        setSeverity(resultImage)
-        break
-      case 'VIDEO':
-        const resultVideo = await analyzeItem(undefined, analysis.id, media.blobURL, () =>
-          moderator.analyzeVideo(media.blobURL!)
-        )
-        setSeverity(resultVideo)
-        break
+      switch (media.type) {
+        case 'IMAGE':
+          const resultImage = await analyzeItem(undefined, analysis.id, media.blobURL, () =>
+            moderator.analyzeImage(media.blobURL!)
+          )
+          setSeverity(resultImage)
+          break
+        case 'VIDEO':
+          const resultVideo = await analyzeItem(undefined, analysis.id, media.blobURL, () =>
+            moderator.analyzeVideo(media.blobURL!)
+          )
+          setSeverity(resultVideo)
+          break
+      }
     }
   }
 

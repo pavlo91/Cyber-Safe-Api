@@ -4,6 +4,8 @@ import prisma from '../libs/prisma'
 import storage from '../libs/storage'
 import { ActionKeys, executeAction } from '../utils/actions'
 import { checkAuth, hasRoleInSchool, hasRoleToUser, isSameUser, isStaff, isUser } from '../utils/auth'
+import { analyzePost } from '../utils/moderator'
+import { createTwitterPost } from '../utils/twitter'
 import { GQLSocialNameEnum } from './social'
 import { GQLUser } from './user'
 import { createFilterInput } from './utils/filter'
@@ -267,6 +269,45 @@ pothos.mutationFields((t) => ({
       await checkAuth(() => isUser(user))
 
       await executeAction(type, postId, user!.id)
+
+      return true
+    },
+  }),
+  simulateNewFlaggedPost: t.fieldWithInput({
+    type: 'Boolean',
+    input: {
+      userId: t.input.id(),
+      severe: t.input.boolean(),
+    },
+    resolve: async (obj, { input: { userId, severe } }, { user }) => {
+      await checkAuth(() => isStaff(user))
+
+      let twitter = await prisma.twitter.findFirst({
+        where: { user: { id: userId } },
+        include: { user: true },
+      })
+
+      if (!twitter) {
+        twitter = await prisma.twitter.create({
+          data: {
+            twitterAccessToken: '',
+            twitterRefreshToken: '',
+            twitterUsername: 'simulation',
+            user: { connect: { id: userId } },
+            twitterTokenExpiresAt: new Date(),
+            twitterId: 'simulation-' + new Date().valueOf(),
+          },
+          include: { user: true },
+        })
+      }
+
+      await createTwitterPost(twitter, {
+        media: [],
+        url: 'simulation',
+        createdAt: new Date(),
+        text: 'This is a simulation',
+        externalId: 'simulation-' + new Date().valueOf(),
+      }).then((post) => analyzePost(post.id, { simulateSeverity: severe ? 'HIGH' : 'LOW' }))
 
       return true
     },
