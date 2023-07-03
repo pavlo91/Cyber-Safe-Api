@@ -20,6 +20,7 @@ model User {
   passwordToken    String?         @unique
   name             String
   parentalApproval Boolean?
+  score            Float           @default(1)
   avatarId         String?         @unique
   avatar           Image?          @relation(fields: [avatarId], references: [id], onDelete: SetNull)
   roles            UserRole[]

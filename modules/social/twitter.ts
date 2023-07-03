@@ -9,7 +9,9 @@ import { createTwitterPost, finishTwitterAuthorization, refreshExpiringTwitterTo
 import { composeWebURL } from '../../utils/url'
 
 fastify.get(config.twitter.callbackURL, async (req, reply) => {
-  await finishTwitterAuthorization(req)
+  await finishTwitterAuthorization(req).catch((error) => {
+    logger.error(error)
+  })
 
   reply.redirect(composeWebURL('/dashboard/profile'))
 

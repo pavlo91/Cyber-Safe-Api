@@ -9,7 +9,9 @@ import { createTikTokPost, finishTikTokAuthorization, refreshExpiringTikTokToken
 import { composeWebURL } from '../../utils/url'
 
 fastify.get(config.tiktok.callbackURL, async (req, reply) => {
-  await finishTikTokAuthorization(req)
+  await finishTikTokAuthorization(req).catch((error) => {
+    logger.error(error)
+  })
 
   reply.redirect(composeWebURL('/dashboard/profile'))
 
