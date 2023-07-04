@@ -185,14 +185,16 @@ pothos.queryFields((t) => ({
     args: {
       schoolId: t.arg.id({ required: false }),
       userId: t.arg.id({ required: false }),
+      parentId: t.arg.id({ required: false }),
       ...createPageArgs(t.arg),
       filter: t.arg({ type: GQLPostFilter, required: false }),
     },
-    resolve: async (obj, { schoolId, userId, page, filter }, { user }) => {
+    resolve: async (obj, { schoolId, userId, parentId, page, filter }, { user }) => {
       await checkAuth(
         () => !!schoolId && hasRoleInSchool(schoolId, user, ['ADMIN', 'COACH']),
         () => !!userId && isSameUser(userId, user),
         () => !!userId && hasRoleToUser(userId, user, ['ADMIN', 'COACH']),
+        () => !!parentId && isUser(user),
         () => isStaff(user)
       )
 
@@ -211,6 +213,18 @@ pothos.queryFields((t) => ({
       }
       if (userId) {
         where.userId = userId
+      }
+      if (parentId) {
+        where.user = {
+          parentRoles: {
+            some: {
+              userRole: {
+                userId: parentId,
+                status: 'ACCEPTED',
+              },
+            },
+          },
+        }
       }
 
       return await createPage(page, (args) =>
