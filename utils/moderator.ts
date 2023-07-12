@@ -1,4 +1,4 @@
-import { AnalysisItemSeverity, Prisma } from '@prisma/client'
+import { AnalysisItemSeverity, Post, Prisma } from '@prisma/client'
 import logger from '../libs/logger'
 import moderator, { ModeratorResult } from '../libs/moderator'
 import prisma from '../libs/prisma'
@@ -134,6 +134,8 @@ export async function analyzePost(postId: string, config?: { simulateSeverity?: 
     data: { severity },
   })
 
+  await updateUserScore(post)
+
   sendFlaggedPostNotification(post)
 }
 
@@ -159,4 +161,24 @@ export async function uploadAndAnalyzePost(post: Prisma.PostGetPayload<{ include
   }
 
   await analyzePost(post.id)
+}
+
+export async function updateUserScore(post: Post) {
+  const [{ score }] = await prisma.$queryRaw<{ score: number }[]>`
+    SELECT
+      AVG(
+        CASE
+          WHEN "severity" = 'NONE' THEN CAST(1.0 AS DOUBLE PRECISION)
+          WHEN "severity" = 'LOW'  THEN CAST(0.5 AS DOUBLE PRECISION)
+          WHEN "severity" = 'HIGH' THEN CAST(0.0 AS DOUBLE PRECISION)
+        END
+      ) AS "score"
+    FROM "Post"
+    WHERE "userId" = ${post.userId}
+  `
+
+  await prisma.user.update({
+    where: { id: post.userId },
+    data: { score },
+  })
 }

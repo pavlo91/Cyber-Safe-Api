@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import pothos from '../libs/pothos'
 import prisma from '../libs/prisma'
 
@@ -215,6 +216,34 @@ pothos.queryFields((t) => ({
           }),
         ])
       )
+    },
+  }),
+  statsOfSocialsConnected: t.int({
+    args: {
+      schoolId: t.arg.id(),
+    },
+    resolve: async (obj, { schoolId }) => {
+      const schoolRoles = await prisma.schoolRole.findMany({
+        where: { schoolId, userRole: { status: 'ACCEPTED' } },
+        include: { userRole: true },
+      })
+
+      if (schoolRoles.length === 0) {
+        return 0
+      }
+
+      const [{ count }] = await prisma.$queryRaw<{ count: number }[]>`
+        SELECT (
+          CASE WHEN "twitterId"   IS NOT NULL THEN 1 ELSE 0 END +
+          CASE WHEN "facebookId"  IS NOT NULL THEN 1 ELSE 0 END +
+          CASE WHEN "instagramId" IS NOT NULL THEN 1 ELSE 0 END +
+          CASE WHEN "tiktokId"    IS NOT NULL THEN 1 ELSE 0 END
+        ) as "count"
+        FROM "User"
+        WHERE "id" IN (${Prisma.join(schoolRoles.map((e) => e.userRole.userId))})
+      `
+
+      return count
     },
   }),
 }))

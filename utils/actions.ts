@@ -1,4 +1,5 @@
 import prisma from '../libs/prisma'
+import { updateUserScore } from './moderator'
 import { sendNotification } from './notification'
 import { getSocialProvider } from './social'
 
@@ -45,6 +46,9 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
           manualReview: true,
         },
       })
+
+      await updateUserScore(post)
+
       break
 
     case 'MARK_AS_NOT_ACCEPTABLE':
@@ -55,6 +59,9 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
           manualReview: true,
         },
       })
+
+      await updateUserScore(post)
+
       break
 
     case 'NOTIFY_STUDENT':

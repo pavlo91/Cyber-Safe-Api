@@ -9,7 +9,9 @@ import { getSocialProvider } from '../../utils/social'
 import { composeWebURL } from '../../utils/url'
 
 fastify.get(config.facebook.callbackURL, async (req, reply) => {
-  await finishFacebookAuthorization(req)
+  await finishFacebookAuthorization(req).catch((error) => {
+    logger.error(error)
+  })
 
   reply.redirect(composeWebURL('/dashboard/profile'))
 

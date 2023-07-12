@@ -6,24 +6,23 @@ import { ActionKeys, executeAction } from '../utils/actions'
 import { checkAuth, hasRoleInSchool, hasRoleToUser, isSameUser, isStaff, isUser } from '../utils/auth'
 import { analyzePost } from '../utils/moderator'
 import { createTwitterPost } from '../utils/twitter'
+import { GQLSchool } from './school'
 import { GQLSocialNameEnum } from './social'
 import { GQLUser } from './user'
 import { createFilterInput } from './utils/filter'
 import { createPage, createPageArgs, createPageObjectRef } from './utils/page'
 
-export const GQLPost = pothos.objectRef<
-  Prisma.PostGetPayload<{
+const include = {
+  media: true,
+  actions: {
     include: {
-      media: true
-      actions: {
-        include: {
-          type: true
-          user: true
-        }
-      }
-    }
-  }>
->('Post')
+      type: true,
+      user: true,
+    },
+  },
+} satisfies Prisma.PostInclude
+
+export const GQLPost = pothos.objectRef<Prisma.PostGetPayload<{ include: typeof include }>>('Post')
 export const GQLPostPage = createPageObjectRef(GQLPost)
 
 export const GQLAnalysisItemSeverityEnum = pothos.enumType('AnalysisItemSeverityEnum', {
@@ -152,6 +151,17 @@ GQLPost.implement({
       type: GQLUser,
       resolve: (post) => post.userId,
     }),
+    schools: t.loadableList({
+      type: GQLSchool,
+      resolve: (post) => post.userId,
+      load: async (keys: string[]) => {
+        const schools = await prisma.school.findMany({
+          where: { roles: { some: { userRole: { userId: { in: keys } } } } },
+          include: { roles: { include: { userRole: true } } },
+        })
+        return keys.map((key) => schools.filter((school) => !!school.roles.find((e) => e.userRole.userId === key)))
+      },
+    }),
     media: t.expose('media', { type: [GQLMedia] }),
     latestAction: t.string({
       nullable: true,
@@ -175,14 +185,16 @@ pothos.queryFields((t) => ({
     args: {
       schoolId: t.arg.id({ required: false }),
       userId: t.arg.id({ required: false }),
+      parentId: t.arg.id({ required: false }),
       ...createPageArgs(t.arg),
       filter: t.arg({ type: GQLPostFilter, required: false }),
     },
-    resolve: async (obj, { schoolId, userId, page, filter }, { user }) => {
+    resolve: async (obj, { schoolId, userId, parentId, page, filter }, { user }) => {
       await checkAuth(
         () => !!schoolId && hasRoleInSchool(schoolId, user, ['ADMIN', 'COACH']),
         () => !!userId && isSameUser(userId, user),
         () => !!userId && hasRoleToUser(userId, user, ['ADMIN', 'COACH']),
+        () => !!parentId && isUser(user),
         () => isStaff(user)
       )
 
@@ -202,25 +214,21 @@ pothos.queryFields((t) => ({
       if (userId) {
         where.userId = userId
       }
-
-      return await createPage(page, (args) =>
-        prisma.$transaction([
-          prisma.post.findMany({
-            ...args,
-            where,
-            orderBy,
-            include: {
-              media: true,
-              actions: {
-                include: {
-                  type: true,
-                  user: true,
-                },
+      if (parentId) {
+        where.user = {
+          parentRoles: {
+            some: {
+              userRole: {
+                userId: parentId,
+                status: 'ACCEPTED',
               },
             },
-          }),
-          prisma.post.count({ where }),
-        ])
+          },
+        }
+      }
+
+      return await createPage(page, (args) =>
+        prisma.$transaction([prisma.post.findMany({ ...args, where, orderBy, include }), prisma.post.count({ where })])
       )
     },
   }),
@@ -240,16 +248,8 @@ pothos.queryFields((t) => ({
       )
 
       return await prisma.post.findUniqueOrThrow({
+        include,
         where: { id },
-        include: {
-          media: true,
-          actions: {
-            include: {
-              type: true,
-              user: true,
-            },
-          },
-        },
       })
     },
   }),

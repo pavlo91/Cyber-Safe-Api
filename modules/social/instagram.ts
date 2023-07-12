@@ -13,7 +13,9 @@ import { getSocialProvider } from '../../utils/social'
 import { composeWebURL } from '../../utils/url'
 
 fastify.get(config.instagram.callbackURL, async (req, reply) => {
-  await finishInstagramAuthorization(req)
+  await finishInstagramAuthorization(req).catch((error) => {
+    logger.error(error)
+  })
 
   reply.redirect(composeWebURL('/dashboard/profile'))
 

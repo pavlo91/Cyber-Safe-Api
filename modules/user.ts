@@ -107,6 +107,7 @@ GQLUser.implement({
     email: t.exposeString('email'),
     name: t.exposeString('name'),
     parentalApproval: t.exposeBoolean('parentalApproval', { nullable: true }),
+    score: t.exposeFloat('score'),
     avatar: t.field({
       type: GQLImage,
       nullable: true,
