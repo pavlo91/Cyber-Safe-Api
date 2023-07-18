@@ -45,7 +45,7 @@ export async function createUserRoleIfNone(data: {
       },
     })
 
-    sendUserRoleConfirmationEmail(userRole)
+    await sendUserRoleConfirmationEmail(userRole)
 
     logActivity('INVITE_USER', data.userId)
   }
@@ -189,14 +189,13 @@ pothos.mutationFields((t) => ({
     },
     resolve: async (obj, { input }, { user }) => {
       await checkAuth(
+        () => isStaff(user),
         () => input.type === 'ADMIN' && !!input.relationId && hasRoleInSchool(input.relationId, user, ['ADMIN']),
         () =>
           input.type === 'COACH' && !!input.relationId && hasRoleInSchool(input.relationId, user, ['ADMIN', 'COACH']),
         () =>
           input.type === 'STUDENT' && !!input.relationId && hasRoleInSchool(input.relationId, user, ['ADMIN', 'COACH']),
-        () =>
-          input.type === 'PARENT' && !!input.relationId && hasRoleToUser(input.relationId, user, ['ADMIN', 'COACH']),
-        () => isStaff(user)
+        () => input.type === 'PARENT' && !!input.relationId && hasRoleToUser(input.relationId, user, ['ADMIN', 'COACH'])
       )
 
       let foundUser = await prisma.user.findUnique({
