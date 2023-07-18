@@ -4,6 +4,7 @@ dotenv.config()
 
 const config = {
   dev: process.env.ENVIRONMENT !== 'production',
+  demo: process.env.ENVIRONMENT === 'demo',
   port: parseInt(process.env.PORT ?? '3001'),
   secret: process.env.SECRET ?? 'secret',
   apiURL: process.env.API_URL ?? 'https://localhost:3001',

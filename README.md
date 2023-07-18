@@ -4,7 +4,7 @@
 
 ```bash
 DATABASE_URL=
-ENVIRONMENT=
+ENVIRONMENT= # production/development/demo
 PORT=
 SECRET=
 API_URL=
@@ -35,11 +35,11 @@ TIKTOK_CLIENT_SECRET=
 
 ## Seeded Logins
 
-- `staff@wonderkiln.com`
-- `admin@wonderkiln.com`
-- `coach@wonderkiln.com`
-- `student@wonderkiln.com`
-- `parent@wonderkiln.com`
+- `staff@cybersafely.ai`
+- `admin@cybersafely.ai`
+- `coach@cybersafely.ai`
+- `student@cybersafely.ai`
+- `parent@cybersafely.ai`
 
 The password for all is `password`.
 

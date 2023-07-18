@@ -1,3 +1,4 @@
+import { randUuid } from '@ngneat/falso'
 import { Media, Prisma } from '@prisma/client'
 import pothos from '../libs/pothos'
 import prisma from '../libs/prisma'
@@ -280,7 +281,10 @@ pothos.mutationFields((t) => ({
       severe: t.input.boolean(),
     },
     resolve: async (obj, { input: { userId, severe } }, { user }) => {
-      await checkAuth(() => isStaff(user))
+      await checkAuth(
+        () => isStaff(user),
+        () => hasRoleToUser(userId, user, ['ADMIN', 'COACH'])
+      )
 
       let twitter = await prisma.twitter.findFirst({
         where: { user: { id: userId } },
@@ -302,11 +306,21 @@ pothos.mutationFields((t) => ({
       }
 
       await createTwitterPost(twitter, {
-        media: [],
         url: 'simulation',
         createdAt: new Date(),
         text: 'This is a simulation',
         externalId: 'simulation-' + new Date().valueOf(),
+        media: [
+          {
+            width: 0,
+            height: 0,
+            duration: 0,
+            type: 'IMAGE',
+            url: 'https://picsum.photos/800/600?random=0',
+            mime: 'image/jpeg',
+            externalId: randUuid(),
+          },
+        ],
       }).then((post) => analyzePost(post.id, { simulateSeverity: severe ? 'HIGH' : 'LOW' }))
 
       return true

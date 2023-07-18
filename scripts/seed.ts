@@ -28,11 +28,11 @@ async function seedAuth() {
 
   await prisma.$transaction(async (prisma) => {
     await prisma.user.upsert({
-      where: { email: 'staff@wonderkiln.com' },
+      where: { email: 'staff@cybersafely.ai' },
       create: {
-        email: 'staff@wonderkiln.com',
+        email: 'staff@cybersafely.ai',
         password: 'password',
-        name: 'Staff User',
+        name: randFullName(),
         avatar: {
           create: {
             url: randAvatar(),
@@ -50,7 +50,7 @@ async function seedAuth() {
 
     const school = await prisma.school.create({
       data: {
-        name: randAmericanFootballTeam(),
+        name: 'Demo School',
         phone: randPhoneNumber(),
         logo: {
           create: {
@@ -74,11 +74,11 @@ async function seedAuth() {
     })
 
     await prisma.user.upsert({
-      where: { email: 'admin@wonderkiln.com' },
+      where: { email: 'admin@cybersafely.ai' },
       create: {
-        email: 'admin@wonderkiln.com',
+        email: 'admin@cybersafely.ai',
         password: 'password',
-        name: 'Admin User',
+        name: randFullName(),
         avatar: {
           create: {
             url: randAvatar(),
@@ -100,11 +100,11 @@ async function seedAuth() {
     })
 
     await prisma.user.upsert({
-      where: { email: 'coach@wonderkiln.com' },
+      where: { email: 'coach@cybersafely.ai' },
       create: {
-        email: 'coach@wonderkiln.com',
+        email: 'coach@cybersafely.ai',
         password: 'password',
-        name: 'Coach User',
+        name: randFullName(),
         avatar: {
           create: {
             url: randAvatar(),
@@ -126,11 +126,11 @@ async function seedAuth() {
     })
 
     const student = await prisma.user.upsert({
-      where: { email: 'student@wonderkiln.com' },
+      where: { email: 'student@cybersafely.ai' },
       create: {
-        email: 'student@wonderkiln.com',
+        email: 'student@cybersafely.ai',
         password: 'password',
-        name: 'Student User',
+        name: randFullName(),
         parentalApproval: true,
         avatar: {
           create: {
@@ -153,11 +153,11 @@ async function seedAuth() {
     })
 
     await prisma.user.upsert({
-      where: { email: 'parent@wonderkiln.com' },
+      where: { email: 'parent@cybersafely.ai' },
       create: {
-        email: 'parent@wonderkiln.com',
+        email: 'parent@cybersafely.ai',
         password: 'password',
-        name: 'Parent User',
+        name: randFullName(),
         avatar: {
           create: {
             url: randAvatar(),
@@ -318,7 +318,7 @@ async function seedPosts() {
         })
       }
 
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 200; i++) {
         await prisma.post.create({
           data: {
             url: randUrl(),
@@ -326,13 +326,14 @@ async function seedPosts() {
             twitterId: twitter.id,
             externalId: randUuid(),
             userId: student.user.id,
+            severity: i < 50 ? 'LOW' : i < 60 ? 'HIGH' : 'NONE',
             media: {
               create: {
                 width: 0,
                 height: 0,
                 duration: 0,
                 type: 'IMAGE',
-                url: randAvatar(),
+                url: `https://picsum.photos/800/600?random=${i}`,
                 mime: 'image/jpeg',
                 externalId: randUuid(),
               },
