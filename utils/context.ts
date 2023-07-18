@@ -1,4 +1,5 @@
 import { FastifyRequest } from 'fastify'
+import config from '../config'
 import prisma from '../libs/prisma'
 import { parseJWT } from './crypto'
 
@@ -37,6 +38,9 @@ export type Context = {
   user: GetUserFromToken | null
 }
 
+// User e-mail -> new e-mail
+export const demoEmailMap: Record<string, string> = {}
+
 export async function getContextFromRequest(req: FastifyRequest) {
   const token = req.headers['x-token']
 
@@ -47,6 +51,16 @@ export async function getContextFromRequest(req: FastifyRequest) {
 
   if (typeof token === 'string') {
     context.user = await getUserFromToken(token).catch(() => null)
+  }
+
+  if (config.demo && context.user) {
+    const demoEmail = req.headers['x-demo-email']
+
+    if (typeof demoEmail === 'string' && !!demoEmail) {
+      demoEmailMap[context.user.email] = demoEmail
+    } else {
+      delete demoEmailMap[context.user.email]
+    }
   }
 
   return context
