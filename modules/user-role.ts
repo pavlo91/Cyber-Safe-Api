@@ -3,6 +3,7 @@ import pothos from '../libs/pothos'
 import prisma from '../libs/prisma'
 import { logActivity } from '../utils/activity'
 import { checkAuth, hasRoleInSchool, hasRoleToUser, isStaff } from '../utils/auth'
+import { randomToken } from '../utils/crypto'
 import { sendUserRoleConfirmationEmail } from '../utils/email'
 import { getMemberIds, getStaffIds, sendNotification } from '../utils/notification'
 import { composeWebURL } from '../utils/url'
@@ -38,6 +39,7 @@ export async function createUserRoleIfNone(data: {
       data: {
         type: data.type,
         userId: data.userId,
+        statusToken: randomToken(),
         schoolRole: data.schoolRole && { create: { ...data.schoolRole } },
         parentRole: data.parentRole && { create: { ...data.parentRole } },
       },

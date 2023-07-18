@@ -2,6 +2,7 @@ import { Prisma, School } from '@prisma/client'
 import pothos from '../libs/pothos'
 import prisma from '../libs/prisma'
 import { checkAuth, hasRoleInSchool, isSameUser, isStaff } from '../utils/auth'
+import { randomToken } from '../utils/crypto'
 import { sendUserRoleConfirmationEmail } from '../utils/email'
 import { GQLAddress } from './address'
 import { GQLImage } from './image'
@@ -168,6 +169,7 @@ pothos.mutationFields((t) => ({
             data: {
               type: 'ADMIN',
               userId: input.userId,
+              statusToken: randomToken(),
               schoolRole: { create: { schoolId: school.id } },
             },
           })
