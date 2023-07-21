@@ -20,6 +20,12 @@ const config = {
     token: process.env.POSTMARK_TOKEN,
     from: process.env.POSTMARK_FROM,
   },
+  azure: {
+    sms: {
+      connectionString: process.env.AZURE_SMS_CONNECTION_STRING,
+      from: process.env.AZURE_SMS_FROM,
+    },
+  },
   amazon: {
     storage: {
       accessKey: process.env.AMAZON_STORAGE_ACCESS_KEY,

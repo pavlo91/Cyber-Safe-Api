@@ -36,6 +36,7 @@
     "@aws-sdk/client-rekognition": "^3.335.0",
     "@aws-sdk/client-s3": "^3.335.0",
     "@aws-sdk/s3-request-presigner": "^3.335.0",
+    "@azure/communication-sms": "^1.0.0",
     "@fastify/cors": "^8.2.1",
     "@ngneat/falso": "^6.4.0",
     "@pothos/core": "^3.30.0",

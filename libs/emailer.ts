@@ -9,7 +9,7 @@ interface Emailer {
 class PostmarkEmailer implements Emailer {
   private client: ServerClient
 
-  constructor(token: string, private from: string) {
+  constructor(token: string, private from: string, private prefix: string) {
     this.client = new ServerClient(token)
   }
 
@@ -19,7 +19,7 @@ class PostmarkEmailer implements Emailer {
         To: to,
         HtmlBody: html,
         From: this.from,
-        Subject: subject,
+        Subject: this.prefix + subject,
       })
       .catch((error) => {
         logger.error('Error while sending email via Postmark: %s', error)
@@ -28,12 +28,12 @@ class PostmarkEmailer implements Emailer {
 }
 
 class NoEmailer implements Emailer {
-  constructor() {
+  constructor(private prefix: string) {
     logger.warn('No emailer loaded')
   }
 
   async send(to: string, subject: string, html: string): Promise<void> {
-    logger.debug('Sending email to %s', to)
+    logger.debug('Sending email to %s: %s', to, this.prefix + subject)
   }
 }
 
@@ -42,9 +42,9 @@ let emailer: Emailer
 const { token, from } = config.postmark
 
 if (!!token && !!from) {
-  emailer = new PostmarkEmailer(token, from)
+  emailer = new PostmarkEmailer(token, from, config.dev ? '[DEVELOP] ' : '')
 } else {
-  emailer = new NoEmailer()
+  emailer = new NoEmailer(config.dev ? '[DEVELOP] ' : '')
 }
 
 export default emailer

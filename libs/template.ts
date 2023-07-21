@@ -3,7 +3,7 @@ import pug from 'pug'
 import config from '../config'
 
 class Template {
-  constructor(private model: Record<string, any>, private prefix: string) {}
+  constructor(private model: Record<string, any>) {}
 
   getHTML(name: string, model?: Record<string, any>) {
     const filePath = path.join(__dirname, '../templates', name + '.pug')
@@ -12,11 +12,10 @@ class Template {
 
   getTitle(html: string) {
     const regex = new RegExp('<title>(.+)</title>')
-    const title = regex.exec(html)?.[1] ?? ''
-    return this.prefix + title
+    return regex.exec(html)?.[1] ?? ''
   }
 }
 
-const template = new Template(config.template, config.dev ? '[DEVELOP] ' : '')
+const template = new Template(config.template)
 
 export default template
