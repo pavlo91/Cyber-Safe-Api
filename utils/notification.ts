@@ -1,7 +1,8 @@
 import { Prisma, UserRoleType } from '@prisma/client'
 import prisma from '../libs/prisma'
 import { sendEmailTemplate } from './email'
-import { EmailSettingKey, emailSettingValueFor } from './email-setting'
+import { NotificationSettingKey, notificationSettingValueFor } from './notification-setting'
+import { sendSMS } from './sms'
 import { composeWebURL } from './url'
 
 type Data = {
@@ -13,7 +14,7 @@ type Data = {
 export async function sendNotification(
   userId: string | string[] | Promise<string | string[]>,
   data: Data | ((user: Prisma.UserGetPayload<{ include: { roles: true } }>) => Data),
-  emailSetting?: EmailSettingKey
+  emailSetting?: NotificationSettingKey
 ) {
   const awaitedUserId = await userId
   const awaitedUserIdArray = Array.isArray(awaitedUserId) ? awaitedUserId : [awaitedUserId]
@@ -22,7 +23,7 @@ export async function sendNotification(
     where: { id: { in: awaitedUserIdArray } },
     include: {
       roles: true,
-      emailSettings: true,
+      notificationSettings: true,
     },
   })
 
@@ -33,7 +34,7 @@ export async function sendNotification(
       data: { body, url, userId: user.id },
     })
 
-    if (!emailSetting || emailSettingValueFor(emailSetting, user.emailSettings)) {
+    if (!emailSetting || notificationSettingValueFor(emailSetting, user.notificationSettings)) {
       sendEmailTemplate(user.email, 'notification', { body, url, title })
     }
   }
@@ -107,7 +108,12 @@ export async function sendFlaggedPostNotification(
           body: `A post from ${post.user.name} in school ${school.name} has been analyzed`,
           url: formatURL(user.id),
         }),
-        'receivePostNoneSeverity'
+        'receivePostNoneSeverityEmail'
+      )
+      await sendSMS(
+        [...adminIds, ...coachIds, ...parentIds],
+        (user) => `CyberSafely.ai - ${post.user.name} posted a post. Click here to view details: ${formatURL(user.id)}`,
+        'receivePostNoneSeveritySMS'
       )
       break
     case 'LOW':
@@ -118,7 +124,15 @@ export async function sendFlaggedPostNotification(
           body: `A post from ${post.user.name} in school ${school.name} has a concern`,
           url: formatURL(user.id),
         }),
-        'receivePostLowSeverity'
+        'receivePostLowSeverityEmail'
+      )
+      await sendSMS(
+        [...adminIds, ...coachIds, ...parentIds],
+        (user) =>
+          `CyberSafely.ai - ${post.user.name} posted a concerning post. Click here to view details: ${formatURL(
+            user.id
+          )}`,
+        'receivePostLowSeveritySMS'
       )
       break
     case 'HIGH':
@@ -129,7 +143,15 @@ export async function sendFlaggedPostNotification(
           body: `A post from ${post.user.name} in school ${school.name} needs action`,
           url: formatURL(user.id),
         }),
-        'receivePostHighSeverity'
+        'receivePostHighSeverityEmail'
+      )
+      await sendSMS(
+        [...adminIds, ...coachIds, ...parentIds],
+        (user) =>
+          `CyberSafely.ai - ${post.user.name} posted a high concerning post. Click here to view details: ${formatURL(
+            user.id
+          )}`,
+        'receivePostHighSeveritySMS'
       )
       break
   }

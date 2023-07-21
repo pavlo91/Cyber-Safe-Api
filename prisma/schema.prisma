@@ -9,38 +9,55 @@ datasource db {
   extensions = [citext]
 }
 
+model PendingPhoneNumbers {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime @default(dbgenerated("now() + interval '15 minutes'"))
+  token       String   @unique
+  phoneNumber String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@index([token])
+  @@index([phoneNumber])
+  @@index([userId])
+}
+
 model User {
-  id               String          @id @default(cuid())
-  uuid             String          @unique @default(uuid())
-  createdAt        DateTime        @default(now())
-  email            String          @unique @db.Citext
-  newEmail         String?
-  newEmailToken    String?         @unique
-  password         String?
-  passwordToken    String?         @unique
-  name             String
-  parentalApproval Boolean?
-  score            Float           @default(1)
-  avatarId         String?         @unique
-  avatar           Image?          @relation(fields: [avatarId], references: [id], onDelete: SetNull)
-  roles            UserRole[]
-  parentRoles      ParentRole[]
-  notifications    Notification[]
-  uploads          Upload[]
-  twitterId        String?         @unique
-  twitter          Twitter?        @relation(fields: [twitterId], references: [id], onDelete: SetNull)
-  facebookId       String?         @unique
-  facebook         Facebook?       @relation(fields: [facebookId], references: [id], onDelete: SetNull)
-  instagramId      String?         @unique
-  instagram        Instagram?      @relation(fields: [instagramId], references: [id], onDelete: SetNull)
-  tiktokId         String?         @unique
-  tiktok           TikTok?         @relation(fields: [tiktokId], references: [id], onDelete: SetNull)
-  posts            Post[]
-  emailSettings    EmailSetting[]
-  actions          Action[]
-  activities       Activity[]
-  parentConsent    ParentConsent[] @relation(name: "Parent")
-  childConsent     ParentConsent[] @relation(name: "Child")
+  id                   String                @id @default(cuid())
+  uuid                 String                @unique @default(uuid())
+  createdAt            DateTime              @default(now())
+  email                String                @unique @db.Citext
+  newEmail             String?
+  newEmailToken        String?               @unique
+  password             String?
+  passwordToken        String?               @unique
+  name                 String
+  phoneNumber          String?
+  parentalApproval     Boolean?
+  score                Float                 @default(1)
+  avatarId             String?               @unique
+  avatar               Image?                @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+  roles                UserRole[]
+  parentRoles          ParentRole[]
+  notifications        Notification[]
+  uploads              Upload[]
+  twitterId            String?               @unique
+  twitter              Twitter?              @relation(fields: [twitterId], references: [id], onDelete: SetNull)
+  facebookId           String?               @unique
+  facebook             Facebook?             @relation(fields: [facebookId], references: [id], onDelete: SetNull)
+  instagramId          String?               @unique
+  instagram            Instagram?            @relation(fields: [instagramId], references: [id], onDelete: SetNull)
+  tiktokId             String?               @unique
+  tiktok               TikTok?               @relation(fields: [tiktokId], references: [id], onDelete: SetNull)
+  posts                Post[]
+  notificationSettings NotificationSetting[]
+  actions              Action[]
+  activities           Activity[]
+  parentConsent        ParentConsent[]       @relation(name: "Parent")
+  childConsent         ParentConsent[]       @relation(name: "Child")
+  pendingPhoneNumbers  PendingPhoneNumbers[]
 
   @@index([parentalApproval])
 }
@@ -58,16 +75,16 @@ model ParentConsent {
   ip           String
 }
 
-enum EmailSettingType {
+enum NotificationSettingType {
   BOOLEAN
 }
 
-model EmailSetting {
+model NotificationSetting {
   id      String
-  type    EmailSettingType
+  type    NotificationSettingType
   boolean Boolean?
   userId  String
-  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([id, userId])
   @@index([userId])

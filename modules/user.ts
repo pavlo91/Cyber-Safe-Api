@@ -2,9 +2,11 @@ import { ArgBuilder, InputShapeFromFields } from '@pothos/core'
 import { Prisma, User } from '@prisma/client'
 import pothos, { DefaultSchemaType } from '../libs/pothos'
 import prisma from '../libs/prisma'
+import smser from '../libs/smser'
 import storage from '../libs/storage'
 import { logActivity } from '../utils/activity'
-import { checkAuth, hasRoleInSchool, hasRoleToUser, isParentToUser, isSameUser, isStaff } from '../utils/auth'
+import { checkAuth, hasRoleInSchool, hasRoleToUser, isParentToUser, isSameUser, isStaff, isUser } from '../utils/auth'
+import { randomToken } from '../utils/crypto'
 import { GQLImage } from './image'
 import { GQLSocial } from './social'
 import { GQLUserRole, GQLUserRoleStatusEnum, GQLUserRoleTypeEnum } from './user-role'
@@ -106,6 +108,7 @@ GQLUser.implement({
     createdAt: t.expose('createdAt', { type: 'DateTime' }),
     email: t.exposeString('email'),
     name: t.exposeString('name'),
+    phoneNumber: t.exposeString('phoneNumber', { nullable: true }),
     parentalApproval: t.exposeBoolean('parentalApproval', { nullable: true }),
     score: t.exposeFloat('score'),
     avatar: t.field({
@@ -219,12 +222,38 @@ pothos.mutationFields((t) => ({
     input: {
       name: t.input.string({ required: false }),
       newEmail: t.input.string({ required: false }),
+      newPhoneNumber: t.input.string({ required: false }),
     },
     resolve: async (obj, { id, input }, { user }) => {
       await checkAuth(
         () => isSameUser(id, user),
         () => isStaff(user)
       )
+
+      if (typeof input.newPhoneNumber === 'string' || input.newPhoneNumber === null) {
+        await prisma.$transaction(async (prisma) => {
+          await prisma.pendingPhoneNumbers.deleteMany({
+            where: { userId: user!.id },
+          })
+
+          if (typeof input.newPhoneNumber === 'string') {
+            const pendingPhoneNumber = await prisma.pendingPhoneNumbers.create({
+              data: {
+                userId: user!.id,
+                token: randomToken(),
+                phoneNumber: input.newPhoneNumber!,
+              },
+            })
+
+            await smser.send(pendingPhoneNumber.phoneNumber, `Your verification code is: ${pendingPhoneNumber.token}`)
+          } else if (input.newPhoneNumber === null) {
+            await prisma.user.update({
+              where: { id },
+              data: { phoneNumber: null },
+            })
+          }
+        })
+      }
 
       return await prisma.user.update({
         where: { id },
@@ -233,6 +262,39 @@ pothos.mutationFields((t) => ({
           newEmail: input.newEmail ?? undefined,
         },
       })
+    },
+  }),
+  validatePhoneNumber: t.boolean({
+    args: {
+      token: t.arg.string(),
+    },
+    resolve: async (obj, { token }, { user }) => {
+      await checkAuth(() => isUser(user))
+
+      await prisma.$transaction(async (prisma) => {
+        const pendingPhoneNumber = await prisma.pendingPhoneNumbers
+          .findFirstOrThrow({
+            where: {
+              token,
+              userId: user!.id,
+              expiresAt: { gt: new Date() },
+            },
+          })
+          .catch(() => {
+            throw new Error('Verification code is not valid or is expired')
+          })
+
+        await prisma.user.update({
+          where: { id: user!.id },
+          data: { phoneNumber: pendingPhoneNumber.phoneNumber },
+        })
+
+        await prisma.pendingPhoneNumbers.delete({
+          where: { id: pendingPhoneNumber.id },
+        })
+      })
+
+      return true
     },
   }),
   updateUserParentalApproval: t.boolean({
