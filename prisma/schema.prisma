@@ -36,6 +36,7 @@ model User {
   name                 String
   phoneNumber          String?
   parentalApproval     Boolean?
+  shareDataWithSchool  Boolean               @default(true)
   score                Float                 @default(1)
   avatarId             String?               @unique
   avatar               Image?                @relation(fields: [avatarId], references: [id], onDelete: SetNull)

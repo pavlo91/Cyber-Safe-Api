@@ -110,6 +110,7 @@ GQLUser.implement({
     name: t.exposeString('name'),
     phoneNumber: t.exposeString('phoneNumber', { nullable: true }),
     parentalApproval: t.exposeBoolean('parentalApproval', { nullable: true }),
+    shareDataWithSchool: t.exposeBoolean('shareDataWithSchool'),
     score: t.exposeFloat('score'),
     avatar: t.field({
       type: GQLImage,
@@ -344,6 +345,22 @@ pothos.mutationFields((t) => ({
       })
 
       logActivity('PARENTAL_APPROVAL', id)
+
+      return true
+    },
+  }),
+  updateShareDataWithSchool: t.boolean({
+    args: {
+      id: t.arg.id(),
+      value: t.arg.boolean(),
+    },
+    resolve: async (obj, { id, value }, { req, user }) => {
+      await checkAuth(() => isParentToUser(id, user))
+
+      await prisma.user.update({
+        where: { id },
+        data: { shareDataWithSchool: value },
+      })
 
       return true
     },
