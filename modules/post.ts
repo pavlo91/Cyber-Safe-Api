@@ -199,7 +199,9 @@ pothos.queryFields((t) => ({
         () => isStaff(user)
       )
 
-      const where: Prisma.PostWhereInput = { ...GQLPostFilter.toFilter(filter) }
+      const where: Prisma.PostWhereInput = {
+        ...GQLPostFilter.toFilter(filter),
+      }
       const orderBy: Prisma.PostOrderByWithRelationInput = { createdAt: 'desc' }
 
       if (schoolId) {
@@ -210,6 +212,7 @@ pothos.queryFields((t) => ({
               schoolRole: { schoolId },
             },
           },
+          shareDataWithSchool: true,
         }
       }
       if (userId) {
