@@ -24,18 +24,23 @@ pothos.mutationFields((t) => ({
 
       const to = config.contactEmail.split(',')
 
-      sendEmailTemplate(to, 'contact', {
-        firstName: input.firstName,
-        lastName: input.lastName,
-        email: input.email,
-        phone: input.phone,
-        jobTitle: input.jobTitle,
-        schoolName: input.schoolName,
-        state: input.state,
-        students: input.students,
-        describe: input.describe,
-        comments: input.comments,
-      })
+      sendEmailTemplate(
+        to,
+        'contact',
+        {
+          firstName: input.firstName,
+          lastName: input.lastName,
+          email: input.email,
+          phone: input.phone,
+          jobTitle: input.jobTitle,
+          schoolName: input.schoolName,
+          state: input.state,
+          students: input.students,
+          describe: input.describe,
+          comments: input.comments,
+        },
+        {}
+      )
 
       return true
     },

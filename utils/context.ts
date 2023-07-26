@@ -38,8 +38,8 @@ export type Context = {
   user: GetUserFromToken | null
 }
 
-// User e-mail -> new e-mail
 export const demoEmailMap: Record<string, string> = {}
+export const demoPhoneMap: Record<string, string> = {}
 
 export async function getContextFromRequest(req: FastifyRequest) {
   const token = req.headers['x-token']
@@ -55,11 +55,20 @@ export async function getContextFromRequest(req: FastifyRequest) {
 
   if (config.demo && context.user) {
     const demoEmail = req.headers['x-demo-email']
+    const demoPhone = req.headers['x-demo-phone']
+
+    console.log(demoEmail, demoPhone)
 
     if (typeof demoEmail === 'string' && !!demoEmail) {
-      demoEmailMap[context.user.email] = demoEmail
+      demoEmailMap[context.user.id] = demoEmail
     } else {
-      delete demoEmailMap[context.user.email]
+      delete demoEmailMap[context.user.id]
+    }
+
+    if (typeof demoPhone === 'string' && !!demoPhone) {
+      demoPhoneMap[context.user.id] = demoPhone
+    } else {
+      delete demoPhoneMap[context.user.id]
     }
   }
 
