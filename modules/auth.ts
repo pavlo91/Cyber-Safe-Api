@@ -108,7 +108,7 @@ pothos.mutationFields((t) => ({
           throw new Error('E-mail does not exist')
         })
 
-      sendEmailTemplate(email, 'reset-password', { token: user.passwordToken! })
+      sendEmailTemplate(email, 'reset-password', { token: user.passwordToken! }, { userId: user.id })
 
       return true
     },

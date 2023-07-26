@@ -33,6 +33,6 @@ export async function sendSMS(
 
     const messageValue = typeof message === 'function' ? message(user) : message
 
-    await smser.send(user.phoneNumber, messageValue)
+    await smser.send(user.phoneNumber, messageValue, { userId: user.id })
   }
 }

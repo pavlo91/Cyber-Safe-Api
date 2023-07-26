@@ -246,7 +246,9 @@ pothos.mutationFields((t) => ({
               },
             })
 
-            await smser.send(pendingPhoneNumber.phoneNumber, `Your verification code is: ${pendingPhoneNumber.token}`)
+            await smser.send(pendingPhoneNumber.phoneNumber, `Your verification code is: ${pendingPhoneNumber.token}`, {
+              userId: pendingPhoneNumber.userId,
+            })
           } else if (input.newPhoneNumber === null) {
             await prisma.user.update({
               where: { id },

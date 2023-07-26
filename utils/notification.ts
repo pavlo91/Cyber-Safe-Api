@@ -35,7 +35,7 @@ export async function sendNotification(
     })
 
     if (!emailSetting || notificationSettingValueFor(emailSetting, user.notificationSettings)) {
-      sendEmailTemplate(user.email, 'notification', { body, url, title })
+      sendEmailTemplate(user.email, 'notification', { body, url, title }, { userId: user.id })
     }
   }
 }
