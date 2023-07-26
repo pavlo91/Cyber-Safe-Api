@@ -57,8 +57,6 @@ export async function getContextFromRequest(req: FastifyRequest) {
     const demoEmail = req.headers['x-demo-email']
     const demoPhone = req.headers['x-demo-phone']
 
-    console.log(demoEmail, demoPhone)
-
     if (typeof demoEmail === 'string' && !!demoEmail) {
       demoEmailMap[context.user.id] = demoEmail
     } else {
