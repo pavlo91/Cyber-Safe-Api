@@ -369,4 +369,23 @@ pothos.mutationFields((t) => ({
       return role.user
     },
   }),
+  resendUserRoleInvite: t.boolean({
+    args: {
+      id: t.arg.id(),
+    },
+    resolve: async (obj, { id }, {}) => {
+      const userRole = await prisma.userRole.findUniqueOrThrow({
+        where: { id },
+        include: {
+          user: true,
+          schoolRole: { include: { school: true } },
+          parentRole: { include: { childUser: true } },
+        },
+      })
+
+      await sendUserRoleConfirmationEmail(userRole)
+
+      return true
+    },
+  }),
 }))
