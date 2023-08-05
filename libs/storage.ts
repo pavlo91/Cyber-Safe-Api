@@ -57,7 +57,7 @@ class AmazonStorage {
   }
 
   async signUploadURL() {
-    const blob = this.getRandomBlobName('temp', format(new Date(), 'YYYY-MM-DD'))
+    const blob = this.getRandomBlobName('temp', format(new Date(), 'yyyy-mm-dd'))
 
     const command = new PutObjectCommand({
       Key: blob,
