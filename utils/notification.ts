@@ -1,5 +1,7 @@
 import { Prisma, UserRoleType } from '@prisma/client'
+import { sub } from 'date-fns'
 import prisma from '../libs/prisma'
+import pusher from '../libs/push'
 import { sendEmailTemplate } from './email'
 import { NotificationSettingKey, notificationSettingValueFor } from './notification-setting'
 import { sendSMS } from './sms'
@@ -24,6 +26,12 @@ export async function sendNotification(
     include: {
       roles: true,
       notificationSettings: true,
+      devices: {
+        where: {
+          // Take only devices updated in the last 30 days
+          updatedAt: { gte: sub(new Date(), { days: 30 }) },
+        },
+      },
     },
   })
 
@@ -37,6 +45,12 @@ export async function sendNotification(
     if (!emailSetting || notificationSettingValueFor(emailSetting, user.notificationSettings)) {
       sendEmailTemplate(user.email, 'notification', { body, url, title }, { userId: user.id })
     }
+
+    pusher.send(
+      user.devices.map((e) => e.token),
+      body,
+      url ? { url } : undefined
+    )
   }
 }
 
