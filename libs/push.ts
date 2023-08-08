@@ -10,12 +10,6 @@ interface Pusher {
   send(token: string | string[], message: string, data?: Record<string, string>): Promise<Result>
 }
 
-class NoPusher implements Pusher {
-  async send(token: string | string[], message: string, data?: Record<string, string>): Promise<Result> {
-    return {}
-  }
-}
-
 class FirebasePusher implements Pusher {
   private messaging
 
@@ -53,6 +47,17 @@ class FirebasePusher implements Pusher {
       .filter((e) => !!e) as string[]
 
     return { removeTokens }
+  }
+}
+
+class NoPusher implements Pusher {
+  constructor() {
+    logger.warn('No pusher loaded')
+  }
+
+  async send(token: string | string[], message: string, data?: Record<string, string>): Promise<Result> {
+    logger.debug('Sending push to %s: %s', token, message)
+    return {}
   }
 }
 

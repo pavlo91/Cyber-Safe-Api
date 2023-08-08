@@ -49,10 +49,7 @@ export async function sendNotification(
       .then(({ removeTokens }) => {
         if (removeTokens && removeTokens.length > 0) {
           return prisma.device.deleteMany({
-            where: {
-              userId: user.id,
-              token: { in: removeTokens },
-            },
+            where: { token: { in: removeTokens } },
           })
         }
       })
