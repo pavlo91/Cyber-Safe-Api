@@ -7,12 +7,18 @@ pothos.mutationFields((t) => ({
     args: {
       token: t.arg.string(),
     },
-    resolve: async (obj, { token }, { user }) => {
+    resolve: async (obj, { token }, { user, req }) => {
       await checkAuth(() => isUser(user))
 
+      let platform = req.headers['x-platform']
+
+      if (typeof platform !== 'string') {
+        platform = undefined
+      }
+
       await prisma.device.upsert({
-        update: {},
-        create: { token, userId: user!.id },
+        update: { platform },
+        create: { token, userId: user!.id, platform },
         where: { token_userId: { token, userId: user!.id } },
       })
 
