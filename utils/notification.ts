@@ -1,5 +1,4 @@
 import { Prisma, UserRoleType } from '@prisma/client'
-import { sub } from 'date-fns'
 import prisma from '../libs/prisma'
 import pusher from '../libs/push'
 import { sendEmailTemplate } from './email'
@@ -25,13 +24,8 @@ export async function sendNotification(
     where: { id: { in: awaitedUserIdArray } },
     include: {
       roles: true,
+      devices: true,
       notificationSettings: true,
-      devices: {
-        where: {
-          // Take only devices updated in the last 30 days
-          updatedAt: { gte: sub(new Date(), { days: 30 }) },
-        },
-      },
     },
   })
 
@@ -46,11 +40,22 @@ export async function sendNotification(
       sendEmailTemplate(user.email, 'notification', { body, url, title }, { userId: user.id })
     }
 
-    pusher.send(
-      user.devices.map((e) => e.token),
-      body,
-      url ? { url } : undefined
-    )
+    pusher
+      .send(
+        user.devices.map((e) => e.token),
+        body,
+        url ? { url } : undefined
+      )
+      .then(({ removeTokens }) => {
+        if (removeTokens && removeTokens.length > 0) {
+          return prisma.device.deleteMany({
+            where: {
+              userId: user.id,
+              token: { in: removeTokens },
+            },
+          })
+        }
+      })
   }
 }
 

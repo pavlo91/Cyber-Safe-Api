@@ -17,9 +17,9 @@ pothos.mutationFields((t) => ({
       }
 
       await prisma.device.upsert({
-        update: { platform },
+        where: { token },
+        update: { userId: user!.id, platform },
         create: { token, userId: user!.id, platform },
-        where: { token_userId: { token, userId: user!.id } },
       })
 
       return true
