@@ -1,6 +1,5 @@
 import { Prisma, UserRoleType } from '@prisma/client'
 import prisma from '../libs/prisma'
-import pusher from '../libs/push'
 import { sendEmailTemplate } from './email'
 import { NotificationSettingKey, notificationSettingValueFor } from './notification-setting'
 import { sendSMS } from './sms'
@@ -24,7 +23,6 @@ export async function sendNotification(
     where: { id: { in: awaitedUserIdArray } },
     include: {
       roles: true,
-      devices: true,
       notificationSettings: true,
     },
   })
@@ -39,20 +37,6 @@ export async function sendNotification(
     if (!emailSetting || notificationSettingValueFor(emailSetting, user.notificationSettings)) {
       sendEmailTemplate(user.email, 'notification', { body, url, title }, { userId: user.id })
     }
-
-    pusher
-      .send(
-        user.devices.map((e) => e.token),
-        body,
-        url ? { url } : undefined
-      )
-      .then(({ removeTokens }) => {
-        if (removeTokens && removeTokens.length > 0) {
-          return prisma.device.deleteMany({
-            where: { token: { in: removeTokens } },
-          })
-        }
-      })
   }
 }
 
