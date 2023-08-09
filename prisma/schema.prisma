@@ -24,19 +24,6 @@ model PendingPhoneNumbers {
   @@index([userId])
 }
 
-model Device {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  platform  String?
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([updatedAt])
-  @@index([userId])
-}
-
 model User {
   id                   String                @id @default(cuid())
   uuid                 String                @unique @default(uuid())
@@ -72,7 +59,6 @@ model User {
   parentConsent        ParentConsent[]       @relation(name: "Parent")
   childConsent         ParentConsent[]       @relation(name: "Child")
   pendingPhoneNumbers  PendingPhoneNumbers[]
-  devices              Device[]
 
   @@index([parentalApproval])
 }
