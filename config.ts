@@ -61,6 +61,9 @@ const config = {
     clientSecret: process.env.TIKTOK_CLIENT_SECRET,
     callbackURL: '/oauth2/tiktok/',
   },
+  firebase: {
+    config: process.env.FIREBASE_CONFIG ? JSON.parse(process.env.FIREBASE_CONFIG) : undefined,
+  },
 }
 
 export default config
