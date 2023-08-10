@@ -1,7 +1,7 @@
 const needle = require('needle');
 const { load } = require('cheerio');
 
-module.exports = getInfo = async (link) => {
+module.exports = async (link) => {
   let host = 'https://ttsave.app';
   let body, headers,
     res = await needle('get', host), 
@@ -60,8 +60,6 @@ module.exports = getInfo = async (link) => {
     // return { success: false }
   // }
 }
-
-// function request()
 
 function getKey(page) {
   const regex = /key=([0-9a-f-]+)/;

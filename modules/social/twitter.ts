@@ -18,7 +18,8 @@ fastify.get(config.twitter.callbackURL, async (req, reply) => {
   return reply
 })
 
-cron.schedule('cron.twitter', '0 0 0 * * *', async () => {
+// Twitter cron job will get posts every minute
+cron.schedule('cron.twitter', '0 * * * * *', async () => {
   const twitters = await prisma.twitter.findMany({
     include: { user: true },
     where: { user: { parentalApproval: true } },
