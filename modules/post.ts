@@ -242,14 +242,7 @@ pothos.queryFields((t) => ({
       id: t.arg.id(),
     },
     resolve: async (obj, { id }, { user }) => {
-      const post = await prisma.post.findUniqueOrThrow({
-        where: { id },
-      })
-
-      await checkAuth(
-        () => hasRoleToUser(post.userId, user, ['ADMIN', 'COACH']),
-        () => isStaff(user)
-      )
+      await checkAuth(() => isUser(user))
 
       return await prisma.post.findUniqueOrThrow({
         include,
