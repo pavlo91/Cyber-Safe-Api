@@ -5,12 +5,12 @@ import logger from '../../libs/logger'
 import prisma from '../../libs/prisma'
 import { uploadAndAnalyzePost } from '../../utils/moderator'
 import { getSocialProvider } from '../../utils/social'
-import { createTwitterPost, finishTwitterAuthorization, refreshExpiringTwitterTokens } from '../../utils/twitter'
+import { createTwitterPost, finishTwitterAuthorization } from '../../utils/twitter'
 import { composeWebURL } from '../../utils/url'
 
 fastify.get(config.twitter.callbackURL, async (req, reply) => {
   await finishTwitterAuthorization(req).catch((error) => {
-    logger.error(error)
+    logger.error('Error while finishing Twitter authorization: %o', error)
   })
 
   reply.redirect(composeWebURL('/dashboard/profile'))
@@ -22,12 +22,13 @@ fastify.get(config.twitter.callbackURL, async (req, reply) => {
 cron.schedule('cron.twitter', '0 * * * * *', async () => {
   const twitters = await prisma.twitter.findMany({
     include: { user: true },
+    orderBy: { indexedAt: 'asc' },
     where: { user: { parentalApproval: true } },
   })
 
   for (const twitter of twitters) {
     try {
-      const twitterUser = getSocialProvider('twitter').getTwitterUser(twitter)
+      const twitterUser = await getSocialProvider('twitter').getTwitterUser(twitter)
       const twitterPosts = await twitterUser.fetchPosts(twitter.indexedAt)
 
       const indexedAt = new Date()
@@ -36,7 +37,7 @@ cron.schedule('cron.twitter', '0 * * * * *', async () => {
         await createTwitterPost(twitter, twitterPost)
           .then((post) => uploadAndAnalyzePost(post))
           .catch((error) => {
-            logger.error('Error while saving Twitter post: %s', error)
+            logger.error('Error while saving Twitter post of %s: %o', twitter.id, error)
           })
       }
 
@@ -45,11 +46,7 @@ cron.schedule('cron.twitter', '0 * * * * *', async () => {
         data: { indexedAt },
       })
     } catch (error) {
-      logger.error('Error while getting Twitter posts: %s', error)
+      logger.error('Error while getting Twitter posts of %s: %o', twitter.id, error)
     }
   }
-})
-
-cron.schedule('cron.twitter-refresh-tokens', '0 0 0 * * *', async () => {
-  await refreshExpiringTwitterTokens()
 })

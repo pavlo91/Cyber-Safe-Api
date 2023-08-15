@@ -1,6 +1,8 @@
 import { MediaType, Twitter } from '@prisma/client'
 import { Client, auth } from 'twitter-api-sdk'
 import { z } from 'zod'
+import logger from './logger'
+import prisma from './prisma'
 
 export type TwitterPost = Awaited<ReturnType<TwitterUser['fetchPosts']>>[0]
 
@@ -35,42 +37,44 @@ export class TwitterUser {
       'media.fields': ['media_key', 'url', 'type', 'width', 'height', 'duration_ms', 'variants'],
     })
 
-    return data!.map((data) => ({
-      text: data.text,
-      externalId: data.id,
-      createdAt: new Date(data.created_at!),
-      url: 'https://twitter.com/twitter/status/' + data.id,
-      media:
-        data.attachments?.media_keys?.map((id) => {
-          const media = includes?.media?.find((e) => e.media_key === id) as any
-          const variant = media.variants?.find((e: any) => e.content_type?.startsWith('video/'))
+    return (
+      data?.map((data) => ({
+        text: data.text,
+        externalId: data.id,
+        createdAt: new Date(data.created_at!),
+        url: 'https://twitter.com/twitter/status/' + data.id,
+        media:
+          data.attachments?.media_keys?.map((id) => {
+            const media = includes?.media?.find((e) => e.media_key === id) as any
+            const variant = media.variants?.find((e: any) => e.content_type?.startsWith('video/'))
 
-          let type: MediaType
-          let mime: string
+            let type: MediaType
+            let mime: string
 
-          switch (media.type) {
-            case 'animated_gif':
-            case 'video':
-              type = 'VIDEO'
-              mime = variant?.content_type ?? 'video/mp4'
-              break
-            default:
-              type = 'IMAGE'
-              mime = 'image/jpeg'
-              break
-          }
+            switch (media.type) {
+              case 'animated_gif':
+              case 'video':
+                type = 'VIDEO'
+                mime = variant?.content_type ?? 'video/mp4'
+                break
+              default:
+                type = 'IMAGE'
+                mime = 'image/jpeg'
+                break
+            }
 
-          return {
-            type,
-            mime,
-            externalId: id,
-            width: media.width ?? 0,
-            height: media.height ?? 0,
-            duration: media.duration_ms ?? 0,
-            url: media.url ?? variant?.url ?? '',
-          }
-        }) ?? [],
-    }))
+            return {
+              type,
+              mime,
+              externalId: id,
+              width: media.width ?? 0,
+              height: media.height ?? 0,
+              duration: media.duration_ms ?? 0,
+              url: media.url ?? variant?.url ?? '',
+            }
+          }) ?? [],
+      })) ?? []
+    )
   }
 
   async deletePost(id: string) {
@@ -149,7 +153,11 @@ export class TwitterProvider {
     }
   }
 
-  getTwitterUser(twitter: Twitter) {
+  async getTwitterUser(twitter: Twitter): Promise<TwitterUser> {
+    if (!twitter.twitterAccessToken) {
+      throw new Error('Twitter account has no access token')
+    }
+
     const authClient = new auth.OAuth2User({
       scopes: this.scopes,
       client_id: this.config.clientId,
@@ -162,6 +170,25 @@ export class TwitterProvider {
       },
     })
 
-    return new TwitterUser(authClient, twitter.twitterId)
+    const twitterUser = new TwitterUser(authClient, twitter.twitterId)
+
+    if (twitter.twitterTokenExpiresAt < new Date()) {
+      logger.info('Refreshing Twitter token for: %s', twitter.id)
+
+      const token = await twitterUser.refreshToken()
+
+      const newTwitter = await prisma.twitter.update({
+        where: { id: twitter.id },
+        data: {
+          twitterAccessToken: token.accessToken,
+          twitterRefreshToken: token.refreshToken,
+          twitterTokenExpiresAt: token.tokenExpiresAt,
+        },
+      })
+
+      return await this.getTwitterUser(newTwitter)
+    }
+
+    return twitterUser
   }
 }

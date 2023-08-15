@@ -73,7 +73,8 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
 
     case 'TAKE_DOWN_POST':
       if (post.twitter) {
-        await getSocialProvider('twitter').getTwitterUser(post.twitter).deletePost(post.externalId)
+        const twitterUser = await getSocialProvider('twitter').getTwitterUser(post.twitter)
+        await twitterUser.deletePost(post.externalId)
       } else if (post.facebook) {
         getSocialProvider('facebook').getFacebookUser(post.facebook).deletePost(post.externalId)
       } else if (post.instagram) {
