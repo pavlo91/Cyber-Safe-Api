@@ -3,6 +3,7 @@ import { add } from 'date-fns'
 import { stringify } from 'querystring'
 import { z } from 'zod'
 import { fetchSchema } from '../utils/fetch'
+import { sendSocialDisconnectNotification } from '../utils/notification'
 import logger from './logger'
 import prisma from './prisma'
 
@@ -264,19 +265,26 @@ export class TikTokProvider {
     if (tiktok.tiktokTokenExpiresAt < new Date()) {
       logger.info('Refreshing TikTok token for: %s', tiktok.id)
 
-      const token = await tiktokUser.refreshToken()
+      try {
+        const token = await tiktokUser.refreshToken()
 
-      const newTikTok = await prisma.tikTok.update({
-        where: { id: tiktok.id },
-        data: {
-          tiktokAccessToken: token.accessToken,
-          tiktokRefreshToken: token.refreshToken,
-          tiktokTokenExpiresAt: token.tokenExpiresAt,
-          tiktokRefreshTokenExpiresAt: token.refreshTokenExpiresAt,
-        },
-      })
+        const newTikTok = await prisma.tikTok.update({
+          where: { id: tiktok.id },
+          data: {
+            tiktokAccessToken: token.accessToken,
+            tiktokRefreshToken: token.refreshToken,
+            tiktokTokenExpiresAt: token.tokenExpiresAt,
+            tiktokRefreshTokenExpiresAt: token.refreshTokenExpiresAt,
+          },
+        })
 
-      return await this.getTikTokUser(newTikTok)
+        return await this.getTikTokUser(newTikTok)
+      } catch (error) {
+        await sendSocialDisconnectNotification({ tiktok })
+        await prisma.tikTok.delete({ where: { id: tiktok.id } })
+
+        throw error
+      }
     }
 
     return tiktokUser
