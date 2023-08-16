@@ -80,7 +80,8 @@ export async function executeAction(typeId: Actions, postId: string, userId?: st
       } else if (post.instagram) {
         getSocialProvider('instagram').getInstagramUser(post.instagram).deletePost(post.externalId)
       } else if (post.tiktok) {
-        getSocialProvider('tiktok').getTikTokUser(post.tiktok).deletePost(post.externalId)
+        const tiktokUser = await getSocialProvider('tiktok').getTikTokUser(post.tiktok)
+        tiktokUser.deletePost(post.externalId)
       }
       break
   }

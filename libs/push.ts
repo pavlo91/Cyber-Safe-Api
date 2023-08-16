@@ -24,6 +24,10 @@ class FirebasePusher implements Pusher {
   async send(token: string | string[], message: string, data?: Record<string, string>): Promise<Result> {
     const tokens = Array.isArray(token) ? token : [token]
 
+    if (tokens.length === 0) {
+      return {}
+    }
+
     const result = await this.messaging
       .sendEach(
         tokens.map((token) => ({

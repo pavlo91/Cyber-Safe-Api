@@ -3,6 +3,8 @@ import { add } from 'date-fns'
 import { stringify } from 'querystring'
 import { z } from 'zod'
 import { fetchSchema } from '../utils/fetch'
+import logger from './logger'
+import prisma from './prisma'
 
 export type TikTokPost = {
   text: string
@@ -246,10 +248,30 @@ export class TikTokProvider {
     }
   }
 
-  getTikTokUser(tiktok: TikTok) {
-    return new TikTokUser(this.config, {
+  async getTikTokUser(tiktok: TikTok): Promise<TikTokUser> {
+    const tiktokUser = new TikTokUser(this.config, {
       accessToken: tiktok.tiktokAccessToken,
       refreshToken: tiktok.tiktokRefreshToken,
     })
+
+    if (tiktok.tiktokTokenExpiresAt < new Date()) {
+      logger.info('Refreshing TikTok token for: %s', tiktok.id)
+
+      const token = await tiktokUser.refreshToken()
+
+      const newTikTok = await prisma.tikTok.update({
+        where: { id: tiktok.id },
+        data: {
+          tiktokAccessToken: token.accessToken,
+          tiktokRefreshToken: token.refreshToken,
+          tiktokTokenExpiresAt: token.tokenExpiresAt,
+          tiktokRefreshTokenExpiresAt: token.refreshTokenExpiresAt,
+        },
+      })
+
+      return await this.getTikTokUser(newTikTok)
+    }
+
+    return tiktokUser
   }
 }

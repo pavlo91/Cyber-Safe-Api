@@ -31,6 +31,8 @@ cron.schedule('cron.twitter', '0 * * * * *', async () => {
       const twitterUser = await getSocialProvider('twitter').getTwitterUser(twitter)
       const twitterPosts = await twitterUser.fetchPosts(twitter.indexedAt)
 
+      logger.info('Found %d Twitter posts of %s', twitterPosts.length, twitter.id)
+
       const indexedAt = new Date()
 
       for (const twitterPost of twitterPosts) {
