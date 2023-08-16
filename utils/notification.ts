@@ -1,4 +1,4 @@
-import { Prisma, UserRoleType } from '@prisma/client'
+import { Prisma, TikTok, Twitter, UserRoleType } from '@prisma/client'
 import prisma from '../libs/prisma'
 import pusher from '../libs/push'
 import { sendEmailTemplate } from './email'
@@ -171,4 +171,21 @@ export async function sendFlaggedPostNotification(
       )
       break
   }
+}
+
+export async function sendSocialDisconnectNotification(social: { twitter?: Twitter; tiktok?: TikTok }) {
+  const user = await prisma.user.findFirstOrThrow({
+    where: {
+      twitterId: social.twitter?.id,
+      tiktokId: social.tiktok?.id,
+    },
+  })
+
+  const socialName = social.twitter ? 'Twitter' : social.tiktok ? 'TikTok' : 'Social'
+
+  await sendNotification(user.id, {
+    title: `${socialName} disconnected`,
+    url: composeWebURL('/dashboard/student/social'),
+    body: `Your social connection to ${socialName} has been disconnected. Go to your social networks page and connect it again.`,
+  })
 }

@@ -1,6 +1,7 @@
 import { MediaType, Twitter } from '@prisma/client'
 import { Client, auth } from 'twitter-api-sdk'
 import { z } from 'zod'
+import { sendSocialDisconnectNotification } from '../utils/notification'
 import logger from './logger'
 import prisma from './prisma'
 
@@ -175,18 +176,25 @@ export class TwitterProvider {
     if (twitter.twitterTokenExpiresAt < new Date()) {
       logger.info('Refreshing Twitter token for: %s', twitter.id)
 
-      const token = await twitterUser.refreshToken()
+      try {
+        const token = await twitterUser.refreshToken()
 
-      const newTwitter = await prisma.twitter.update({
-        where: { id: twitter.id },
-        data: {
-          twitterAccessToken: token.accessToken,
-          twitterRefreshToken: token.refreshToken,
-          twitterTokenExpiresAt: token.tokenExpiresAt,
-        },
-      })
+        const newTwitter = await prisma.twitter.update({
+          where: { id: twitter.id },
+          data: {
+            twitterAccessToken: token.accessToken,
+            twitterRefreshToken: token.refreshToken,
+            twitterTokenExpiresAt: token.tokenExpiresAt,
+          },
+        })
 
-      return await this.getTwitterUser(newTwitter)
+        return await this.getTwitterUser(newTwitter)
+      } catch (error) {
+        await sendSocialDisconnectNotification({ twitter })
+        await prisma.twitter.delete({ where: { id: twitter.id } })
+
+        throw error
+      }
     }
 
     return twitterUser

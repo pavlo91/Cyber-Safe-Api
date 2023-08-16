@@ -23,7 +23,11 @@ cron.schedule('cron.twitter', '0 * * * * *', async () => {
   const twitters = await prisma.twitter.findMany({
     include: { user: true },
     orderBy: { indexedAt: 'asc' },
-    where: { user: { parentalApproval: true } },
+    where: {
+      // Ignore those with empty access token used for simulation
+      twitterAccessToken: { not: '' },
+      user: { parentalApproval: true },
+    },
   })
 
   for (const twitter of twitters) {

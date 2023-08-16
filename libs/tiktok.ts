@@ -3,6 +3,7 @@ import { add } from 'date-fns'
 import { stringify } from 'querystring'
 import { z } from 'zod'
 import { fetchSchema } from '../utils/fetch'
+import { sendSocialDisconnectNotification } from '../utils/notification'
 import logger from './logger'
 import prisma from './prisma'
 
@@ -11,17 +12,15 @@ export type TikTokPost = {
   externalId: string
   createdAt: Date
   url: string
-  media: [
-    {
-      type: 'VIDEO'
-      mime: 'video/mp4'
-      externalId: string
-      width: number
-      height: number
-      duration: number
-      url: string
-    }
-  ]
+  media: {
+    type: 'VIDEO'
+    mime: 'video/mp4'
+    externalId: string
+    width: number
+    height: number
+    duration: number
+    url: string
+  }[]
 }
 
 class TikTokUser {
@@ -140,22 +139,31 @@ class TikTokUser {
     const videos = data.videos.filter((e) => e.create_time * 1000 >= before.valueOf())
 
     for (const data of videos) {
+      const media: TikTokPost['media'] = []
+
+      // Try to parse the TikTok video url, if not import an empty media array
+      try {
+        const url = await this.parseVideoURL(data.share_url)
+
+        media.push({
+          url,
+          type: 'VIDEO',
+          mime: 'video/mp4',
+          externalId: data.id,
+          width: data.width,
+          height: data.height,
+          duration: data.duration * 1000,
+        })
+      } catch (error) {
+        logger.error('Error while parsing TikTok video url: %o', error)
+      }
+
       results.push({
+        media,
         text: data.title,
+        url: data.share_url,
         externalId: data.id,
         createdAt: new Date(data.create_time * 1000),
-        url: data.share_url,
-        media: [
-          {
-            type: 'VIDEO',
-            mime: 'video/mp4',
-            externalId: data.id,
-            width: data.width,
-            height: data.height,
-            duration: data.duration * 1000,
-            url: await this.parseVideoURL(data.share_url),
-          },
-        ],
       })
     }
 
@@ -257,19 +265,26 @@ export class TikTokProvider {
     if (tiktok.tiktokTokenExpiresAt < new Date()) {
       logger.info('Refreshing TikTok token for: %s', tiktok.id)
 
-      const token = await tiktokUser.refreshToken()
+      try {
+        const token = await tiktokUser.refreshToken()
 
-      const newTikTok = await prisma.tikTok.update({
-        where: { id: tiktok.id },
-        data: {
-          tiktokAccessToken: token.accessToken,
-          tiktokRefreshToken: token.refreshToken,
-          tiktokTokenExpiresAt: token.tokenExpiresAt,
-          tiktokRefreshTokenExpiresAt: token.refreshTokenExpiresAt,
-        },
-      })
+        const newTikTok = await prisma.tikTok.update({
+          where: { id: tiktok.id },
+          data: {
+            tiktokAccessToken: token.accessToken,
+            tiktokRefreshToken: token.refreshToken,
+            tiktokTokenExpiresAt: token.tokenExpiresAt,
+            tiktokRefreshTokenExpiresAt: token.refreshTokenExpiresAt,
+          },
+        })
 
-      return await this.getTikTokUser(newTikTok)
+        return await this.getTikTokUser(newTikTok)
+      } catch (error) {
+        await sendSocialDisconnectNotification({ tiktok })
+        await prisma.tikTok.delete({ where: { id: tiktok.id } })
+
+        throw error
+      }
     }
 
     return tiktokUser
