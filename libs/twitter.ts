@@ -30,7 +30,7 @@ export class TwitterUser {
 
     const { data, includes } = await client.tweets.usersIdTweets(this.id, {
       max_results: 100,
-      exclude: ['replies', 'retweets'],
+      exclude: ['replies'],
       start_time: before.toISOString(),
       expansions: ['attachments.media_keys'],
       'tweet.fields': ['id', 'text', 'created_at', 'attachments'],
