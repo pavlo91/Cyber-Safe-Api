@@ -11,6 +11,7 @@ const config = {
   webURL: process.env.WEB_URL ?? 'http://localhost:3000',
   enableCronJobs: process.env.ENABLE_CRON_JOBS === 'true',
   contactEmail: process.env.CONTACT_EMAIL,
+  requestAccountEmail: process.env.REQUEST_ACCOUNT_EMAIL,
   template: {
     appName: process.env.TEMPLATE_APP_NAME ?? 'CyberSafely.ai',
     apiURL: process.env.API_URL ?? 'http://localhost:3001',

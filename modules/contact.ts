@@ -45,4 +45,50 @@ pothos.mutationFields((t) => ({
       return true
     },
   }),
+  requestAccount: t.fieldWithInput({
+    type: 'Boolean',
+    input: {
+      reason: t.input.stringList(),
+      role: t.input.stringList(),
+      firstName: t.input.string(),
+      lastName: t.input.string(),
+      jobTitle: t.input.string({ required: false }),
+      email: t.input.string(),
+      phone: t.input.string({ required: false }),
+      schoolName: t.input.string(),
+      state: t.input.string(),
+      students: t.input.int(),
+      schoolType: t.input.string(),
+      comments: t.input.string({ required: false }),
+    },
+    resolve: async (obj, { input }) => {
+      if (!config.requestAccountEmail) {
+        return false
+      }
+
+      const to = config.requestAccountEmail.split(',')
+
+      sendEmailTemplate(
+        to,
+        'request-account',
+        {
+          reason: input.reason.join(', '),
+          role: input.role.join(', '),
+          firstName: input.firstName,
+          lastName: input.lastName,
+          jobTitle: input.jobTitle,
+          email: input.email,
+          phone: input.phone,
+          schoolName: input.schoolName,
+          state: input.state,
+          students: input.students,
+          schoolType: input.schoolType,
+          comments: input.comments,
+        },
+        {}
+      )
+
+      return true
+    },
+  }),
 }))

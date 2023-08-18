@@ -33,4 +33,18 @@ export type Templates = {
     describe: string
     comments: string | undefined | null
   }
+  'request-account': {
+    reason: string
+    role: string
+    firstName: string
+    lastName: string
+    jobTitle: string | undefined | null
+    email: string
+    phone: string | undefined | null
+    schoolName: string
+    state: string
+    students: number
+    schoolType: string
+    comments: string | undefined | null
+  }
 }

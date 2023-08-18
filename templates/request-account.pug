@@ -1,0 +1,40 @@
+extends _layout.pug
+
+block head
+  title Request Account Form
+
+block body
+  table(cellspacing="0", cellpadding="0")
+    tr
+      td Would you like to:
+      td #{reason}
+    tr
+      td Are you:
+      td #{role}
+    tr
+      td Name
+      td #{firstName} #{lastName}
+    tr
+      td Job Title
+      td #{jobTitle}
+    tr
+      td E-mail Address
+      td #{email}
+    tr
+      td Phone Number
+      td #{phone}
+    tr
+      td School Name
+      td #{schoolName}
+    tr
+      td State
+      td #{state}
+    tr
+      td Students
+      td #{students}
+    tr
+      td School Type
+      td #{schoolType}
+    tr
+      td Comments
+      td #{comments}
