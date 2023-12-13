@@ -73,6 +73,7 @@ model User {
   childConsent         ParentConsent[]       @relation(name: "Child")
   pendingPhoneNumbers  PendingPhoneNumbers[]
   devices              Device[]
+  Resource             Resource[]
 
   @@index([parentalApproval])
 }
@@ -406,4 +407,32 @@ model ActivityType {
   id         String     @id
   name       String
   activities Activity[]
+}
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String
+  Resources Resource[]
+}
+
+model Resource {
+  id         String   @id @default(cuid())
+  title      String
+  subTitle   String
+  url        String
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([categoryId])
+}
+
+model Room {
+  id         String   @id @default(cuid())
+  name      String
+  capacity   String
+  createdAt  DateTime @default(now())
 }
